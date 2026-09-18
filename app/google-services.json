@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "704494157236",
+    "project_id": "fundacionenid-1e373",
+    "storage_bucket": "fundacionenid-1e373.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:704494157236:android:98d231cd75019b266cc6e1",
+        "android_client_info": {
+          "package_name": "com.fundacion.enid"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDah7BnyfSt4azsr6kV333Sy-1L-09JZdQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

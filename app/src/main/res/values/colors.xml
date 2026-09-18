@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="brand_dark_blue">#0B3D6B</color>
+    <color name="brand_blue">#1565A8</color>
+    <color name="brand_light_blue">#BBD9F2</color>
+    <color name="brand_green">#1E7A46</color>
+    <color name="brand_gold">#F2B807</color>
+    <color name="brand_white">#FFFFFF</color>
+    <color name="brand_ink">#17202A</color>
+    <color name="purple_200">#FFBB86FC</color>
+    <color name="purple_500">#FF6200EE</color>
+    <color name="purple_700">#FF3700B3</color>
+    <color name="teal_200">#FF03DAC5</color>
+    <color name="teal_700">#FF018786</color>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+</resources>

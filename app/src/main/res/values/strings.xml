@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Fundación ENID</string>
+    <string name="sesion_nombre">nombre_usuario</string>
+    <string name="sesion_correo">correo_usuario</string>
+    <string name="sesion_rol">rol_usuario</string>
+</resources>
