@@ -50,6 +50,7 @@ import com.fundacion.enid.ui.theme.EnidIconBox
 import com.fundacion.enid.ui.theme.EnidInk
 import com.fundacion.enid.ui.theme.EnidPurple
 import com.fundacion.enid.ui.theme.EnidRed
+import com.fundacion.enid.ui.theme.EnidRedSoft
 import com.fundacion.enid.ui.theme.EnidTextSec
 import com.fundacion.enid.ui.theme.EnidWhite
 
@@ -251,46 +252,35 @@ fun AppScaffold(
     scrollable: Boolean = true,
     activeTab: EnidTab? = null,
     onTabNavigate: ((Screen) -> Unit)? = null,
+    header: (@Composable () -> Unit)? = null,
     content: @Composable () -> Unit
 ) {
     Column(
         modifier = Modifier.fillMaxSize().background(EnidBg).statusBarsPadding()
     ) {
-        Column(modifier = Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = 10.dp)) {
-            if (onBack != null) {
+        if (header != null) {
+            Box(modifier = Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = 10.dp)) {
+                header()
+            }
+        } else {
+            Column(modifier = Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = 10.dp)) {
+                if (brandLine != null) {
+                    Text(brandLine, color = EnidTextSec, fontSize = 11.sp)
+                }
                 Row(
-                    modifier = Modifier.clickable { onBack() },
+                    modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(
-                        imageVector = EnidIcons.VFlechaAtras,
-                        contentDescription = null,
-                        tint = EnidTextSec,
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = "Volver",
-                        color = EnidTextSec,
-                        fontSize = 14.sp
+                        text = title,
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = EnidInk,
+                        modifier = Modifier.weight(1f)
                     )
-                }
-            } else if (brandLine != null) {
-                Text(brandLine, color = EnidTextSec, fontSize = 11.sp)
-            }
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = EnidInk,
-                    modifier = Modifier.weight(1f)
-                )
-                titleEnd?.let {
-                    Text(text = it, color = titleEndColor, fontSize = 12.sp)
+                    titleEnd?.let {
+                        Text(text = it, color = titleEndColor, fontSize = 12.sp)
+                    }
                 }
             }
         }
@@ -330,15 +320,15 @@ private fun EnidBottomNav(activeTab: EnidTab, onNavigate: (Screen) -> Unit) {
                         icon = tab.icon,
                         boxSize = 34.dp,
                         iconSize = 19.dp,
-                        iconTint = if (active) EnidDarkBlue else EnidTextSec,
-                        background = if (active) EnidIconBox else EnidWhite
+                        iconTint = if (active) EnidRed else EnidTextSec,
+                        background = if (active) EnidRedSoft else EnidWhite
                     )
                     Spacer(modifier = Modifier.height(3.dp))
                     Text(
                         text = tab.label,
                         fontSize = 10.sp,
                         fontWeight = if (active) FontWeight.Bold else FontWeight.Normal,
-                        color = if (active) EnidDarkBlue else EnidTextSec
+                        color = if (active) EnidRed else EnidTextSec
                     )
                 }
             }

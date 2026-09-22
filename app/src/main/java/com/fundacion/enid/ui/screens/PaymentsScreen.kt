@@ -45,8 +45,7 @@ fun PaymentsScreen(
     onPse: () -> Unit,
     onTabNavigate: ((Screen) -> Unit)? = null
 ) {
-    val vencePronto = repository.pagos.filter { it.estado == EstadoPago.VENCE_PRONTAMENTE }
-    val porPagar = repository.pagos.filter { it.estado == EstadoPago.POR_PAGAR }
+    val venceMatricula = repository.pagos.firstOrNull { it.estado == EstadoPago.VENCE_PRONTAMENTE }
     val pagados = repository.pagos.filter { it.estado == EstadoPago.PAGADO }
 
     AppScaffold(title = "Mis Pagos", onBack = onBack, activeTab = EnidTab.PAGOS, onTabNavigate = onTabNavigate) {
@@ -66,7 +65,7 @@ fun PaymentsScreen(
                         modifier = Modifier.weight(1f)
                     )
                     Text(
-                        text = "Vence: ${vencePronto.firstOrNull()?.fechaLimite ?: ""}",
+                        text = "Vence: ${venceMatricula?.fechaLimite ?: ""}",
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
                         color = EnidRed
@@ -74,7 +73,7 @@ fun PaymentsScreen(
                 }
                 VerticalSpacer(8)
                 Text(
-                    text = "$830.000 COP",
+                    text = "$180.000 COP",
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.Bold,
                     color = EnidInk,
@@ -91,7 +90,7 @@ fun PaymentsScreen(
                 )
                 VerticalSpacer(4)
                 Text(
-                    text = "Total Pendiente: $830.000",
+                    text = "Total Pendiente: $180.000",
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold,
                     color = EnidInk
@@ -99,17 +98,9 @@ fun PaymentsScreen(
             }
         }
         VerticalSpacer(14)
-        BigButton(text = "Pagar con PSE", containerColor = EnidPurple, onClick = onPse)
+        BigButton(text = "PAGAR CON PSE", containerColor = EnidPurple, onClick = onPse)
         VerticalSpacer(24)
 
-        SectionTitle("Pendientes")
-        VerticalSpacer(6)
-        (vencePronto + porPagar).forEach { pago ->
-            PaymentRow(pago)
-            VerticalSpacer(8)
-        }
-
-        VerticalSpacer(18)
         SectionTitle("Historial de Pagos")
         VerticalSpacer(6)
         pagados.forEach { pago ->
@@ -144,7 +135,11 @@ private fun PaymentRow(pago: PaymentNotice) {
                 )
                 VerticalSpacer(2)
                 Text(
-                    text = "${pago.monto} · Vence: ${pago.fechaLimite}",
+                    text = if (pago.estado == EstadoPago.PAGADO) {
+                        "Pagado el ${pago.fechaLimite} · ${pago.monto}"
+                    } else {
+                        "${pago.monto} · Vence: ${pago.fechaLimite}"
+                    },
                     fontSize = 12.sp,
                     color = EnidTextSec
                 )

@@ -23,7 +23,8 @@ data class User(
 enum class TipoPrograma(val etiqueta: String) {
     TECNICO("Programa Técnico"),
     DIPLOMADO("Diplomado"),
-    CURSO("Curso")
+    CURSO("Curso"),
+    SEMINARIO("Seminario")
 }
 
 data class Program(
@@ -35,7 +36,8 @@ data class Program(
     val modalidad: String,
     val pensum: List<String>,
     val perfilOcupacional: String,
-    val sedes: List<String>
+    val sedes: List<String>,
+    val campoLaboral: List<String> = emptyList()
 )
 
 // ---------- Requerimiento 05: Sedes ----------

@@ -2,7 +2,6 @@ package com.fundacion.enid
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
@@ -37,10 +36,6 @@ fun AppEntry() {
 
     val nav = remember {
         NavController(if (repository.estaConectado) Screen.Home else Screen.Welcome)
-    }
-
-    BackHandler(enabled = nav.puedeRetroceder) {
-        nav.retroceder()
     }
 
     AppRoot(

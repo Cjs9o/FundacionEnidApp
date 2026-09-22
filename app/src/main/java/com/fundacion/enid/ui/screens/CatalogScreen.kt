@@ -45,7 +45,8 @@ private val FILTROS = listOf(
     Filtro("Todos", null),
     Filtro("Técnicos", TipoPrograma.TECNICO),
     Filtro("Cursos", TipoPrograma.CURSO),
-    Filtro("Diplomados", TipoPrograma.DIPLOMADO)
+    Filtro("Diplomados", TipoPrograma.DIPLOMADO),
+    Filtro("Seminarios", TipoPrograma.SEMINARIO)
 )
 
 @Composable

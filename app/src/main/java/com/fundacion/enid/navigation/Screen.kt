@@ -4,7 +4,6 @@ sealed class Screen {
     // Flujo pre-login
     data object Welcome : Screen()
     data object Login : Screen()
-    data object Register : Screen()
 
     // Menú principal e institucional
     data object Home : Screen()

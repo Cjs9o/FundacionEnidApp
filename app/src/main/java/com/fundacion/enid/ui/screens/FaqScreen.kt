@@ -32,6 +32,7 @@ import com.fundacion.enid.navigation.Screen
 import com.fundacion.enid.model.FaqItem
 import com.fundacion.enid.ui.components.AppScaffold
 import com.fundacion.enid.ui.components.BigButton
+import com.fundacion.enid.ui.components.BigOutlinedButton
 import com.fundacion.enid.ui.components.EnidIcons
 import com.fundacion.enid.ui.components.EnidTab
 import com.fundacion.enid.ui.components.VerticalSpacer
@@ -116,6 +117,12 @@ fun FaqScreen(
             icon = EnidIcons.VWhatsApp,
             onClick = { abrirWhatsApp(context) }
         )
+        VerticalSpacer(8)
+        BigOutlinedButton(
+            text = "Visita www.enid.edu.co",
+            icon = EnidIcons.VExterno,
+            onClick = { abrirPaginaWeb(context) }
+        )
     }
 }
 
@@ -123,6 +130,14 @@ private fun abrirWhatsApp(context: Context) {
     val numero = DataRepository.WHATSAPP_NUMERO
     val mensaje = Uri.encode("Hola, quisiera recibir más información sobre la Fundación ENID.")
     val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://wa.me/$numero?text=$mensaje"))
+    try {
+        context.startActivity(intent)
+    } catch (_: Exception) {
+    }
+}
+
+private fun abrirPaginaWeb(context: Context) {
+    val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://www.enid.edu.co"))
     try {
         context.startActivity(intent)
     } catch (_: Exception) {

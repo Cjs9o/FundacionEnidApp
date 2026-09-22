@@ -31,7 +31,6 @@ import com.fundacion.enid.data.DataRepository
 import com.fundacion.enid.navigation.Screen
 import com.fundacion.enid.ui.components.AppScaffold
 import com.fundacion.enid.ui.components.BigButton
-import com.fundacion.enid.ui.components.BigOutlinedButton
 import com.fundacion.enid.ui.components.EnidIcons
 import com.fundacion.enid.ui.components.EnidIconBox
 import com.fundacion.enid.ui.components.EnidTab
@@ -78,8 +77,9 @@ fun PlatformScreen(
                 )
                 VerticalSpacer(8)
                 Text(
-                    text = "Accede a tus lecciones, videos grabados y calificaciones mediante " +
-                        "un portal de forma sencilla. La plataforma abrirá una ventana nueva y segura.",
+                    text = "Accede a tus lecciones, videos grabados y cuestionarios " +
+                        "virtuales de forma sencilla. Esta plataforma abrirá una " +
+                        "ventana nueva y segura.",
                     style = MaterialTheme.typography.bodyMedium,
                     color = EnidTextSec,
                     textAlign = TextAlign.Center,
@@ -114,17 +114,10 @@ fun PlatformScreen(
             icon = EnidIcons.VExterno,
             onClick = { abrirPlataforma(context) }
         )
-        VerticalSpacer(10)
-        BigOutlinedButton(
-            text = "Volver al Inicio",
-            borderColor = EnidBorderSoft,
-            contentColor = EnidInk,
-            onClick = onGoHome
-        )
-        VerticalSpacer(8)
+        VerticalSpacer(20)
         Text(
-            text = "Si presentas dificultades de acceso, contáctanos en la línea " +
-                "de soporte o por WhatsApp.",
+            text = "Si presentas dificultades de acceso, contáctanos por el canal de " +
+                "soporte de la Fundación.",
             style = MaterialTheme.typography.bodyMedium,
             color = EnidTextSec
         )

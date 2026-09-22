@@ -160,7 +160,7 @@ private fun SlotCard(slot: ClassSlot) {
                 )
                 VerticalSpacer(2)
                 Text(
-                    text = "Docente: ${slot.docente} · ${slot.aula}",
+                    text = "Profe: ${slot.docente} · ${slot.aula}",
                     fontSize = 12.sp,
                     color = EnidTextSec
                 )

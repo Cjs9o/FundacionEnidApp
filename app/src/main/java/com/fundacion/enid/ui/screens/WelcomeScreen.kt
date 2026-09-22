@@ -23,17 +23,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.fundacion.enid.R
 import com.fundacion.enid.ui.components.BigButton
+import com.fundacion.enid.ui.components.BigOutlinedButton
 import com.fundacion.enid.ui.components.VerticalSpacer
 import com.fundacion.enid.ui.theme.EnidBg
-import com.fundacion.enid.ui.theme.EnidDarkBlue
 import com.fundacion.enid.ui.theme.EnidInk
-import com.fundacion.enid.ui.theme.EnidRed
 import com.fundacion.enid.ui.theme.EnidTextSec
 
 @Composable
 fun WelcomeScreen(
     onLogin: () -> Unit,
-    onRegister: () -> Unit
+    onGuest: () -> Unit
 ) {
     Box(
         modifier = Modifier.fillMaxSize().background(EnidBg),
@@ -69,7 +68,7 @@ fun WelcomeScreen(
             Spacer(modifier = Modifier.height(40.dp))
             BigButton(text = "Iniciar Sesión", onClick = onLogin)
             Spacer(modifier = Modifier.height(14.dp))
-            BigButton(text = "Registrarse", containerColor = EnidRed, onClick = onRegister)
+            BigOutlinedButton(text = "Ingresar Como Invitado", onClick = onGuest)
         }
     }
 }

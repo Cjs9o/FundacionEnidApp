@@ -125,7 +125,7 @@ fun ProgramDetailScreen(
                 }
                 VerticalSpacer(12)
                 Text(
-                    text = "Perfil Ocupacional",
+                    text = "Perfil Laboral",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = EnidInk
@@ -136,6 +136,20 @@ fun ProgramDetailScreen(
                     style = MaterialTheme.typography.bodyMedium,
                     color = EnidTextSec
                 )
+                if (programa.campoLaboral.isNotEmpty()) {
+                    VerticalSpacer(14)
+                    Text(
+                        text = "Campo Laboral",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = EnidInk
+                    )
+                    VerticalSpacer(6)
+                    programa.campoLaboral.forEach { campo ->
+                        Text("•  $campo", style = MaterialTheme.typography.bodyMedium, color = EnidInk)
+                        VerticalSpacer(5)
+                    }
+                }
             }
 
             DetalleTab.REQUISITOS -> {
