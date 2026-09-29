@@ -375,3 +375,27 @@ Añadidos permisos explícitos en `AndroidManifest.xml` (ya disponibles en debug
 - **Resultado:** ✅ ÉXITO — `BUILD SUCCESSFUL`. `ProgramFinderTest`: **5 pruebas, 0 fallos**;
   `ExampleUnitTest`: 1/1.
 
+## 29 Sep — Fase 2: los dos caminos y el asesor permanente
+
+| Acción | Detalle | Estado |
+|---|---|---|
+| Camino A / B | El Home ahora se **parte en dos** según haya sesión o no: `HomeScreen` (camino A, "soy estudiante") y el nuevo `ProspectHomeScreen` (camino B, "quiero estudiar en ENID"). El invitado ya no entra a un Home de módulos que no puede usar. | Hecho |
+| Recorrido del prospecto | Nuevo `DataRepository.rutaProspecto`: los **10 pasos** que pidió el cliente (Conocer ENID → Explorar programas → Elegir programa → Recibir información → Hablar con asesor → Preinscripción → Documentos → Matrícula → Pago → Bienvenida) se muestran como tarjetas numeradas. | Hecho |
+| Honestidad del recorrido | Los pasos que la app **no puede resolver sola** (asesor, preinscripción formal, documentos, matrícula) se marcan `enSede = true` y muestran la etiqueta "con asesor" en lugar de un enlace que no cumpliría. Los que sí tienen pantalla enlizan: Sedes, Catálogo, Orientador, Preinscripción, Pagos y Plataforma. | Hecho |
+| Home como herramienta de venta | El invitado avanza por el proceso **sin crear cuenta**: botón destacado *¿Qué puedo estudiar?*, atajos a "Ver programas" y "Dejar mis datos", y tarjeta "¿Ya eres estudiante ENID?" que devuelve al login. | Hecho |
+| Asesor permanente (req. 04) | Nueva `AsesorBar` fija sobre la barra de navegación, activada con `mostrarAsesor = true` en los **dos** Homes. El asesor ya no vive escondido en un menú. | Hecho |
+| Mensaje del asesor | `EnlacesExternos.MENSAJE_ASESOR` queda escrito de antemano ("Hola, soy interesado en estudiar en ENID..."), para que la conversación empiece con el contexto ya dado. | Hecho |
+| `SectionTitle` | Ahora admite subtítulo opcional, sin romper los usos existentes. | Hecho |
+
+### Prueba de compilación #17 (Fase 2)
+- **Comando:** `./gradlew :app:compileDebugKotlin --offline`
+- **Resultado:** ❌ 2 errores → `AsesorBar` usaba `EnidIcons.VAsesor`, que no existe en
+  `EnidIcons`, y `abrirAsesor` exigía el parámetro `mensaje`.
+- **Corregido:** se usa `EnidIcons.VTelfLocal` y `mensaje` pasa a tener valor por defecto
+  `MENSAJE_ASESOR`.
+
+### Prueba de compilación #18 (Fase 2)
+- **Comando:** `./gradlew :app:compileDebugKotlin --offline`
+- **Resultado:** ✅ ÉXITO — `BUILD SUCCESSFUL`. Guest y estudiante entran ya por caminos distintos.
+
+

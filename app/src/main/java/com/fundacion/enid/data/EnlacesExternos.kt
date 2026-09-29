@@ -19,6 +19,10 @@ object EnlacesExternos {
 
     private const val TAG = "EnlacesENID"
 
+    /** Mensaje por defecto del botón de asesor. */
+    const val MENSAJE_ASESOR =
+        "Hola, soy interesado en estudiar en ENID. ¿Me pueden orientar?"
+
     /**
      * Interruptor de acciones externas. En `true` se comportan como botones normales.
      * Durante las pruebas se deja en `false` para no abrir ninguna app del teléfono.
@@ -32,7 +36,7 @@ object EnlacesExternos {
     }
 
     /** "Hablar con un asesor": WhatsApp con el mensaje ya escrito. */
-    fun abrirAsesor(context: Context, mensaje: String) {
+    fun abrirAsesor(context: Context, mensaje: String = MENSAJE_ASESOR) {
         abrirWhatsApp(context, DataRepository.WHATSAPP_NUMERO, mensaje)
     }
 

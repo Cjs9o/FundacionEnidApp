@@ -9,6 +9,7 @@ import com.fundacion.enid.model.FaqItem
 import com.fundacion.enid.model.PaymentNotice
 import com.fundacion.enid.model.Preinscripcion
 import com.fundacion.enid.model.Program
+import com.fundacion.enid.model.RutaStep
 import com.fundacion.enid.model.Rol
 import com.fundacion.enid.model.Sede
 import com.fundacion.enid.model.SubjectPlan
@@ -366,6 +367,27 @@ class DataRepository(context: Context) {
             val coincideArea = area == null || programa.area == area
             coincideTexto && coincideTipo && coincideArea
         }
+
+    /**
+     * Requerimiento 02: camino B ("Quiero estudiar en ENID").
+     * Es la ruta que ve la persona que aún no está inscrita. Se muestra como
+     * lista de pasos en el Home del invitado para que quede claro qué sigue
+     * después de tomar la decisión. Los pasos que dependen del asesor o se
+     * resuelven en sede se marcan con [RutaStep.enSede] en vez de prometer una
+     * pantalla que la app no tiene.
+     */
+    val rutaProspecto: List<RutaStep> = listOf(
+        RutaStep(1, "Conocer ENID", "Conoce la Fundación, su misión y dónde encontrarnos.", "Locations"),
+        RutaStep(2, "Explorar programas", "Revisa los 67 programas técnicos y complementarios.", "Catalog"),
+        RutaStep(3, "Elegir programa", "Responde 5 preguntas y te sugerimos los programas para ti.", "ProgramFinder"),
+        RutaStep(4, "Recibir información", "Déjanos tus datos y te contactamos con la información del programa.", "Preinscription"),
+        RutaStep(5, "Hablar con un asesor", "Un asesor ENID te acompaña para resolver dudas del proceso.", enSede = true),
+        RutaStep(6, "Completar la preinscripción", "Formalizas tu interés y dejas listo tu proceso de admisión.", enSede = true),
+        RutaStep(7, "Entregar documentos", "Los documentos se validan con el asesor, en sede o por el canal que él indique.", enSede = true),
+        RutaStep(8, "Realizar la matrícula", "Proceso de matrícula para activos y nuevos admitidos.", enSede = true),
+        RutaStep(9, "Realizar el pago", "Consulta tus pagos y pendientes desde la app.", "Payments"),
+        RutaStep(10, "¡Bienvenido a ENID!", "Accede a la plataforma, al horario y al soporte.", "Platform")
+    )
 
     val sedes: List<Sede> = listOf(
         Sede(

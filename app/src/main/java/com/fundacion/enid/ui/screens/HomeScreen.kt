@@ -72,6 +72,7 @@ fun HomeScreen(
         brandLine = null,
         activeTab = EnidTab.INICIO,
         onTabNavigate = onTabNavigate,
+        mostrarAsesor = true,
         header = {
             Box(
                 modifier = Modifier

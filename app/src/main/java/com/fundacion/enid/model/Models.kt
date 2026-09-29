@@ -111,3 +111,17 @@ data class Preinscripcion(
     val programa: String,
     val fecha: String
 )
+
+// ---------- Captación: recorrido del prospecto (camino "Quiero estudiar en ENID") ----------
+/**
+ * Un paso del camino B. [pantalla] es la pantalla de la app que resuelve el paso
+ * cuando existe; los pasos que se resuelven con el asesor o en sede se marcan
+ * con [enSede] para no prometer algo que la app no hace.
+ */
+data class RutaStep(
+    val numero: Int,
+    val titulo: String,
+    val detalle: String,
+    val pantalla: String? = null,
+    val enSede: Boolean = false
+)

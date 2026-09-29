@@ -7,6 +7,7 @@ sealed class Screen {
 
     // Menú principal e institucional
     data object Home : Screen()
+    data object ProspectHome : Screen()
     data object Catalog : Screen()
     data class ProgramDetail(val programId: Int) : Screen()
     data object ProgramFinder : Screen()

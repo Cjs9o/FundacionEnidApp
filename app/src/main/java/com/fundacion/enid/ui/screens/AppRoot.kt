@@ -34,7 +34,7 @@ fun AppRoot(
     when (val pantalla = nav.current) {
         is Screen.Welcome -> WelcomeScreen(
             onLogin = { nav.navegar(Screen.Login) },
-            onGuest = { nav.reemplazarTodo(Screen.Home) }
+            onGuest = { nav.reemplazarTodo(Screen.ProspectHome) }
         )
 
         is Screen.Login -> AuthScreen(
@@ -43,7 +43,7 @@ fun AppRoot(
                 nav.reemplazarTodo(Screen.Home)
                 onSessionChanged()
             },
-            onGuest = { nav.reemplazarTodo(Screen.Home) },
+            onGuest = { nav.reemplazarTodo(Screen.ProspectHome) },
             onBack = { nav.retroceder() }
         )
 
@@ -51,6 +51,12 @@ fun AppRoot(
             repository = repository,
             onNavigate = { nav.navegar(it) },
             onTabNavigate = onTabNavigate
+        )
+
+        is Screen.ProspectHome -> ProspectHomeScreen(
+            repository = repository,
+            onNavigate = { nav.navegar(it) },
+            onIrAInicio = { nav.reemplazarTodo(Screen.Welcome) }
         )
 
         is Screen.Catalog -> CatalogScreen(

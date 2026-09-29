@@ -29,6 +29,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -37,15 +38,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.fundacion.enid.data.EnlacesExternos
 import com.fundacion.enid.navigation.Screen
 import com.fundacion.enid.ui.theme.EnidBg
 import com.fundacion.enid.ui.theme.EnidBorderSoft
 import com.fundacion.enid.ui.theme.EnidDarkBlue
+import com.fundacion.enid.ui.theme.EnidGold
 import com.fundacion.enid.ui.theme.EnidIconBox
 import com.fundacion.enid.ui.theme.EnidInk
 import com.fundacion.enid.ui.theme.EnidPurple
@@ -204,7 +208,7 @@ fun BigTextField(
 
 // ── Section title ─────────────────────────────────────────────────────────────
 @Composable
-fun SectionTitle(text: String) {
+fun SectionTitle(text: String, subtitulo: String? = null) {
     Text(
         text = text.uppercase(),
         style = MaterialTheme.typography.titleSmall,
@@ -212,6 +216,14 @@ fun SectionTitle(text: String) {
         color = EnidInk,
         letterSpacing = 0.5.sp
     )
+    if (subtitulo != null) {
+        Text(
+            text = subtitulo,
+            style = MaterialTheme.typography.bodySmall,
+            color = EnidTextSec,
+            modifier = Modifier.padding(top = 2.dp)
+        )
+    }
 }
 
 // ── Card ──────────────────────────────────────────────────────────────────────
@@ -260,6 +272,7 @@ fun AppScaffold(
     activeTab: EnidTab? = null,
     onTabNavigate: ((Screen) -> Unit)? = null,
     header: (@Composable () -> Unit)? = null,
+    mostrarAsesor: Boolean = false,
     content: @Composable () -> Unit
 ) {
     Column(
@@ -303,8 +316,65 @@ fun AppScaffold(
             ) { content() }
         }
 
+        if (mostrarAsesor) {
+            // Requerimiento 04: el asesor queda siempre visible, no escondido en un menú.
+            AsesorBar()
+        }
+
         if (activeTab != null && onTabNavigate != null) {
             EnidBottomNav(activeTab = activeTab, onNavigate = onTabNavigate)
+        }
+    }
+}
+
+/**
+ * Barra fija del asesor (Requerimiento 04: "asesor permanente").
+ * Se apoya en [EnlacesExternos], que está deshabilitado durante las pruebas,
+ * así que la barra es visible y segura incluso sin abrir apps externas.
+ */
+@Composable
+fun AsesorBar(modifier: Modifier = Modifier) {
+    val context = LocalContext.current
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        color = EnidDarkBlue
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            EnidIconBox(
+                icon = EnidIcons.VTelfLocal,
+                boxSize = 36.dp,
+                iconSize = 20.dp,
+                iconTint = EnidGold,
+                background = EnidWhite.copy(alpha = 0.12f)
+            )
+            Column(modifier = Modifier.weight(1f).padding(start = 10.dp)) {
+                Text(
+                    text = "Hablar con un asesor ENID",
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = EnidWhite
+                )
+                Text(
+                    text = "Te orientamos en el programa y en el proceso de admisión",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = EnidWhite.copy(alpha = 0.75f)
+                )
+            }
+            Text(
+                text = "Contactar",
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Bold,
+                color = EnidGold,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(8.dp))
+                    .clickable { EnlacesExternos.abrirAsesor(context) }
+                    .padding(horizontal = 8.dp, vertical = 6.dp)
+            )
         }
     }
 }
