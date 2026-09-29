@@ -12,12 +12,18 @@ horarios, etc.).
 
 ## Estado
 
-Última iteración (18 Sep): corregidas las **11 fallas de la app detectadas en runtime**
-(BackHandler, intents de llamada/ubicación/WhatsApp/plataforma/PSE, barra inferior con
-iconos, reemplazo total de emojis por iconos vectoriales, campo "Documento" en la
-preinscripción, filtro del horario por día real, barra de acento del horario y el
-duplicado "Aula Aula"). Detalle en [BITACORA.md](BITACORA.md) → *Corrección de fallas
-detectadas en runtime y decoración de iconos*.
+**Última iteración: 22 Sep** — actualización integral del catálogo con el
+**Portafolio ENID 2026**: 67 programas (25 técnicos laborales, 11 cursos, 30 diplomados,
+2 seminarios), cada uno con perfil profesional, perfil laboral y competencias. Se eliminó
+el registro de usuarios y ahora la bienvenida ofrece **Iniciar Sesión** o
+**Ingresar como Invitado**; el menú de Inicio cambia según haya sesión o no.
+
+**En curso (29 Sep):** plan de captación aprobado en 4 fases — oferta académica potente
+y botón "¿Qué puedo estudiar?", recorrido del prospecto en dos caminos, módulo de
+promociones y testimonios, y seguimiento de interesados. Ver
+[PLANDESARROLLO.md](PLANDESARROLLO.md) → *Plan de captación*.
+
+Detalle histórico de las 13 pruebas de compilación y correcciones: [BITACORA.md](BITACORA.md).
 
 ## Documentación del proyecto
 

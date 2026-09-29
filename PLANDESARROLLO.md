@@ -92,6 +92,27 @@ navegación sencilla.
 
 ---
 
+## Plan de captación (fases 7 a 10) — aprobado 29 Sep 2026
+
+Objetivo: pasar de una app centrada en el estudiante a una app que **capta prospectos**
+y los lleva hasta la matrícula, manteniendo los 12 módulos y la accesibilidad 60+.
+
+| Fase | Nombre | Alcance |
+|---|---|---|
+| 7 | Oferta académica potente | Detalle completo por programa (modalidad, duración, perfil ocupacional, qué aprenderás, plan de estudios, sedes) + botones "Quiero estudiar este programa", "Hablar con un asesor" y WhatsApp + botón "¿Qué puedo estudiar?" (5 preguntas de orientación) |
+| 8 | Recorrido del prospecto | Home con dos caminos: **A. Soy estudiante** (Inicio → Clases → Horario → Pagos → Soporte) y **B. Quiero estudiar en ENID** (Conocer → Explorar → Elegir → Información → Asesor → Preinscripción → Documentos → Matrícula → Pago → Bienvenida). El invitado deja datos y se preinscribe. Botón permanente "Habla con un asesor". |
+| 9 | Promociones y testimonios | Módulo "Promociones y oportunidades" (becas, convocatorias, próximos inicios, Facilidades de pago, matrículas abiertas) editable desde un solo lugar, y "Historias ENID" con testimonios de estudiantes y graduados |
+| 10 | Seguimiento de interesados | Estados: Interesado → Contactado → Información enviada → Preinscrito → Documentos → Matrícula pendiente → Matriculado |
+
+> **Decisión:** No se añaden aún valor de matrícula, próxima fecha de inicio, horarios
+> disponibles ni formas de pago (el portafolio y la web no los publican). Queda pendiente.
+>
+> **Restricción de pruebas:** no se abre ninguna app externa (llamadas, páginas web,
+> PSE/bancario, WhatsApp, correos) durante las pruebas en dispositivo.
+
+
+---
+
 ## Entorno de compilación (offline)
 
 | Componente | Versión / Ruta |

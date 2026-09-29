@@ -309,3 +309,37 @@ Añadidos permisos explícitos en `AndroidManifest.xml` (ya disponibles en debug
 > **Pendiente:** intents de Llamar/Cómo Llegar/WhatsApp/Plataforma/PSE no se probaron
 > visualmente en esta iteración (el usuario solicitó no abrir apps externas por el momento);
 > quedan verificados por código compilado.
+
+## 22 Sep — Actualización integral del catálogo y la experiencia (Portafolio ENID 2026)
+
+> Esta iteración (commit `62d4ab6`, "update 22/9/2026") **no había quedado documentada** en
+> la bitácora; se registra ahora con base en el diff y el código actual.
+
+| Acción | Detalle | Estado |
+|---|---|---|
+| Catálogo ampliado | `DataRepository.programas` reescrito con el **Portafolio ENID 2026** (`PORTAFOLIO ENID.pdf`, 35 págs.): **25 técnicos laborales** + **11 cursos** + **30 diplomados** + **2 seminarios** = **67 programas**, cada uno con perfil profesional, perfil laboral/campo laboral y competencias. | Hecho |
+| Modelos | `TipoPrograma` agrega `SEMINARIO`; `Program` agrega `campoLaboral: List<String>`. | Hecho |
+| Flujo de invitado | Se eliminó la pantalla de **Registro** (`Screen.Register`) y la pestaña "Registrarse" de `AuthScreen`. Ahora la bienvenida ofrece **Iniciar Sesión** e **Ingresar como Invitado** (`WelcomeScreen` → "Aprender no tiene edad"). | Hecho |
+| Home por sesión | `HomeScreen` muestra 4 accesos distintos si hay sesión (Mis Clases, Pagos, Plataforma Educativa, Mi Cuenta) o si es invitado (Oferta Académica, Información Institucional, Preinscripción, Contáctanos). | Hecho |
+| Sedes | `LocationsScreen` agrega bloque institucional: estadísticas (25+ años, +22 programas, +9000 graduados, 3 zonas), misión y visión 2030. Sedes: Chía, Sopó y Girardot. | Hecho |
+| Navegación | `BackHandler` se movió de `MainActivity` a `AppRoot`; el tab "Inicio" usa `reemplazarTodo`. | Hecho |
+| Autenticación | `AuthScreen` simplificada (solo Login + Invitado); Firebase Auth con respaldo local sigue en `DataRepository`. | Hecho |
+| Logo | `drawable/logo_enid.png` (horizontal) usado en el encabezado del Home. | Hecho |
+
+## 29 Sep — Puesta al día de la bitácora y plan de nuevas funciones (Fase 0)
+
+| Acción | Detalle | Estado |
+|---|---|---|
+| Documentación del 22/9 | Se registra la iteración anterior (arriba), que faltaba. | Hecho |
+| Fuente de contenido | `PORTAFOLIO ENID.pdf` (35 págs., 18 MB) se usa como fuente del catálogo y se contrasta con el sitio `https://enid.edu.co/`. Se deja **sin versionar** por tamaño, salvo que el usuario decida incluirlo. | Hecho |
+| Imagen sin versionar | `docs/imagenes/image11.jpeg` (logo horizontal 802×145) queda incorporada al control de versiones. | Hecho |
+| Restricción de pruebas | Durante las pruebas **no se abrirá nada externo** (marcador/llamadas, páginas web, PSE/bancario, WhatsApp ni correos). Se mantiene. | Hecho |
+| Decisión de datos | **No** se añadirán aún valor de matrícula, próxima fecha de inicio, horarios disponibles ni formas de pago: el portafolio y la web no los publican. Queda como pendiente hasta tener datos oficiales. | Pendiente |
+
+### Pendientes (se mantienen para evitar conflictos)
+
+- **Intents externos sin prueba visual:** Llamar / Cómo Llegar / WhatsApp / Plataforma / PSE
+  siguen verificados solo por código compilado (no se probaron abriendo apps externas).
+- **Datos por confirmar:** matrícula, próxima fecha de inicio, horarios y formas de pago
+  (no se agregan hasta contar con información oficial).
+- **Contenido de captación aprobado (por implementar en fases):** ver *Fases 1–4* más abajo.
