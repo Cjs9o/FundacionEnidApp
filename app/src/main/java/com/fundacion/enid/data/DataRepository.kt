@@ -9,7 +9,9 @@ import com.fundacion.enid.model.FaqItem
 import com.fundacion.enid.model.PaymentNotice
 import com.fundacion.enid.model.Preinscripcion
 import com.fundacion.enid.model.Program
+import com.fundacion.enid.model.Promocion
 import com.fundacion.enid.model.RutaStep
+import com.fundacion.enid.model.Testimonio
 import com.fundacion.enid.model.Rol
 import com.fundacion.enid.model.Sede
 import com.fundacion.enid.model.SubjectPlan
@@ -367,6 +369,24 @@ class DataRepository(context: Context) {
             val coincideArea = area == null || programa.area == area
             coincideTexto && coincideTipo && coincideArea
         }
+
+    /**
+     * Requerimiento 05: promociones y beneficios.
+     *
+     * Se deja **vacía a propósito**. Publicar un porcentaje, una fecha límite o una
+     * alianza que ENID no ha confirmado sería inventar una condición comercial, y eso
+     * se pierde en cuanto el beneficiario pregunta. La pantalla y los modelos ya
+     * están listos: seLlena con los datos oficiales y aparece en el Home sin más cambios.
+     */
+    val promociones: List<Promocion> = emptyList()
+
+    /**
+     * Requerimiento 06: testimonios de estudiantes.
+     *
+     * También vacía por el mismo motivo que [promociones]: no se inventan nombres ni
+     * citas de personas que no han dado su testimonio.
+     */
+    val testimonios: List<Testimonio> = emptyList()
 
     /**
      * Requerimiento 02: camino B ("Quiero estudiar en ENID").

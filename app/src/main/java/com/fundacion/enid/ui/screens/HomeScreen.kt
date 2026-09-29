@@ -27,6 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -34,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.fundacion.enid.R
 import com.fundacion.enid.data.DataRepository
+import com.fundacion.enid.data.EnlacesExternos
 import com.fundacion.enid.navigation.Screen
 import com.fundacion.enid.ui.components.AppScaffold
 import com.fundacion.enid.ui.components.EnidIcons
@@ -66,6 +68,7 @@ fun HomeScreen(
     val usuario = repository.currentUser
     val conectado = usuario != null
     val nombre = usuario?.nombre ?: "Invitado"
+    val context = LocalContext.current
 
     AppScaffold(
         title = "",
@@ -185,6 +188,16 @@ fun HomeScreen(
             SecondaryLink(EnidIcons.VCalculadora, "Calculadora de Beneficios") { onNavigate(Screen.Benefits) }
             SecondaryLink(EnidIcons.VPerfil, "Mi Perfil") { onNavigate(Screen.Profile) }
         }
+        VerticalSpacer(24)
+
+        // Promociones y testimonios también para el estudiante: puede verLAS y,
+        // si le interesa algo nuevo, preinscribirse a otro programa.
+        PromocionesTestimoniosSection(
+            promociones = repository.promociones,
+            testimonios = repository.testimonios,
+            onHablarAsesor = { EnlacesExternos.abrirAsesor(context) },
+            onDejarDatos = { onNavigate(Screen.Preinscription(null)) }
+        )
         VerticalSpacer(24)
     }
 }

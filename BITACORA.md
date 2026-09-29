@@ -398,4 +398,20 @@ Añadidos permisos explícitos en `AndroidManifest.xml` (ya disponibles en debug
 - **Comando:** `./gradlew :app:compileDebugKotlin --offline`
 - **Resultado:** ✅ ÉXITO — `BUILD SUCCESSFUL`. Guest y estudiante entran ya por caminos distintos.
 
+## 29 Sep — Fase 3: promociones y testimonios (req. 05 y 06)
+
+| Acción | Detalle | Estado |
+|---|---|---|
+| Modelos | `Promocion` (titulo, detalle, vigencia, tipo DESCUENTO/ALIANZA/CONVOCATORIA/OPORTUNIDAD, destacada) y `Testimonio` (nombre, programa, cita). | Hecho |
+| Sección compartida | Nueva `CommunitySections.kt` con `PromocionesTestimoniosSection`, usada en los **dos** Homes. Tarjetas de promoción con etiqueta de tipo y vigencia, y tarjetas de testimonio con la cita y su autor. | Hecho |
+| Datos **dejados vacíos** | `DataRepository.promociones` y `.testimonios` arrancan en `emptyList()`. **No se inventó ninguna promoción ni ningún testimonio**: un descuento o una cita falsa se cae en cuanto el interesado pregunta. | Hecho |
+| Estado vacío útil | Mientras no haya contenido, la sección lo dice claro ("Contenido en preparación") y **convierte el espacio en captura**: botón "Quiero recibir las promociones" (deja sus datos) y "Hablar con un asesor". | Hecho |
+| Carga futura | Llenar `DataRepository.promociones` / `.testimonios` con los datos oficiales hace que las tarjetas aparezcan **sin tocar ninguna pantalla**. | Hecho |
+
+### Prueba de compilación #19 (Fase 3)
+- **Comando:** `./gradlew :app:compileDebugKotlin --offline`
+- **Resultado:** ✅ ÉXITO — `BUILD SUCCESSFUL`. Sección de promociones y testimonios
+  compilando en `ProspectHomeScreen` y `HomeScreen`.
+
+
 

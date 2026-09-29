@@ -20,10 +20,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.fundacion.enid.data.DataRepository
+import com.fundacion.enid.data.EnlacesExternos
 import com.fundacion.enid.model.RutaStep
 import com.fundacion.enid.navigation.Screen
 import com.fundacion.enid.ui.components.AppScaffold
@@ -60,6 +62,7 @@ fun ProspectHomeScreen(
     onIrAInicio: () -> Unit
 ) {
     val ruta = repository.rutaProspecto
+    val context = LocalContext.current
 
     AppScaffold(
         title = "Quiero estudiar en ENID",
@@ -170,6 +173,16 @@ fun ProspectHomeScreen(
             }
 
             VerticalSpacer(18)
+
+            // ── Promociones y testimonios (req. 05 y 06) ──────────────────
+            PromocionesTestimoniosSection(
+                promociones = repository.promociones,
+                testimonios = repository.testimonios,
+                onHablarAsesor = { EnlacesExternos.abrirAsesor(context) },
+                onDejarDatos = { onNavigate(Screen.Preinscription(null)) }
+            )
+
+            VerticalSpacer(20)
 
             // ── Enlaces institucionales ────────────────────────────────────
             SectionTitle("Conoce ENID", "Sedes, preguntas frecuentes y contacto.")

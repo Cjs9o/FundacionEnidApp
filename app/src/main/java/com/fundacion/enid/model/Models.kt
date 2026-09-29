@@ -112,6 +112,38 @@ data class Preinscripcion(
     val fecha: String
 )
 
+// ---------- Captación: promociones y testimonios (requerimientos 05 y 06) ----------
+enum class TipoPromocion { DESCUENTO, ALIANZA, CONVOCATORIA, OPORTUNIDAD }
+
+/**
+ * Promoción o beneficio de la Fundación.
+ *
+ * Las listas de [com.fundacion.enid.data.DataRepository.promociones] arrancan
+ * **vacías a propósito**: una promoción con fecha, porcentaje o condición inventada
+ * es una afirmación comercial falsa. La app ya muestra el contenido y el advisor
+ * solo tiene que agregar los datos oficiales.
+ */
+data class Promocion(
+    val titulo: String,
+    val detalle: String,
+    val vigencia: String,
+    val tipo: TipoPromocion,
+    val destacada: Boolean = false
+)
+
+/**
+ * Testimonio de estudiante.
+ *
+ * Igual que [Promocion], no se inventan citas ni nombres: la lista arranca vacía
+ * y se llena con los testimonios que entregue la Fundación.
+ */
+data class Testimonio(
+    val nombre: String,
+    val programa: String,
+    val cita: String,
+    val destacada: Boolean = false
+)
+
 // ---------- Captación: recorrido del prospecto (camino "Quiero estudiar en ENID") ----------
 /**
  * Un paso del camino B. [pantalla] es la pantalla de la app que resuelve el paso
