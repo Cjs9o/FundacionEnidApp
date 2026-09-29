@@ -27,14 +27,28 @@ enum class TipoPrograma(val etiqueta: String) {
     SEMINARIO("Seminario")
 }
 
+/** Áreas temáticas: agrupar la oferta y alimentar el orientador "¿Qué puedo estudiar?". */
+enum class Area(val etiqueta: String) {
+    ADMINISTRACION("Administración y gestión"),
+    SISTEMAS("Sistemas y tecnología"),
+    MARKETING("Marketing y ventas"),
+    PERSONAS("Personas, educación y salud"),
+    TURISMO("Turismo y hotelería"),
+    AMBIENTE("Medio ambiente y sostenibilidad"),
+    ARTE("Arte, comunicación y audiovisual"),
+    LEGAL("Legal, justicia y gestión documental"),
+    OPERATIVOS("Operaciones, logística y servicios")
+}
+
 data class Program(
     val id: Int,
     val nombre: String,
     val tipo: TipoPrograma,
+    val area: Area,
     val descripcion: String,
     val duracion: String,
     val modalidad: String,
-    val pensum: List<String>,
+    val competencias: List<String>,
     val perfilOcupacional: String,
     val sedes: List<String>,
     val campoLaboral: List<String> = emptyList()

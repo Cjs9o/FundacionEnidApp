@@ -147,6 +147,7 @@ fun SmallButton(
     modifier: Modifier = Modifier,
     containerColor: Color = EnidRed,
     contentColor: Color = EnidWhite,
+    icon: ImageVector? = null,
     onClick: () -> Unit
 ) {
     Button(
@@ -159,7 +160,13 @@ fun SmallButton(
         shape = RoundedCornerShape(8.dp),
         elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp)
     ) {
-        Text(text = text, style = MaterialTheme.typography.labelMedium)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            icon?.let {
+                Icon(it, contentDescription = null, tint = contentColor, modifier = Modifier.size(15.dp))
+                Spacer(modifier = Modifier.width(5.dp))
+            }
+            Text(text = text, style = MaterialTheme.typography.labelMedium)
+        }
     }
 }
 

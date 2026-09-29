@@ -1,6 +1,7 @@
 package com.fundacion.enid.ui.screens
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Column
@@ -22,18 +23,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.fundacion.enid.data.DataRepository
-import com.fundacion.enid.navigation.Screen
+import com.fundacion.enid.model.Area
 import com.fundacion.enid.model.Program
 import com.fundacion.enid.model.TipoPrograma
+import com.fundacion.enid.navigation.Screen
 import com.fundacion.enid.ui.components.AppScaffold
 import com.fundacion.enid.ui.components.BigTextField
+import com.fundacion.enid.ui.components.EnidIcons
 import com.fundacion.enid.ui.components.EnidTab
 import com.fundacion.enid.ui.components.SmallButton
 import com.fundacion.enid.ui.components.VerticalSpacer
 import com.fundacion.enid.ui.theme.EnidBorderSoft
 import com.fundacion.enid.ui.theme.EnidDarkBlue
+import com.fundacion.enid.ui.theme.EnidGold
 import com.fundacion.enid.ui.theme.EnidInk
 import com.fundacion.enid.ui.theme.EnidRed
 import com.fundacion.enid.ui.theme.EnidTextSec
@@ -49,62 +52,122 @@ private val FILTROS = listOf(
     Filtro("Seminarios", TipoPrograma.SEMINARIO)
 )
 
+/**
+ * "Oferta académica": no solo buscar, sino **explorar y decidir**. Encima del buscador
+ * está el orientador "¿Qué puedo estudiar?" y debajo los filtros por tipo y por área.
+ */
 @Composable
 fun CatalogScreen(
     repository: DataRepository,
     onBack: () -> Unit,
     onOpenProgram: (Int) -> Unit,
+    onOpenFinder: () -> Unit = {},
     onTabNavigate: ((Screen) -> Unit)? = null
 ) {
     var consulta by remember { mutableStateOf("") }
     var filtro by remember { mutableStateOf<Filtro>(FILTROS[0]) }
+    var area by remember { mutableStateOf<Area?>(null) }
 
-    val lista = repository.programas.filter { programa ->
-        val coincideTexto = consulta.isBlank() ||
-            programa.nombre.contains(consulta, ignoreCase = true) ||
-            programa.descripcion.contains(consulta, ignoreCase = true)
-        val coincideFiltro = filtro.tipo == null || programa.tipo == filtro.tipo
-        coincideTexto && coincideFiltro
-    }
+    val lista = repository.buscarProgramas(consulta, filtro.tipo, area)
 
     AppScaffold(title = "Oferta Académica", activeTab = EnidTab.INICIO, onTabNavigate = onTabNavigate) {
+        Text(
+            text = "Encuentra tu programa ideal",
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+            color = EnidInk
+        )
+        VerticalSpacer(4)
+        Text(
+            text = "Responde 5 preguntas y te mostramos los programas que mejor se ajustan a tus intereses.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = EnidTextSec
+        )
+        VerticalSpacer(12)
+        Card(
+            modifier = Modifier.fillMaxWidth().clickable { onOpenFinder() },
+            shape = RoundedCornerShape(10.dp),
+            colors = CardDefaults.cardColors(containerColor = EnidWhite),
+            border = BorderStroke(1.5.dp, EnidRed)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(14.dp),
+                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "¿Qué puedo estudiar?",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = EnidRed,
+                    modifier = Modifier.weight(1f)
+                )
+                Text(
+                    text = "Comenzar",
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = EnidWhite,
+                    modifier = Modifier
+                        .background(EnidRed, RoundedCornerShape(8.dp))
+                        .padding(horizontal = 14.dp, vertical = 9.dp)
+                )
+            }
+        }
+        VerticalSpacer(16)
+
         BigTextField(
             value = consulta,
             onValueChange = { consulta = it },
             label = "",
-            placeholder = "\uD83D\uDD0D  Buscar programas..."
+            placeholder = "Buscar programas..."
         )
         VerticalSpacer(12)
 
-        // Filtros (guía SVG: chips redondeados)
+        // Filtros por tipo
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .horizontalScroll(rememberScrollState())
         ) {
             FILTROS.forEach { f ->
-                val selected = filtro == f
-                Card(
-                    modifier = Modifier
-                        .padding(end = 8.dp)
-                        .clickable { filtro = f },
-                    shape = RoundedCornerShape(12.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = if (selected) EnidDarkBlue else EnidWhite,
-                        contentColor = if (selected) EnidWhite else EnidInk
-                    ),
-                    border = BorderStroke(1.5.dp, if (selected) EnidDarkBlue else EnidBorderSoft)
-                ) {
-                    Text(
-                        text = f.label,
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 7.dp)
-                    )
-                }
+                ChipFiltro(
+                    texto = f.label,
+                    seleccionado = filtro == f,
+                    seleccionadoFondo = EnidDarkBlue,
+                    onClick = { filtro = f }
+                )
+            }
+        }
+        VerticalSpacer(10)
+
+        // Filtros por área
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState())
+        ) {
+            ChipFiltro(
+                texto = "Todas las áreas",
+                seleccionado = area == null,
+                seleccionadoFondo = EnidRed,
+                onClick = { area = null }
+            )
+            Area.entries.forEach { a ->
+                ChipFiltro(
+                    texto = a.etiqueta,
+                    seleccionado = area == a,
+                    seleccionadoFondo = EnidRed,
+                    onClick = { area = if (area == a) null else a }
+                )
             }
         }
         VerticalSpacer(14)
+
+        Text(
+            text = "${lista.size} programa${if (lista.size == 1) "" else "s"} encontrado${if (lista.size == 1) "" else "s"}",
+            style = MaterialTheme.typography.bodySmall,
+            color = EnidTextSec
+        )
+        VerticalSpacer(8)
 
         if (lista.isEmpty()) {
             Text(
@@ -118,6 +181,33 @@ fun CatalogScreen(
             CourseCard(programa = programa) { onOpenProgram(programa.id) }
             VerticalSpacer(12)
         }
+    }
+}
+
+@Composable
+private fun ChipFiltro(
+    texto: String,
+    seleccionado: Boolean,
+    seleccionadoFondo: Color,
+    onClick: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .padding(end = 8.dp)
+            .clickable { onClick() },
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = if (seleccionado) seleccionadoFondo else EnidWhite,
+            contentColor = if (seleccionado) EnidWhite else EnidInk
+        ),
+        border = BorderStroke(1.5.dp, if (seleccionado) seleccionadoFondo else EnidBorderSoft)
+    ) {
+        Text(
+            text = texto,
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 7.dp)
+        )
     }
 }
 
@@ -138,10 +228,22 @@ private fun CourseCard(programa: Program, onClick: () -> Unit) {
             )
             VerticalSpacer(4)
             Text(
-                text = "${programa.duracion} · Sede ${programa.sedes.joinToString(", ")}",
+                text = programa.tipo.etiqueta + " · " + programa.duracion,
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.Bold,
                 color = EnidRed
+            )
+            VerticalSpacer(2)
+            Text(
+                text = "${programa.modalidad} · Sede ${programa.sedes.joinToString(", ")}",
+                style = MaterialTheme.typography.bodySmall,
+                color = EnidTextSec
+            )
+            VerticalSpacer(4)
+            Text(
+                text = programa.area.etiqueta,
+                style = MaterialTheme.typography.labelMedium,
+                color = EnidGold
             )
             VerticalSpacer(6)
             Text(
@@ -154,7 +256,7 @@ private fun CourseCard(programa: Program, onClick: () -> Unit) {
             Row(modifier = Modifier.fillMaxWidth()) {
                 SmallButton(
                     text = "Ver Más",
-                    modifier = Modifier.padding(end = 0.dp),
+                    icon = EnidIcons.VFlechaAdelante,
                     onClick = onClick
                 )
             }

@@ -3,12 +3,16 @@ package com.fundacion.enid.ui.screens
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -49,6 +53,7 @@ import com.fundacion.enid.ui.theme.EnidWhite
 fun PreinscriptionScreen(
     repository: DataRepository,
     onBack: () -> Unit,
+    programaId: Int? = null,
     onTabNavigate: ((Screen) -> Unit)? = null
 ) {
     var paso by remember { mutableStateOf(1) }
@@ -56,8 +61,13 @@ fun PreinscriptionScreen(
     var telefono by remember { mutableStateOf("") }
     var correo by remember { mutableStateOf(repository.currentUser?.correo ?: "") }
     var documento by remember { mutableStateOf("") }
+    var busquedaPrograma by remember { mutableStateOf("") }
     var programaSeleccionado by remember {
-        mutableStateOf(repository.programas.firstOrNull()?.nombre ?: "")
+        mutableStateOf(
+            repository.programas.firstOrNull { it.id == programaId }?.nombre
+                ?: repository.programas.firstOrNull()?.nombre
+                ?: ""
+        )
     }
     var mostrarProgramas by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
@@ -207,31 +217,58 @@ fun PreinscriptionScreen(
                     colors = CardDefaults.cardColors(containerColor = EnidWhite),
                     border = BorderStroke(1.5.dp, EnidBorderSoft)
                 ) {
-                    Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)) {
-                        repository.programas.forEach { programa ->
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable {
-                                        programaSeleccionado = programa.nombre
-                                        mostrarProgramas = false
+                    Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp)) {
+                        BigTextField(
+                            value = busquedaPrograma,
+                            onValueChange = { busquedaPrograma = it },
+                            label = "",
+                            placeholder = "Buscar entre los 67 programas..."
+                        )
+                        VerticalSpacer(8)
+                        val filtrados = repository.buscarProgramas(busquedaPrograma, null, null)
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(max = 240.dp)
+                                .verticalScroll(rememberScrollState())
+                        ) {
+                            Column {
+                                filtrados.forEach { programa ->
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clickable {
+                                                programaSeleccionado = programa.nombre
+                                                mostrarProgramas = false
+                                                busquedaPrograma = ""
+                                            }
+                                            .padding(vertical = 6.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        RadioButton(
+                                            selected = programaSeleccionado == programa.nombre,
+                                            onClick = {
+                                                programaSeleccionado = programa.nombre
+                                                mostrarProgramas = false
+                                                busquedaPrograma = ""
+                                            },
+                                            colors = RadioButtonDefaults.colors(selectedColor = EnidRed)
+                                        )
+                                        Text(
+                                            text = programa.nombre,
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            modifier = Modifier.padding(start = 6.dp)
+                                        )
                                     }
-                                    .padding(vertical = 6.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                RadioButton(
-                                    selected = programaSeleccionado == programa.nombre,
-                                    onClick = {
-                                        programaSeleccionado = programa.nombre
-                                        mostrarProgramas = false
-                                    },
-                                    colors = RadioButtonDefaults.colors(selectedColor = EnidRed)
-                                )
-                                Text(
-                                    text = programa.nombre,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    modifier = Modifier.padding(start = 6.dp)
-                                )
+                                }
+                                if (filtrados.isEmpty()) {
+                                    Text(
+                                        text = "No se encontraron programas.",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = EnidTextSec,
+                                        modifier = Modifier.padding(vertical = 8.dp)
+                                    )
+                                }
                             }
                         }
                     }

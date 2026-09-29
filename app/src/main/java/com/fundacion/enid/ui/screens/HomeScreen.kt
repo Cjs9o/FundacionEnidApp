@@ -166,7 +166,7 @@ fun HomeScreen(
             }
             VerticalSpacer(12)
             Row(modifier = Modifier.fillMaxWidth()) {
-                MenuCard(EnidIcons.VPreinscripcion, "Preinscripción", EnidChipDoneText, EnidGreenSoft, { onNavigate(Screen.Preinscription) }, Modifier.weight(1f))
+                MenuCard(EnidIcons.VPreinscripcion, "Preinscripción", EnidChipDoneText, EnidGreenSoft, { onNavigate(Screen.Preinscription(null)) }, Modifier.weight(1f))
                 Spacer(modifier = Modifier.width(12.dp))
                 MenuCard(EnidIcons.VWhatsApp, "Contáctanos", EnidGold, EnidGoldSoft, { onNavigate(Screen.Faq) }, Modifier.weight(1f))
             }
@@ -180,7 +180,7 @@ fun HomeScreen(
         SecondaryLink(EnidIcons.VExterno, "Plataforma Educativa") { onNavigate(Screen.Platform) }
         if (conectado) {
             SecondaryLink(EnidIcons.VOferta, "Oferta Académica") { onNavigate(Screen.Catalog) }
-            SecondaryLink(EnidIcons.VPreinscripcion, "Preinscripción") { onNavigate(Screen.Preinscription) }
+            SecondaryLink(EnidIcons.VPreinscripcion, "Preinscripción") { onNavigate(Screen.Preinscription(null)) }
             SecondaryLink(EnidIcons.VCalculadora, "Calculadora de Beneficios") { onNavigate(Screen.Benefits) }
             SecondaryLink(EnidIcons.VPerfil, "Mi Perfil") { onNavigate(Screen.Profile) }
         }

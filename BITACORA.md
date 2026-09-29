@@ -343,3 +343,35 @@ Añadidos permisos explícitos en `AndroidManifest.xml` (ya disponibles en debug
 - **Datos por confirmar:** matrícula, próxima fecha de inicio, horarios y formas de pago
   (no se agregan hasta contar con información oficial).
 - **Contenido de captación aprobado (por implementar en fases):** ver *Fases 1–4* más abajo.
+
+## 29 Sep — Fase 1: Oferta académica potente + orientador "¿Qué puedo estudiar?"
+
+| Acción | Detalle | Estado |
+|---|---|---|
+| Áreas temáticas | Nuevo enum `Area` (9 áreas) y campo `Program.area`. Los **67 programas** se clasificaron **explícitamente** (no por heurística, que fallaba en casos como "Ecosistemas"→Sistemas o "Turística" sin tilde). | Hecho |
+| Modelo `Program` | `pensum` → `competencias` (son las competencias del Portafolio, no el pensum). Se conserva duración, modalidad, sedes, perfil y campo laboral. | Hecho |
+| Consultas del catálogo | `DataRepository.buscarProgramas(consulta, tipo, area)` busca también en el perfil ocupacional. Se agregan `programasTecnicos` y `programasComplementarios`. | Hecho |
+| Oferta académica | `CatalogScreen` reescrito: encabezado "Encuentra tu programa ideal", botón destacado **¿Qué puedo estudiar?**, buscador, filtros por **tipo** y por **área**, contador de resultados y tarjeta con tipo · duración · modalidad · sedes · área. | Hecho |
+| Detalle de programa | `ProgramDetailScreen` reescrito en 3 pestañas: **Información** (modalidad, duración, sedes, descripción, perfil ocupacional, campo laboral), **¿Qué aprenderás?** (plan de estudios con las competencias numeradas; en complementarios, aviso con llamada al asesor) y **Requisitos**. Cierra con 3 CTA: **Quiero estudiar este programa**, **Hablar con un asesor** y **Escribir por WhatsApp**. | Hecho |
+| Orientador | Nuevo `data/ProgramFinder.kt` con 5 preguntas y puntuación por área, tipo y campo laboral. Nueva pantalla `ProgramFinderScreen` con progreso, resultado "N programas para mí", CTA de asesor, preinscripción y repetición. | Hecho |
+| Enlaces externos | Nuevo `data/EnlacesExternos.kt`: **todo** lo que sale de la app (WhatsApp, asesor, teléfono, mapa, web, PSE) pasa por un solo punto con interruptor `habilitados`, que está en `false` para **respetar la restricción de pruebas**. | Hecho |
+| Preinscripción | `Screen.Preinscription(programaId)` recibe el programa elegido; el selector ahora tiene buscador y lista con scroll (67 programas ya no se desbordaban). | Hecho |
+| Pruebas | Nuevo `ProgramFinderTest` (5 pruebas unitarias): interés en tecnología, respuesta neutra, filtro por campo laboral, sin respuestas y estructura del cuestionario. **5/5 OK**. | Hecho |
+
+### Prueba de compilación #14 (Fase 1)
+- **Comando:** `./gradlew :app:compileDebugKotlin --offline`
+- **Resultado:** ❌ 1 error → `EnidTab` sin importar en `ProgramFinderScreen.kt`.
+- **Corregido:** import añadido.
+
+### Prueba de compilación #15 (Fase 1)
+- **Comando:** `./gradlew :app:compileDebugKotlin --offline`
+- **Resultado:** ❌ 4 errores → `Screen.Preinscription` pasó de `data object` a `data class`, así que
+  `Screen.Preinscription` ya no era una expresión en `HomeScreen.kt` (líneas 169 y 183).
+- **Corregido:** `Screen.Preinscription(null)` en los dos accesos del Home.
+
+### Prueba de compilación #16 (Fase 1 + pruebas unitarias)
+- **Comandos:** `./gradlew :app:compileDebugKotlin --offline` y
+  `./gradlew :app:testDebugUnitTest --offline --rerun-tasks`
+- **Resultado:** ✅ ÉXITO — `BUILD SUCCESSFUL`. `ProgramFinderTest`: **5 pruebas, 0 fallos**;
+  `ExampleUnitTest`: 1/1.
+

@@ -57,6 +57,7 @@ fun AppRoot(
             repository = repository,
             onBack = { nav.retroceder() },
             onOpenProgram = { id -> nav.navegar(Screen.ProgramDetail(id)) },
+            onOpenFinder = { nav.navegar(Screen.ProgramFinder) },
             onTabNavigate = onTabNavigate
         )
 
@@ -64,7 +65,15 @@ fun AppRoot(
             programId = pantalla.programId,
             repository = repository,
             onBack = { nav.retroceder() },
-            onPreinscription = { nav.navegar(Screen.Preinscription) },
+            onPreinscription = { id -> nav.navegar(Screen.Preinscription(id)) },
+            onTabNavigate = onTabNavigate
+        )
+
+        is Screen.ProgramFinder -> ProgramFinderScreen(
+            repository = repository,
+            onBack = { nav.retroceder() },
+            onOpenProgram = { id -> nav.navegar(Screen.ProgramDetail(id)) },
+            onPreinscription = { id -> nav.navegar(Screen.Preinscription(id)) },
             onTabNavigate = onTabNavigate
         )
 
@@ -92,6 +101,7 @@ fun AppRoot(
 
         is Screen.Preinscription -> PreinscriptionScreen(
             repository = repository,
+            programaId = pantalla.programaId,
             onBack = { nav.retroceder() },
             onTabNavigate = onTabNavigate
         )

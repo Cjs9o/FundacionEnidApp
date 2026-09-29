@@ -9,12 +9,13 @@ sealed class Screen {
     data object Home : Screen()
     data object Catalog : Screen()
     data class ProgramDetail(val programId: Int) : Screen()
+    data object ProgramFinder : Screen()
     data object Locations : Screen()
     data object Faq : Screen()
     data object Profile : Screen()
 
     // Módulos de estudiante
-    data object Preinscription : Screen()
+    data class Preinscription(val programaId: Int? = null) : Screen()
     data object DailySchedule : Screen()
     data object Payments : Screen()
     data object Benefits : Screen()
