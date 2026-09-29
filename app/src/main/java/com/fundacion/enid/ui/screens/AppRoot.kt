@@ -24,10 +24,17 @@ fun AppRoot(
     // Tabs de la barra inferior con historial real: al retroceder desde una
     // sección se vuelve a la pantalla anterior (y, en último término, a Inicio).
     // El tab "Inicio" reinicia la pila a la raíz.
+    //
+    // "Inicio" depende de la sesión: el invitado vuelve a su propio Home
+    // (camino B) y el estudiante al suyo (camino A). Sin esto, el invitado que
+    // abría el catálogo desde la barra terminaba en el Home de estudiante.
+    val inicioDelUsuario: Screen =
+        if (repository.estaConectado) Screen.Home else Screen.ProspectHome
     val onTabNavigate: (Screen) -> Unit = { destino ->
-        if (destino != nav.current) {
-            if (destino == Screen.Home) nav.reemplazarTodo(Screen.Home)
-            else nav.navegar(destino)
+        val real = if (destino == Screen.Home) inicioDelUsuario else destino
+        if (real != nav.current) {
+            if (real == inicioDelUsuario) nav.reemplazarTodo(real)
+            else nav.navegar(real)
         }
     }
 
@@ -80,6 +87,16 @@ fun AppRoot(
             onBack = { nav.retroceder() },
             onOpenProgram = { id -> nav.navegar(Screen.ProgramDetail(id)) },
             onPreinscription = { id -> nav.navegar(Screen.Preinscription(id)) },
+            onTabNavigate = onTabNavigate
+        )
+
+        is Screen.Intereses -> InteresesScreen(
+            repository = repository,
+            onBack = { nav.retroceder() },
+            onOpenProgram = { id -> nav.navegar(Screen.ProgramDetail(id)) },
+            onPreinscription = { id ->
+                if (id == null) nav.navegar(Screen.Catalog) else nav.navegar(Screen.Preinscription(id))
+            },
             onTabNavigate = onTabNavigate
         )
 

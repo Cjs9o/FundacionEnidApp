@@ -32,6 +32,7 @@ import com.fundacion.enid.ui.components.AppScaffold
 import com.fundacion.enid.ui.components.BigTextField
 import com.fundacion.enid.ui.components.EnidIcons
 import com.fundacion.enid.ui.components.EnidTab
+import com.fundacion.enid.ui.components.tabsSegunSesion
 import com.fundacion.enid.ui.components.SmallButton
 import com.fundacion.enid.ui.components.VerticalSpacer
 import com.fundacion.enid.ui.theme.EnidBorderSoft
@@ -70,7 +71,12 @@ fun CatalogScreen(
 
     val lista = repository.buscarProgramas(consulta, filtro.tipo, area)
 
-    AppScaffold(title = "Oferta Académica", activeTab = EnidTab.INICIO, onTabNavigate = onTabNavigate) {
+    AppScaffold(
+        title = "Oferta Académica",
+        activeTab = EnidTab.INICIO,
+        onTabNavigate = onTabNavigate,
+        tabs = tabsSegunSesion(repository.estaConectado)
+    ) {
         Text(
             text = "Encuentra tu programa ideal",
             style = MaterialTheme.typography.titleLarge,

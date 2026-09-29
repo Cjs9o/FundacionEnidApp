@@ -35,6 +35,7 @@ import com.fundacion.enid.ui.components.BigButton
 import com.fundacion.enid.ui.components.BigOutlinedButton
 import com.fundacion.enid.ui.components.EnidIcons
 import com.fundacion.enid.ui.components.EnidTab
+import com.fundacion.enid.ui.components.tabsSegunSesion
 import com.fundacion.enid.ui.components.VerticalSpacer
 import com.fundacion.enid.ui.theme.EnidBorderSoft
 import com.fundacion.enid.ui.theme.EnidGreen
@@ -72,7 +73,13 @@ fun FaqScreen(
     var abierta by remember { mutableStateOf<String?>(null) }
     val context = LocalContext.current
 
-    AppScaffold(title = "Preguntas Frecuentes", onBack = onBack, activeTab = EnidTab.SOPORTE, onTabNavigate = onTabNavigate) {
+    AppScaffold(
+        title = "Preguntas Frecuentes",
+        onBack = onBack,
+        activeTab = EnidTab.SOPORTE,
+        onTabNavigate = onTabNavigate,
+        tabs = tabsSegunSesion(repository.estaConectado)
+    ) {
         Text(
             text = "Resolvemos tus dudas rápidamente",
             style = MaterialTheme.typography.bodyMedium,

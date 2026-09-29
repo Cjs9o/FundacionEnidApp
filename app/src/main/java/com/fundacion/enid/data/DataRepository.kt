@@ -633,6 +633,48 @@ class DataRepository(context: Context) {
     }
 
     // --------------------------------------------------------------------
+    // Requerimiento 08: seguimiento de interesados
+    // Guarda los programas que la persona marcó como "me interesa", para poder
+    // lembrarle su decisión y mostrarle el resumen con los siguientes pasos.
+    // --------------------------------------------------------------------
+    fun registrarInteres(programaId: Int) {
+        val actuales = prefs.getStringSet(KEY_INTERESES, null)?.toMutableSet() ?: mutableSetOf()
+        if (actuales.add(programaId.toString())) {
+            prefs.edit().putStringSet(KEY_INTERESES, actuales).apply()
+        }
+    }
+
+    fun quitarInteres(programaId: Int) {
+        val actuales = prefs.getStringSet(KEY_INTERESES, null)?.toMutableSet() ?: return
+        if (actuales.remove(programaId.toString())) {
+            prefs.edit().putStringSet(KEY_INTERESES, actuales).apply()
+        }
+    }
+
+    fun esInteres(programaId: Int): Boolean =
+        prefs.getStringSet(KEY_INTERESES, null)?.contains(programaId.toString()) == true
+
+    /** Programas marcados como "me interesa", en el orden en que se guardaron. */
+    fun consultarIntereses(): List<Program> {
+        val guardados = prefs.getStringSet(KEY_INTERESES, null) ?: return emptyList()
+        return programas.filter { guardados.contains(it.id.toString()) }
+    }
+
+    /**
+     * Siguiente paso pendiente de un interesado: si ya dejó preinscripción, se
+     * guide al asesor; si no, a completar la preinscripción. Es el "qué hago ahora"
+     * que pedía el requerimiento 08.
+     */
+    fun siguientePaso(programa: String?): String {
+        val tienePreinscripcion = consultarPreinscripciones().any { it.programa == programa }
+        return if (tienePreinscripcion) {
+            "Ya dejaste tu preinscripción. El siguiente paso es hablar con un asesor para revisar tu proceso."
+        } else {
+            "Te interesa este programa. El siguiente paso es dejar tu información para que te contactemos."
+        }
+    }
+
+    // --------------------------------------------------------------------
     // Requerimiento 03: Preinscripciones
     // Formato por línea: nombre|documento|correo|telefono|programa|fecha
     // --------------------------------------------------------------------
@@ -707,6 +749,7 @@ class DataRepository(context: Context) {
         private const val KEY_CORREO = "correo"
         private const val KEY_ROL = "rol"
         private const val KEY_PREINSC = "preinscripciones"
+        private const val KEY_INTERESES = "intereses"
         private const val KEY_USUARIOS = "usuarios"
 
         /** URL de la plataforma educativa (Requerimiento 12). Reemplazar si cambia. */

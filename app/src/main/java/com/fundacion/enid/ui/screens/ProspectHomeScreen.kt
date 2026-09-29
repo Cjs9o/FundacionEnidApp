@@ -63,6 +63,8 @@ fun ProspectHomeScreen(
 ) {
     val ruta = repository.rutaProspecto
     val context = LocalContext.current
+    // Requerimiento 08: recordatorio del programa que le interesa.
+    val primerInteres = repository.consultarIntereses().firstOrNull()
 
     AppScaffold(
         title = "Quiero estudiar en ENID",
@@ -85,7 +87,7 @@ fun ProspectHomeScreen(
                     )
                     VerticalSpacer(6)
                     Text(
-                        text = "Técnicos y complementarios conTitulación SENA. " +
+                        text = "Técnicos y complementarios con Titulación SENA. " +
                             "Te mostramos el camino completo para que decidas con claridad.",
                         style = MaterialTheme.typography.bodyMedium,
                         color = EnidWhite.copy(alpha = 0.85f)
@@ -101,6 +103,15 @@ fun ProspectHomeScreen(
             }
 
             VerticalSpacer(22)
+
+            // Recordatorio: solo si ya guardó algún programa.
+            if (primerInteres != null) {
+                RecordatorioInteres(
+                    nombrePrograma = primerInteres.nombre,
+                    paso = repository.siguientePaso(primerInteres.nombre),
+                    onVerResumen = { onNavigate(Screen.Intereses) }
+                )
+            }
 
             // ── Paso a paso ────────────────────────────────────────────────
             SectionTitle("Tu camino para estudiar en ENID", "Cada paso es tuyo. Puedes empezar sin crear cuenta.")

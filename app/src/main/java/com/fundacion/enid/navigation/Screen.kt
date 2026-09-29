@@ -11,6 +11,7 @@ sealed class Screen {
     data object Catalog : Screen()
     data class ProgramDetail(val programId: Int) : Screen()
     data object ProgramFinder : Screen()
+    data object Intereses : Screen()
     data object Locations : Screen()
     data object Faq : Screen()
     data object Profile : Screen()

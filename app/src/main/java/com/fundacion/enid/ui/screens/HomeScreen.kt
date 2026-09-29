@@ -69,6 +69,8 @@ fun HomeScreen(
     val conectado = usuario != null
     val nombre = usuario?.nombre ?: "Invitado"
     val context = LocalContext.current
+    // Requerimiento 08: recordatorio del programa que le interesa.
+    val primerInteres = repository.consultarIntereses().firstOrNull()
 
     AppScaffold(
         title = "",
@@ -177,6 +179,16 @@ fun HomeScreen(
         }
 
         VerticalSpacer(28)
+
+        // Recordatorio: solo si ya guardó algún programa (req. 08).
+        if (primerInteres != null) {
+            RecordatorioInteres(
+                nombrePrograma = primerInteres.nombre,
+                paso = repository.siguientePaso(primerInteres.nombre),
+                onVerResumen = { onNavigate(Screen.Intereses) }
+            )
+        }
+
         SectionTitle("Más servicios")
         VerticalSpacer(8)
         SecondaryLink(EnidIcons.VSedes, "Sedes y Contacto") { onNavigate(Screen.Locations) }

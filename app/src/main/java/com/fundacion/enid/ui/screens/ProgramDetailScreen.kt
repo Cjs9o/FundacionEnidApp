@@ -33,6 +33,7 @@ import com.fundacion.enid.ui.components.BigButton
 import com.fundacion.enid.ui.components.BigOutlinedButton
 import com.fundacion.enid.ui.components.EnidIcons
 import com.fundacion.enid.ui.components.EnidTab
+import com.fundacion.enid.ui.components.tabsSegunSesion
 import com.fundacion.enid.ui.components.SectionTitle
 import com.fundacion.enid.ui.components.VerticalSpacer
 import com.fundacion.enid.ui.theme.EnidBorderSoft
@@ -74,6 +75,8 @@ fun ProgramDetailScreen(
     val programa = repository.programas.firstOrNull { it.id == programId }
     val context = LocalContext.current
     var tab by remember { mutableStateOf(DetalleTab.INFO) }
+    // El interés se relee en cada recomposición: el botón refleja el estado real.
+    var interesado by remember { mutableStateOf(programId != 0 && repository.esInteres(programId)) }
 
     if (programa == null) {
         AppScaffold(title = "Detalle del Curso", onBack = onBack) {
@@ -90,7 +93,8 @@ fun ProgramDetailScreen(
         title = "Detalle del Programa",
         onBack = onBack,
         activeTab = EnidTab.INICIO,
-        onTabNavigate = onTabNavigate
+        onTabNavigate = onTabNavigate,
+        tabs = tabsSegunSesion(repository.estaConectado)
     ) {
         Text(
             text = programa.nombre,
@@ -144,6 +148,23 @@ fun ProgramDetailScreen(
         VerticalSpacer(26)
 
         // ── Llamadas a la acción ────────────────────────────────────────────
+        // Requerimiento 08: guardar el interés es lo que permite después
+        // recordarle a la persona qué eligió y cuál es el siguiente paso.
+        BigOutlinedButton(
+            text = if (interesado) "Guardado en mis interesados" else "Me interesa este programa",
+            borderColor = if (interesado) EnidGreen else EnidRed,
+            contentColor = if (interesado) EnidGreen else EnidRed,
+            icon = if (interesado) EnidIcons.VOkCirculo else EnidIcons.VAgregar,
+            onClick = {
+                if (interesado) {
+                    repository.quitarInteres(programa.id)
+                } else {
+                    repository.registrarInteres(programa.id)
+                }
+                interesado = repository.esInteres(programa.id)
+            }
+        )
+        VerticalSpacer(10)
         BigButton(
             text = "Quiero estudiar este programa",
             containerColor = EnidRed,

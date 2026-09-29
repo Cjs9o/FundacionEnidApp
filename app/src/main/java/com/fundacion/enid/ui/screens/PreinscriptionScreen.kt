@@ -41,6 +41,7 @@ import com.fundacion.enid.ui.components.EnidIcons
 import com.fundacion.enid.ui.components.EnidTab
 import com.fundacion.enid.ui.components.HorizontalSpacer
 import com.fundacion.enid.ui.components.VerticalSpacer
+import com.fundacion.enid.ui.components.tabsSegunSesion
 import com.fundacion.enid.ui.theme.EnidBorderSoft
 import com.fundacion.enid.ui.theme.EnidDarkBlue
 import com.fundacion.enid.ui.theme.EnidGreen
@@ -102,7 +103,8 @@ fun PreinscriptionScreen(
         titleEnd = "Paso $paso de 2",
         onBack = onBack,
         activeTab = EnidTab.INICIO,
-        onTabNavigate = onTabNavigate
+        onTabNavigate = onTabNavigate,
+        tabs = tabsSegunSesion(repository.estaConectado)
     ) {
         if (enviado) {
             Icon(

@@ -413,5 +413,61 @@ Añadidos permisos explícitos en `AndroidManifest.xml` (ya disponibles en debug
 - **Resultado:** ✅ ÉXITO — `BUILD SUCCESSFUL`. Sección de promociones y testimonios
   compilando en `ProspectHomeScreen` y `HomeScreen`.
 
+## 29 Sep — Fase 4: seguimiento de interesados (req. 08) y prueba en dispositivo
+
+| Acción | Detalle | Estado |
+|---|---|---|
+| Guardar interés | `DataRepository.registrarInteres / quitarInteres / esInteres / consultarIntereses` sobre `SharedPreferences` (clave `intereses`). El botón **"Me interesa este programa"** aparece en el detalle y alterna a "Guardado en mis interesados". | Hecho |
+| Resumen personal | Nueva `InteresesScreen` ("Mis interesados"): el programa que elegiste, un bloque **SIGUIENTE PASO** y lo que ya dejaste (preinscripciones con nombre, teléfono, correo y fecha). | Hecho |
+| Siguiente paso honesto | `DataRepository.siguientePaso()` cambia el texto según el estado real: si no hay preinscripción invita a dejar los datos; si ya la hay, el paso es hablar con el asesor. | Hecho |
+| Recordatorio en el Home | `RecordatorioInteres` aparece arriba en los **dos** Homes **solo** si hay un interés guardado. Sin intereses, no aparece nada. | Hecho |
+
+### Pruebas en el dispositivo `ZT322CVFC9` (solo recorridos internos)
+
+| Prueba | Resultado |
+|---|---|
+| Welcome → "Ingresar Como Invitado" | ✅ Entra al camino B (`ProspectHomeScreen`), no al Home de estudiante |
+| Los 10 pasos del camino | ✅ Los 10 se muestran; pasos 5–8 con la etiqueta **"con asesor"** en vez de un enlace que no cumpliría |
+| Texto "con Titulación SENA" | ⚠️ **Error encontrado en pantalla:** salía "conTitulación SENA" → **corregido** |
+| Orientador "¿Qué puedo estudiar?" | ✅ Preguntas 1→5, selección y avance correctos |
+| Recomendaciones | ✅ Con respuestas "sistemas / ambiente / campo / técnico / ambiente" el **Opción 1** fue *Control y Manejo Ambiental* y la 2 *Analítica de Datos e IA*. La puntuación funciona. |
+| Detalle de programa | ✅ Tabs Información / ¿Qué aprenderás? / Requisitos, modalidad, duración, sedes, campo laboral y 4 CTA |
+| "Me interesa este programa" | ✅ Queda como "Guardado en mis interesados" |
+| Recordatorio en el Home | ✅ "Te interesa Control y Manejo Ambiental" + botón "Ver resumen" |
+| "Mis interesados" | ✅ Programa, **SIGUIENTE PASO**, y "lo que ya dejaste" |
+| Preinscripción con programa previo | ✅ Abre con *Control y Manejo Ambiental* preseleccionado; se completó y envió el formulario de prueba |
+| Resumen tras preinscripción | ✅ "Ya dejaste tu preinscripción. El siguiente paso es hablar con un asesor" + datos y fecha "29 sep. 2026" |
+| Botón "Contactar" del asesor | ✅ **No abrió WhatsApp** (no se rompió la restricción). `logcat` confirma: `Acción externa 'whatsapp' omitida durante pruebas (habilitados=false)` |
+
+### Pruebas de compilación #20–#24 (Fase 4)
+
+| # | Comando | Resultado |
+|---|---|---|
+| 20 | `./gradlew :app:compileDebugKotlin --offline` | ❌ 2 errores: faltaban los imports `background` y `clickable` en `CommunitySections.kt`, y el color `EnidRed` |
+| 21 | `./gradlew :app:compileDebugKotlin --offline` | ✅ ÉXITO — con el módulo de seguimiento de interesados |
+| 22 | `./gradlew :app:assembleDebug --offline` + `adb install -r` | ✅ ÉXITO — APK instalado |
+| 23 | `./gradlew :app:compileDebugKotlin --offline` | ❌ 1 error: `tabsSegunSesion` sin resolver en `PreinscriptionScreen.kt` (el import automático no se aplicó porque el archivo no tenía `SectionTitle`) |
+| 24 | `./gradlew :app:assembleDebug --offline` | ✅ ÉXITO — APK final instalado |
+
+## Fallos encontrados y corregidos en las pruebas de dispositivo
+
+Son los que **solo aparecen al usar la app de verdad**, y por eso vale la pena registrarlos:
+
+1. **El invitado llegaba al Home de estudiante.** La barra inferior enviaba a
+   `Screen.Home` sin importar la sesión: quien entraba como invitado y tocaba
+   "Inicio" desde el catálogo caía en el Home del estudiante. Ahora `AppRoot`
+   calcula `inicioDelUsuario` según `repository.estaConectado`.
+2. **El invitado veía "Horario" y "Pagos".** Módulos de estudiante mostrados a
+   alguien que aún no decide. Se agrega `tabsSegunSesion()`: el invitado solo ve
+   **Inicio** y **Soporte**. Aplicado en Catálogo, Detalle, Orientador, Intereses,
+   Preinscripción, Sedes y FAQ.
+3. **La barra de "Mis interesados" seguía con los 4 tabs.** Una edición por
+   script no aplicó en ese archivo (el patrón no coincidía porque ya había un
+   `mostrarAsesor` después) y el `tabs` tiene valor por defecto, así que **compilaba
+   igual y el fallo no se veía en la compilación**. Corregido a mano y verificado en
+   pantalla.
+4. **Texto pegado: "conTitulación SENA".** Corregido y verificado en pantalla.
+
+
 
 

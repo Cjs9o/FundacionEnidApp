@@ -40,6 +40,7 @@ import com.fundacion.enid.ui.components.AppScaffold
 import com.fundacion.enid.ui.components.BigButton
 import com.fundacion.enid.ui.components.EnidIcons
 import com.fundacion.enid.ui.components.EnidTab
+import com.fundacion.enid.ui.components.tabsSegunSesion
 import com.fundacion.enid.ui.components.SmallButton
 import com.fundacion.enid.ui.components.VerticalSpacer
 import com.fundacion.enid.ui.theme.EnidBorderSoft
@@ -81,7 +82,8 @@ fun ProgramFinderScreen(
         onBack = onBack,
         titleEnd = if (terminado) null else "Pregunta ${indice + 1} de ${preguntas.size}",
         activeTab = EnidTab.INICIO,
-        onTabNavigate = onTabNavigate
+        onTabNavigate = onTabNavigate,
+        tabs = tabsSegunSesion(repository.estaConectado)
     ) {
         if (terminado) {
             Text(

@@ -2,6 +2,7 @@ package com.fundacion.enid.ui.screens
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -14,6 +15,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -29,6 +31,7 @@ import com.fundacion.enid.ui.theme.EnidGreen
 import com.fundacion.enid.ui.theme.EnidGreenSoft
 import com.fundacion.enid.ui.theme.EnidInk
 import com.fundacion.enid.ui.theme.EnidPurple
+import com.fundacion.enid.ui.theme.EnidRed
 import com.fundacion.enid.ui.theme.EnidTextSec
 import com.fundacion.enid.ui.theme.EnidWhite
 
@@ -212,4 +215,56 @@ private fun etiqueta(tipo: String): String = when (tipo) {
     "ALIANZA" -> "Alianza"
     "CONVOCATORIA" -> "Convocatoria"
     else -> "Oportunidad"
+}
+
+/**
+ * Requerimiento 08: recordatorio. Si la persona ya marcó un programa como
+ * "me interesa", se le recuerda en el Home cuál eligió y cuál es el siguiente
+ * paso. No aparece nada cuando no hay intereses, para no meter ruido.
+ */
+@Composable
+fun RecordatorioInteres(
+    nombrePrograma: String,
+    paso: String,
+    onVerResumen: () -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = EnidRed.copy(alpha = 0.08f)),
+        border = BorderStroke(1.5.dp, EnidRed)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(14.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "Te interesa $nombrePrograma",
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = EnidInk
+                )
+                Text(
+                    text = paso,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = EnidTextSec,
+                    modifier = Modifier.padding(top = 2.dp)
+                )
+            }
+            Text(
+                text = "Ver resumen",
+                style = MaterialTheme.typography.bodySmall,
+                fontWeight = FontWeight.Bold,
+                color = EnidRed,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(color = EnidRed.copy(alpha = 0.12f))
+                    .clickable { onVerResumen() }
+                    .padding(horizontal = 10.dp, vertical = 8.dp)
+            )
+        }
+    }
 }

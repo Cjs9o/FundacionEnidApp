@@ -273,6 +273,7 @@ fun AppScaffold(
     onTabNavigate: ((Screen) -> Unit)? = null,
     header: (@Composable () -> Unit)? = null,
     mostrarAsesor: Boolean = false,
+    tabs: List<EnidTab> = EnidTab.entries,
     content: @Composable () -> Unit
 ) {
     Column(
@@ -322,7 +323,7 @@ fun AppScaffold(
         }
 
         if (activeTab != null && onTabNavigate != null) {
-            EnidBottomNav(activeTab = activeTab, onNavigate = onTabNavigate)
+            EnidBottomNav(activeTab = activeTab, tabs = tabs, onNavigate = onTabNavigate)
         }
     }
 }
@@ -380,14 +381,27 @@ fun AsesorBar(modifier: Modifier = Modifier) {
 }
 
 // ── Barra de navegación inferior (guías SVG: iconos casa, calendario, ticket, ayuda) ──
+/**
+ * Pestañas que corresponden a quien está viendo la app. El invitado (camino B)
+ * no ve "Horario" ni "Pagos": son módulos de estudiante y mostrarlos a alguien
+ * que aún no decide es exactamente la confusión que las dos rutas buscan evitar.
+ */
+fun tabsSegunSesion(conectado: Boolean): List<EnidTab> =
+    if (conectado) EnidTab.entries
+    else listOf(EnidTab.INICIO, EnidTab.SOPORTE)
+
 @Composable
-private fun EnidBottomNav(activeTab: EnidTab, onNavigate: (Screen) -> Unit) {
+private fun EnidBottomNav(
+    activeTab: EnidTab,
+    tabs: List<EnidTab> = EnidTab.entries,
+    onNavigate: (Screen) -> Unit
+) {
     Column(modifier = Modifier.fillMaxWidth().background(EnidWhite)) {
         HorizontalDivider(color = EnidBorderSoft, thickness = 1.dp)
         Row(
             modifier = Modifier.fillMaxWidth().navigationBarsPadding().padding(top = 8.dp, bottom = 10.dp)
         ) {
-            EnidTab.entries.forEach { tab ->
+            tabs.forEach { tab ->
                 val active = tab == activeTab
                 Column(
                     modifier = Modifier.weight(1f).clickable { onNavigate(tab.destino) },

@@ -28,6 +28,7 @@ import com.fundacion.enid.ui.components.BigButton
 import com.fundacion.enid.ui.components.BigOutlinedButton
 import com.fundacion.enid.ui.components.EnidIcons
 import com.fundacion.enid.ui.components.EnidTab
+import com.fundacion.enid.ui.components.tabsSegunSesion
 import com.fundacion.enid.ui.components.VerticalSpacer
 import com.fundacion.enid.ui.theme.EnidBorderSoft
 import com.fundacion.enid.ui.theme.EnidInk
@@ -42,7 +43,13 @@ fun LocationsScreen(
     onBack: () -> Unit,
     onTabNavigate: ((Screen) -> Unit)? = null
 ) {
-    AppScaffold(title = "Nuestras Sedes", onBack = onBack, activeTab = EnidTab.SOPORTE, onTabNavigate = onTabNavigate) {
+    AppScaffold(
+        title = "Nuestras Sedes",
+        onBack = onBack,
+        activeTab = EnidTab.SOPORTE,
+        onTabNavigate = onTabNavigate,
+        tabs = tabsSegunSesion(repository.estaConectado)
+    ) {
         Text(
             text = "Encuentra tu campus más cercano",
             style = MaterialTheme.typography.bodyMedium,
