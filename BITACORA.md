@@ -562,9 +562,35 @@ En el dispositivo se comprobó de punta a punta: el paso 1 completo con su nota
 con el bloque de mayor de edad (estado civil, condición, acudiente, contacto de
 emergencia) y el Familiar de confianza abriéndose al marcar "Sí".
 
-**Quedó sin verificar en pantalla:** el envío final ("ENVIAR PREINSCRIPCIÓN"), la
-pantalla de confirmación y la lectura del registro nuevo en "Mis interesados",
-porque la persona que acompaña el trabajo necesitaba el teléfono. La ida y vuelta
-de esos mismos datos y el orden de los registros sí están cubiertos por
-`PreinscripcionTextoTest`, pero conviene una pasada manual antes de dar por
-cerrado el flujo.
+Después, con el teléfono disponible, se cerraron los dos puntos que quedaban:
+
+**1. El envío, la confirmación y la lectura del registro.** Se envió una
+preinscripción completa (Ana Gomez, adulta) y se comprobó lo que ocurre al
+guardar, leyendo las preferencias del dispositivo:
+
+- Se creó la clave nueva `preinscripciones_ordenadas` con el registro nuevo
+  primero, y la clave vieja `preinscripciones` **desapareció**: el registro que
+  había de una versión anterior no se perdió, quedó migrado abajo en la misma
+  lista. Eso confirma, en un dispositivo real y no solo en las pruebas, que se
+  leen los dos formatos y que el nuevo no rompe el anterior.
+- "Mis interesados" mostró "Ana Gomez · +57 3124567890 · ana.gomez@ejemplo.com"
+  en la tarjeta de "Lo que ya dejaste", es decir, la más reciente primero.
+- El familiar se registró con una coma en el nombre a propósito
+  ("Luis Perez, Hermano"): en el archivo quedó como `Luis%2C Hermano`. Esa era
+  justamente la parte que antes se perdía en silencio.
+- La pantalla de confirmación aparece con "¡Preinscripción enviada!".
+
+**2. Un fallo de paso 3 que solo se veía con una menor de edad.** Con fecha de
+nacimiento de menor (14 años), la primera pregunta del paso 3 era "Estado civil ·
+Solo para mayores de edad". La causa: `esMenor` empieza en `null` porque hay
+quienes tienen 17 años y ya no dependen de un acudiente, y el `else` del bloque
+mostraba el de mayores antes de que la persona contestara. Ahora, mientras no
+haya respuesta, se muestra el bloque que concuerda con la fecha de nacimiento;
+la respuesta sigue siendo obligatoria para poder enviar. Verificado con una
+menor de 14 años: aparece "Nombre de tu acudiente" y no el estado civil, y al
+guardar el registro el estado civil queda vacío, `esMenorDeEdad` en `true`, el
+acudiente "Maria Ramirez" y en los documentos aparece `CEDULA_MENOR`.
+
+También se comprobó en esa pasada que para una menor de edad el paso 2 pide la
+cédula del acudiente además de los tres documentos de siempre, y que para un
+adulto no la pide.

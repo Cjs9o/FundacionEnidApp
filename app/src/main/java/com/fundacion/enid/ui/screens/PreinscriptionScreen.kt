@@ -683,13 +683,21 @@ private fun PasoSituacion(
 ) {
     CampoLabel("¿Eres menor de edad?", "Si tienes 18 años o más, elige No.")
     PreguntaSiNo(valor = esMenor, onCambiar = onEsMenor)
+    // Mientras no responda, se muestra el bloque que concuerda con la fecha de
+    // nacimiento. Antes, al no haber respuesta todavía (null), caía en el
+    // `else` y a una menor de 14 años le aparecía "Estado civil · Solo para
+    // mayores de edad" como primera pregunta. La respuesta sigue siendo
+    // obligatoria: quien tiene 17 años y ya no depende de un acudiente puede
+    // corregirla, y sin responder no se deja enviar.
+    val menorSegunFecha = edadEstimada?.let { it < 18 }
+    val menorEfectivo = esMenor ?: menorSegunFecha
     if (esMenor == null && edadEstimada != null) {
         VerticalSpacer(6)
         NotaFormulario("Según tu fecha de nacimiento tienes $edadEstimada años.")
     }
     VerticalSpacer(20)
 
-    if (esMenor == true) {
+    if (menorEfectivo == true) {
         CampoLabel("Nombre de tu acudiente", "Quien responde por ti ante la Fundación.")
         BigTextField(
             value = nombreAcudiente,
