@@ -471,3 +471,100 @@ Son los que **solo aparecen al usar la app de verdad**, y por eso vale la pena r
 
 
 
+## Fase 11 — Preinscripción completa y correcciones de diseño
+
+### Qué pidió la Fundación y qué se hizo
+
+| Petición | Estado |
+|---|---|
+| Título de pantalla con fondo blanco, de borde a borde | ✅ `AppScaffold` pinta la cabecera blanca, con divisor, en todas las pantallas |
+| Quitar el bloque blanco propio del Inicio | ✅ El Inicio usa la cabecera estándar ("Hola, {nombre}") y el logo bajó al banner |
+| Cuadros y botones proporcionados | ✅ `BigButton`, `BigOutlinedButton` y `MenuCard` usan altura mínima en vez de fija; nada se recorta |
+| Enumeraciones centradas | ✅ Numeración centrada en el recorrido del prospecto y en las recomendaciones del orientador |
+| Barra del asesor en rojo | ✅ `AsesorBar` en `EnidRed` con iconos y textos blancos |
+| Tipo de documento separado del número | ✅ CC, CE, TI, NIT, RC, PP y CD, con la sigla y su significado completo |
+| Prefijo y número de contacto separados | ✅ +57, +58, +52, +51, +593, +1, +34, con el país visible en el campo |
+| Fecha de nacimiento y de expedición | ✅ `dd/mm/aaaa` con máscara, validación de fechas reales y cálculo de edad |
+| Fotocopia de documento, títulos de bachiller e ICFES | ✅ Checklist de lo que el asesor puede entregar; los archivos **no** se adjuntan (no hay servidor) |
+| Estado civil si es mayor de edad | ✅ Solo se pregunta cuando la edad indica 18 años o más, y es obligatorio ahí |
+| Menor de edad, acudiente y condición especial | ✅ Bloque condicional con nombre del acudiente y campo libre para la condición |
+| Contacto de emergencia | ✅ Prefijo y número propios |
+| Familiar de referencia | ✅ Tarjeta opcional con nombre, parentesco, documento, contacto y correo |
+
+La preinscripción pasó de 2 pasos a **3 pasos**: *Quién eres* → *Formación y
+documentos* → *Situación personal*. El tipo de documento "Cédula del acudiente"
+solo aparece si la fecha de nacimiento indica que es menor de edad, y los títulos
+de bachiller no se vuelven a pedir a quien ya terminó formación técnica.
+
+### Pruebas de compilación #25–#31
+
+| # | Comando | Resultado |
+|---|---|---|
+| 25 | `./gradlew :app:compileDebugKotlin --offline` | ❌ `SelectorBotones` usaba un helper `androidxBorder` que solo pintaba fondo; se reemplazó por `Modifier.border` |
+| 26 | `./gradlew :app:compileDebugKotlin --offline` | ❌ `Unresolved reference 'Icon'` en `FormComponents.kt` — faltaba el import |
+| 27 | `./gradlew :app:compileDebugKotlin --offline` | ❌ `Assignment type mismatch: Set<Comparable<String & DocumentoRequerido>> vs Set<String>` al restar el enum de un `Set<String>` |
+| 28 | `./gradlew :app:compileDebugKotlin --offline` | ✅ ÉXITO — formulario de 3 pasos compilando |
+| 29 | `./gradlew :app:testDebugUnitTest --offline` | ❌ 3 expectativas mal escritas en el test (no eran fallos de la app) |
+| 30 | `./gradlew :app:testDebugUnitTest :app:assembleDebug --offline` | ✅ ÉXITO — 39 pruebas, 0 fallos |
+| 32 | `./gradlew :app:testDebugUnitTest :app:assembleDebug --offline` | ✅ ÉXITO — 41 pruebas, 0 fallos |
+| 31 | `./gradlew :app:assembleDebug --offline` + `adb install -r` | ✅ ÉXITO — APK instalado |
+
+### Pruebas nuevas
+
+Se pasó de 6 a **41 pruebas unitarias**. Las nuevas son dos archivos:
+
+- `FormatoEntradaTest` (23): máscara de fechas, fechas que no existen
+  (`31/02`, 29 de febrero en año no bisiesto, meses 13, años de dos dígitos),
+  edad cumplida el día del cumpleaños y un día antes, y correo válido o no.
+- `PreinscripcionTextoTest` (12): ida y vuelta del registro, separadores dentro
+  de los textos, lista de documentos, lectura de las líneas viejas de 6 y de
+  21 campos que ya están en los teléfonos de quienes usan la app, y el orden
+  de los registros.
+
+La lógica de fechas salió de la pantalla a `FormatoEntrada` y la serialización a
+`PreinscripcionTexto`, en `data/`, siguiendo lo que ya hacía `ProgramFinder.kt`:
+lógica pura fuera de la pantalla para poder probarla.
+
+### Fallos encontrados usando la app de verdad
+
+1. **La fecha quedaba desordenada al teclear.** `14/03/1972` se convertía en
+   `14/31/9270`: al devolver el texto enmascarado, Compose mueve el cursor al
+   inicio y el siguiente dígito se inserta en medio. Con `BigTextField` (que
+   recibe un `String`) no hay forma de controlar el cursor, así que las fechas
+   ahora usan `CampoFecha`, que trabaja con `TextFieldValue` y deja el cursor
+   siempre al final.
+2. **La validación de fechas comparaba textos.** `"08/07/1994" < "14/03/1972"`
+   da verdadero porque el día va primero, así que la app rechazaba una cédula
+   expedida 22 años después de nacer. Ahora se comparan por año, mes y día
+   (`FormatoEntrada.esAnterior`), con prueba que lo cubre.
+3. **Un familiar con coma en el nombre se perdía al releerlo.** Los seis datos
+   del familiar iban unidos por comas dentro de un campo, y "Gómez, Luis" los
+   partía en siete: el registro se guardaba bien pero al abrirlo el familiar ya
+   no estaba, sin avisar. Ahora los separadores van escapados con `%` y hay
+   pruebas con comas y con barras verticales en el nombre.
+4. **Un `|` en un nombre desalineaba toda la fila.** El texto se guardaba pero
+   los campos siguientes se corrían una posición al releerlo. Mismo arreglo que
+   el anterior.
+5. **"Lo que ya dejaste" podía mostrar una preinscripción vieja.** Las
+   preinscripciones se guardaban en un `StringSet`, y un conjunto **no tiene
+   orden garantizado**: el código ponía la más nueva al principio y luego
+   `take(25).toSet()` la desordenaba, así que la pantalla podía enseñar un
+   registro antiguo. Ahora van en un solo texto con saltos de línea, de la más
+   reciente a la más antigua, en una clave nueva: leer con `getString` sobre la
+   clave vieja habría lanzado `ClassCastException` porque allí hay un conjunto.
+   Lo que hubiera en la clave vieja se sigue leyendo, para no perder los datos
+   ya registrados.
+
+### Verificado en pantalla y lo que quedó pendiente
+
+En el dispositivo se comprobó de punta a punta: el paso 1 completo con su nota
+"Tienes 54 años según esa fecha", el mensaje de validación del paso 2, el paso 3
+con el bloque de mayor de edad (estado civil, condición, acudiente, contacto de
+emergencia) y el Familiar de confianza abriéndose al marcar "Sí".
+
+**Quedó sin verificar en pantalla:** el envío final ("ENVIAR PREINSCRIPCIÓN"), la
+pantalla de confirmación y la lectura del registro nuevo en "Mis interesados",
+porque la persona que acompaña el trabajo necesitaba el teléfono. La ida y vuelta
+de esos mismos datos y el orden de los registros sí están cubiertos por
+`PreinscripcionTextoTest`, pero conviene una pasada manual antes de dar por
+cerrado el flujo.

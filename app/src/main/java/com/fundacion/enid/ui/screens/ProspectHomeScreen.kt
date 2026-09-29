@@ -1,6 +1,7 @@
 package com.fundacion.enid.ui.screens
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -22,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.fundacion.enid.data.DataRepository
@@ -245,29 +247,22 @@ private fun RutaStepCard(paso: RutaStep, onClick: () -> Unit) {
             modifier = Modifier.fillMaxWidth().padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Número del paso
+            // Número del paso: círculo con la cifra centrada. Antes el número se
+            // dibujaba pegado a la esquina de una Card anidada y se veía descentrado.
             Box(
                 modifier = Modifier
-                    .size(30.dp)
-                    .clip(CircleShape),
+                    .size(32.dp)
+                    .clip(CircleShape)
+                    .background(if (navegable) EnidRed else EnidGreen),
                 contentAlignment = Alignment.Center
             ) {
-                Card(
-                    modifier = Modifier.size(30.dp),
-                    shape = CircleShape,
-                    colors = CardDefaults.cardColors(
-                        containerColor = if (navegable) EnidRed else EnidGreen
-                    )
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Text(
-                            text = "${paso.numero}",
-                            color = EnidWhite,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 13.sp
-                        )
-                    }
-                }
+                Text(
+                    text = "${paso.numero}",
+                    color = EnidWhite,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp,
+                    textAlign = TextAlign.Center
+                )
             }
 
             Column(modifier = Modifier.weight(1f).padding(start = 12.dp)) {

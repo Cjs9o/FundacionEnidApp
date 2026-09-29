@@ -5,6 +5,7 @@ import android.content.SharedPreferences
 import com.fundacion.enid.model.ClassSlot
 import com.fundacion.enid.model.Area
 import com.fundacion.enid.model.EstadoPago
+import com.fundacion.enid.model.Familiar
 import com.fundacion.enid.model.FaqItem
 import com.fundacion.enid.model.PaymentNotice
 import com.fundacion.enid.model.Preinscripcion
@@ -676,29 +677,37 @@ class DataRepository(context: Context) {
 
     // --------------------------------------------------------------------
     // Requerimiento 03: Preinscripciones
-    // Formato por línea: nombre|documento|correo|telefono|programa|fecha
+    // Formato por línea: nombre|documento|correo|telefono|programa|fecha...
     // --------------------------------------------------------------------
+    /**
+     * Guarda la preinscripción, de la más reciente a la más antigua.
+     *
+     * Se usa un solo `String` con las líneas separadas por salto de línea, y no un
+     * `StringSet` como antes: un conjunto **no tiene orden garantizado**, así que
+     * "Mis interesados" podía mostrar en "lo que ya dejaste" una preinscripción
+     * vieja en vez de la última. Dentro de una línea nunca hay salto de línea
+     * porque [PreinscripcionTexto] los convierte en espacios.
+     *
+     * Lo que hubiera en el `StringSet` viejo se lee igual, para no perder lo ya
+     * registrado en los teléfonos donde la app ya se usó.
+     */
     fun registrarPreinscripcion(p: Preinscripcion) {
-        val lineas = lineasPreinscripcion().toMutableList()
-        val serializada = listOf(
-            p.nombre, p.documento, p.correo, p.telefono, p.programa, p.fecha
-        ).joinToString("|")
-        lineas.add(0, serializada)
-        prefs.edit().putStringSet(KEY_PREINSC, lineas.take(25).toSet()).apply()
+        val lineas = listOf(PreinscripcionTexto.serializar(p)) + lineasPreinscripcion()
+        prefs.edit()
+            .putString(KEY_PREINSC, lineas.take(MAX_PREINSC).joinToString("\n"))
+            .remove(KEY_PREINSC_VIEJO)
+            .apply()
     }
 
     private fun lineasPreinscripcion(): List<String> {
-        return prefs.getStringSet(KEY_PREINSC, null)?.toList() ?: emptyList()
+        val actuales = prefs.getString(KEY_PREINSC, null)
+        if (!actuales.isNullOrBlank()) return actuales.split("\n").filter { it.isNotBlank() }
+        // Datos de la versión anterior, que sí estaban en un conjunto sin orden.
+        return prefs.getStringSet(KEY_PREINSC_VIEJO, null)?.filter { it.isNotBlank() } ?: emptyList()
     }
 
-    fun consultarPreinscripciones(): List<Preinscripcion> {
-        return lineasPreinscripcion().mapNotNull { linea ->
-            val partes = linea.split("|")
-            if (partes.size == 6) {
-                Preinscripcion(partes[0], partes[1], partes[2], partes[3], partes[4], partes[5])
-            } else null
-        }
-    }
+    fun consultarPreinscripciones(): List<Preinscripcion> =
+        lineasPreinscripcion().mapNotNull(PreinscripcionTexto::leer)
 
     // --------------------------------------------------------------------
     // Usuarios registrados (simulación de autenticación, requisito 02)
@@ -748,7 +757,9 @@ class DataRepository(context: Context) {
         private const val KEY_NOMBRE = "nombre"
         private const val KEY_CORREO = "correo"
         private const val KEY_ROL = "rol"
-        private const val KEY_PREINSC = "preinscripciones"
+        private const val KEY_PREINSC = "preinscripciones_ordenadas"
+        private const val KEY_PREINSC_VIEJO = "preinscripciones"
+        private const val MAX_PREINSC = 25
         private const val KEY_INTERESES = "intereses"
         private const val KEY_USUARIOS = "usuarios"
 

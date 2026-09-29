@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -29,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.fundacion.enid.data.DataRepository
@@ -255,9 +257,9 @@ private fun OpcionCard(opcion: FinderOpcion, seleccionada: Boolean, onClick: () 
 
 @Composable
 private fun SugerenciaCard(
-    numero: Int,
-    programa: Program,
-    onOpen: () -> Unit,
+        numero: Int,
+        programa: Program,
+        onOpen: () -> Unit,
     onElegir: () -> Unit
 ) {
     Card(
@@ -267,19 +269,30 @@ private fun SugerenciaCard(
         border = BorderStroke(1.5.dp, EnidBorderSoft)
     ) {
         Column(modifier = Modifier.padding(14.dp)) {
+            // "Opción 1" como distintivo redondeado, en vez de un icono suelto con
+            // texto: el número queda centrado y la caja se ajusta al rótulo.
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    imageVector = EnidIcons.VOferta,
-                    contentDescription = null,
-                    tint = EnidGold,
-                    modifier = Modifier.size(20.dp)
-                )
+                Box(
+                    modifier = Modifier
+                        .size(24.dp)
+                        .clip(CircleShape)
+                        .background(EnidGold),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "$numero",
+                        color = EnidWhite,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 12.sp,
+                        textAlign = TextAlign.Center
+                    )
+                }
                 Text(
-                    text = "Opción $numero",
-                    style = MaterialTheme.typography.labelMedium,
+                    text = "OPCIÓN $numero PARA TI",
+                    style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Bold,
                     color = EnidGold,
-                    modifier = Modifier.padding(start = 6.dp)
+                    modifier = Modifier.padding(start = 8.dp)
                 )
             }
             VerticalSpacer(6)

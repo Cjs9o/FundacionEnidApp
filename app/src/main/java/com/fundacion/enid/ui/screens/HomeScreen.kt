@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -72,47 +73,15 @@ fun HomeScreen(
     // Requerimiento 08: recordatorio del programa que le interesa.
     val primerInteres = repository.consultarIntereses().firstOrNull()
 
+    // Inicio usa la cabecera estándar (bloque blanco de título) igual que las demás
+    // pantallas. Antes tenía un bloque propio con borde, que duplicaba la función
+    // del título y dejaba el logo descolgado; el logo ahora va sobre el banner.
     AppScaffold(
-        title = "",
-        brandLine = null,
+        title = "Hola, $nombre",
+        titleEnd = if (conectado) "Estudiante" else "Invitado",
         activeTab = EnidTab.INICIO,
         onTabNavigate = onTabNavigate,
-        mostrarAsesor = true,
-        header = {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(EnidWhite, RoundedCornerShape(12.dp))
-                    .border(1.5.dp, EnidBorderSoft, RoundedCornerShape(12.dp))
-                    .padding(horizontal = 16.dp, vertical = 12.dp)
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = "Bienvenidos",
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Bold,
-                            color = EnidInk
-                        )
-                        VerticalSpacer(2)
-                        Text(
-                            text = "Hola, $nombre",
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = EnidTextSec
-                        )
-                    }
-                    Image(
-                        painter = painterResource(R.drawable.logo_enid),
-                        contentDescription = "Logo Fundación ENID",
-                        modifier = Modifier.size(width = 156.dp, height = 46.dp),
-                        contentScale = ContentScale.Fit
-                    )
-                }
-            }
-        }
+        mostrarAsesor = true
     ) {
         // Banner
         Box(
@@ -122,6 +91,13 @@ fun HomeScreen(
                 .padding(18.dp)
         ) {
             Column {
+                Image(
+                    painter = painterResource(R.drawable.logo_enid),
+                    contentDescription = "Logo Fundación ENID",
+                    modifier = Modifier.fillMaxWidth().height(42.dp),
+                    contentScale = ContentScale.Fit
+                )
+                VerticalSpacer(14)
                 Text(
                     text = "Bienvenidos A La Fundación ENID",
                     style = MaterialTheme.typography.titleMedium,
@@ -226,7 +202,10 @@ private fun MenuCard(
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .height(104.dp)
+            // Alto mínimo, no fijo: "Plataforma Educativa" e "Información
+            // Institucional" necesitan dos líneas y con 104 dp fijos el texto se
+            // salía de la caja.
+            .defaultMinSize(minHeight = 104.dp)
             .clickable { onClick() },
         shape = RoundedCornerShape(10.dp),
         colors = CardDefaults.cardColors(containerColor = EnidWhite),
@@ -234,7 +213,9 @@ private fun MenuCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Column(
-            modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp, vertical = 12.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
@@ -252,7 +233,7 @@ private fun MenuCard(
                 fontWeight = FontWeight.Bold,
                 color = EnidInk,
                 textAlign = TextAlign.Center,
-                maxLines = 2
+                lineHeight = 18.sp
             )
         }
     }

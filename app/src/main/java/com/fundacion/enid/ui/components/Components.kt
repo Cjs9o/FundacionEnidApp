@@ -3,7 +3,10 @@ package com.fundacion.enid.ui.components
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -40,6 +43,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -49,7 +53,6 @@ import com.fundacion.enid.navigation.Screen
 import com.fundacion.enid.ui.theme.EnidBg
 import com.fundacion.enid.ui.theme.EnidBorderSoft
 import com.fundacion.enid.ui.theme.EnidDarkBlue
-import com.fundacion.enid.ui.theme.EnidGold
 import com.fundacion.enid.ui.theme.EnidIconBox
 import com.fundacion.enid.ui.theme.EnidInk
 import com.fundacion.enid.ui.theme.EnidPurple
@@ -99,20 +102,35 @@ fun BigButton(
     Button(
         onClick = onClick,
         enabled = enabled,
-        modifier = modifier.fillMaxWidth().height(52.dp),
+        // Altura mínima, no fija: los rótulos largos ("Quiero recibir las
+        // promociones", "Hablar con un asesor") se reparten en dos líneas en vez
+        // de recortarse dentro de una caja de 52 dp.
+        modifier = modifier
+            .fillMaxWidth()
+            .defaultMinSize(minHeight = 52.dp)
+            .padding(vertical = 2.dp),
         colors = ButtonDefaults.buttonColors(
             containerColor = containerColor,
             contentColor = contentColor
         ),
         shape = RoundedCornerShape(8.dp),
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
         elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp, pressedElevation = 0.dp)
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             icon?.let {
                 Icon(it, contentDescription = null, tint = contentColor, modifier = Modifier.size(19.dp))
                 Spacer(modifier = Modifier.width(8.dp))
             }
-            Text(text = text, style = MaterialTheme.typography.labelLarge)
+            Text(
+                text = text,
+                style = MaterialTheme.typography.labelLarge,
+                textAlign = TextAlign.Center
+            )
         }
     }
 }
@@ -129,17 +147,26 @@ fun BigOutlinedButton(
 ) {
     OutlinedButton(
         onClick = onClick,
-        modifier = modifier.fillMaxWidth().height(48.dp),
+        modifier = modifier.fillMaxWidth().defaultMinSize(minHeight = 48.dp),
         border = BorderStroke(1.5.dp, borderColor),
         shape = RoundedCornerShape(8.dp),
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 10.dp),
         colors = ButtonDefaults.outlinedButtonColors(contentColor = contentColor)
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             icon?.let {
                 Icon(it, contentDescription = null, tint = contentColor, modifier = Modifier.size(18.dp))
                 Spacer(modifier = Modifier.width(6.dp))
             }
-            Text(text = text, style = MaterialTheme.typography.labelLarge)
+            Text(
+                text = text,
+                style = MaterialTheme.typography.labelLarge,
+                textAlign = TextAlign.Center
+            )
         }
     }
 }
@@ -280,11 +307,24 @@ fun AppScaffold(
         modifier = Modifier.fillMaxSize().background(EnidBg).statusBarsPadding()
     ) {
         if (header != null) {
-            Box(modifier = Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = 10.dp)) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(EnidWhite)
+                    .padding(start = 20.dp, end = 20.dp, top = 10.dp, bottom = 10.dp)
+            ) {
                 header()
             }
         } else {
-            Column(modifier = Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = 10.dp)) {
+            // Bloque de título sobre fondo blanco, de borde a borde, con una línea
+            // que lo separa del contenido crema. Así todas las pantallas comparten
+            // la misma cabecera y ninguna queda "flotando" sobre el fondo.
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(EnidWhite)
+                    .padding(start = 20.dp, end = 20.dp, top = 10.dp, bottom = 12.dp)
+            ) {
                 if (brandLine != null) {
                     Text(brandLine, color = EnidTextSec, fontSize = 11.sp)
                 }
@@ -303,6 +343,11 @@ fun AppScaffold(
                         Text(text = it, color = titleEndColor, fontSize = 12.sp)
                     }
                 }
+                HorizontalDivider(
+                    color = EnidBorderSoft,
+                    thickness = 1.dp,
+                    modifier = Modifier.padding(top = 12.dp)
+                )
             }
         }
 
@@ -336,9 +381,12 @@ fun AppScaffold(
 @Composable
 fun AsesorBar(modifier: Modifier = Modifier) {
     val context = LocalContext.current
+    // Rojo institucional: el asesor es el CTA principal y se ve como tal.
+    // Antes llevaba fondo azul con detalles en ocre, que se leía como un aviso
+    // apagado y no como una llamada a la acción.
     Surface(
         modifier = modifier.fillMaxWidth(),
-        color = EnidDarkBlue
+        color = EnidRed
     ) {
         Row(
             modifier = Modifier
@@ -350,8 +398,8 @@ fun AsesorBar(modifier: Modifier = Modifier) {
                 icon = EnidIcons.VTelfLocal,
                 boxSize = 36.dp,
                 iconSize = 20.dp,
-                iconTint = EnidGold,
-                background = EnidWhite.copy(alpha = 0.12f)
+                iconTint = EnidWhite,
+                background = EnidWhite.copy(alpha = 0.18f)
             )
             Column(modifier = Modifier.weight(1f).padding(start = 10.dp)) {
                 Text(
@@ -363,18 +411,19 @@ fun AsesorBar(modifier: Modifier = Modifier) {
                 Text(
                     text = "Te orientamos en el programa y en el proceso de admisión",
                     style = MaterialTheme.typography.bodySmall,
-                    color = EnidWhite.copy(alpha = 0.75f)
+                    color = EnidWhite.copy(alpha = 0.85f)
                 )
             }
             Text(
                 text = "Contactar",
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.Bold,
-                color = EnidGold,
+                color = EnidWhite,
                 modifier = Modifier
                     .clip(RoundedCornerShape(8.dp))
+                    .background(EnidWhite.copy(alpha = 0.18f))
                     .clickable { EnlacesExternos.abrirAsesor(context) }
-                    .padding(horizontal = 8.dp, vertical = 6.dp)
+                    .padding(horizontal = 10.dp, vertical = 6.dp)
             )
         }
     }
