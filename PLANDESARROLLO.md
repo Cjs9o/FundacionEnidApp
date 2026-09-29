@@ -97,18 +97,44 @@ navegación sencilla.
 Objetivo: pasar de una app centrada en el estudiante a una app que **capta prospectos**
 y los lleva hasta la matrícula, manteniendo los 12 módulos y la accesibilidad 60+.
 
-| Fase | Nombre | Alcance |
-|---|---|---|
-| 7 | Oferta académica potente | Detalle completo por programa (modalidad, duración, perfil ocupacional, qué aprenderás, plan de estudios, sedes) + botones "Quiero estudiar este programa", "Hablar con un asesor" y WhatsApp + botón "¿Qué puedo estudiar?" (5 preguntas de orientación) |
-| 8 | Recorrido del prospecto | Home con dos caminos: **A. Soy estudiante** (Inicio → Clases → Horario → Pagos → Soporte) y **B. Quiero estudiar en ENID** (Conocer → Explorar → Elegir → Información → Asesor → Preinscripción → Documentos → Matrícula → Pago → Bienvenida). El invitado deja datos y se preinscribe. Botón permanente "Habla con un asesor". |
-| 9 | Promociones y testimonios | Módulo "Promociones y oportunidades" (becas, convocatorias, próximos inicios, Facilidades de pago, matrículas abiertas) editable desde un solo lugar, y "Historias ENID" con testimonios de estudiantes y graduados |
-| 10 | Seguimiento de interesados | Estados: Interesado → Contactado → Información enviada → Preinscrito → Documentos → Matrícula pendiente → Matriculado |
+| Fase | Nombre | Alcance | Estado |
+|---|---|---|---|
+| 7 | Oferta académica potente | Detalle completo por programa (modalidad, duración, perfil ocupacional, qué aprenderás, plan de estudios, sedes) + botones "Quiero estudiar este programa", "Hablar con un asesor" y WhatsApp + botón "¿Qué puedo estudiar?" (5 preguntas de orientación) | ✅ Hecha — commit `9a67b19` |
+| 8 | Recorrido del prospecto | Home con dos caminos: **A. Soy estudiante** (Inicio → Clases → Horario → Pagos → Soporte) y **B. Quiero estudiar en ENID** (Conocer → Explorar → Elegir → Información → Asesor → Preinscripción → Documentos → Matrícula → Pago → Bienvenida). El invitado deja datos y se preinscribe. Botón permanente "Habla con un asesor". | ✅ Hecha — commit `c80158f` |
+| 9 | Promociones y testimonios | Módulo "Promociones y oportunidades" (becas, convocatorias, próximos inicios, Facilidades de pago, matrículas abiertas) editable desde un solo lugar, y "Historias ENID" con testimonios de estudiantes y graduados | ✅ Hecha — commit `0977e9a` |
+| 10 | Seguimiento de interesados | Estados: Interesado → Contactado → Información enviada → Preinscrito → Documentos → Matrícula pendiente → Matriculado | ✅ Hecha — commit `124f8a5` |
 
 > **Decisión:** No se añaden aún valor de matrícula, próxima fecha de inicio, horarios
 > disponibles ni formas de pago (el portafolio y la web no los publican). Queda pendiente.
 >
 > **Restricción de pruebas:** no se abre ninguna app externa (llamadas, páginas web,
 > PSE/bancario, WhatsApp, correos) durante las pruebas en dispositivo.
+
+### Cómo se implementó la fase 10
+
+Los estados del plan (Interesado → Contactado → … → Matriculado) se implementaron como
+**el siguiente paso que la app le recuerda a la persona**, no como una tabla de estados
+interna: ENID necesita saber a quién contactar, y la app solo conoce dos hechos
+verificables — que la persona marcó un programa y si dejó o no su preinscripción.
+Por eso el resumen dice exactamente una de dos cosas, y ambas son ciertas:
+
+- sin preinscripción → *"El siguiente paso es dejar tu información para que te contactemos."*
+- con preinscripción → *"Ya dejaste tu preinscripción. El siguiente paso es hablar con un asesor."*
+
+Los estados intermedios (Contactado, Información enviada, Documentos, Matriculado) los
+lleva el asesor: son estados de la Fundación, no de la app. Registrarlos aquí sin que
+nadie los actualice habría creado estados que siempre mienten.
+
+### Contenido que falta y debe entregar la Fundación
+
+| Qué | Dónde se llena | Estado |
+|---|---|---|
+| Promociones, becas y convocatorias | `DataRepository.promociones` | Lista vacía a propósito |
+| Testimonios de estudiantes | `DataRepository.testimonios` | Lista vacía a propósito |
+| Matrícula, próxima fecha, horarios, formas de pago | `Program` | No se agrega hasta tener dato oficial |
+
+Las tres primeras pantallas ya están construidas: al llenar esas listas, el contenido
+aparece sin tocar ninguna pantalla.
 
 
 ---
