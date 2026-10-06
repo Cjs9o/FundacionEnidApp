@@ -38,15 +38,15 @@ import com.fundacion.enid.ui.components.EnidTab
 import com.fundacion.enid.ui.components.SectionTitle
 import com.fundacion.enid.ui.components.SmallButton
 import com.fundacion.enid.ui.components.VerticalSpacer
-import com.fundacion.enid.ui.theme.EnidBorderSoft
-import com.fundacion.enid.ui.theme.EnidDarkBlue
+import com.fundacion.enid.ui.shared.EnidBorderSoft
+import com.fundacion.enid.ui.shared.EnidDarkBlue
 import com.fundacion.enid.ui.theme.EnidGreen
 import com.fundacion.enid.ui.theme.EnidGreenSoft
-import com.fundacion.enid.ui.theme.EnidInk
-import com.fundacion.enid.ui.theme.EnidRed
-import com.fundacion.enid.ui.theme.EnidRedSoft
-import com.fundacion.enid.ui.theme.EnidTextSec
-import com.fundacion.enid.ui.theme.EnidWhite
+import com.fundacion.enid.ui.shared.EnidInk
+import com.fundacion.enid.ui.shared.EnidRed
+import com.fundacion.enid.ui.shared.EnidRedSoft
+import com.fundacion.enid.ui.shared.EnidTextSec
+import com.fundacion.enid.ui.shared.EnidWhite
 
 /**
  * Requerimientos 02 y 03: Home del invitado.
@@ -61,9 +61,10 @@ import com.fundacion.enid.ui.theme.EnidWhite
 fun ProspectHomeScreen(
     repository: DataRepository,
     onNavigate: (Screen) -> Unit,
-    onIrAInicio: () -> Unit
+    onIrAInicio: () -> Unit,
+    onTabNavigate: ((Screen) -> Unit)? = null
 ) {
-    val ruta = repository.rutaProspecto
+    val ruta = DataRepository.rutaProspecto
     val context = LocalContext.current
     // Requerimiento 08: recordatorio del programa que le interesa.
     val primerInteres = repository.consultarIntereses().firstOrNull()
@@ -73,6 +74,12 @@ fun ProspectHomeScreen(
         titleEnd = "Invitado",
         brandLine = null,
         mostrarAsesor = true,
+        // Antes esta pantalla no tenía barra inferior: era el Home del
+        // invitado y todas las pantallas a las que lleva sí la tenían. De ahí
+        // no se salía a nada salvo con el gesto del sistema. Con la barra, el
+        // invitado ve solo Inicio y Soporte, que es lo que le corresponde.
+        activeTab = EnidTab.INICIO,
+        onTabNavigate = onTabNavigate,
         content = {
             // Bienvenida
             Card(
@@ -310,13 +317,15 @@ private fun RutaStepCard(paso: RutaStep, onClick: () -> Unit) {
     }
 }
 
-/** Traduce el nombre de pantalla guardado en [RutaStep.pantalla] a la ruta de navegación. */
+/**
+ * Traduce el nombre de pantalla guardado en [RutaStep.pantalla] a la ruta de
+ * navegación. Solo los pasos 1 a 4 de [DataRepository.rutaProspecto] tienen
+ * pantalla; el resto se hace en sede o con el asesor.
+ */
 private fun destinoDe(nombre: String): Screen = when (nombre) {
     "Locations" -> Screen.Locations
     "Catalog" -> Screen.Catalog
     "ProgramFinder" -> Screen.ProgramFinder
     "Preinscription" -> Screen.Preinscription(null)
-    "Payments" -> Screen.Payments
-    "Platform" -> Screen.Platform
-    else -> Screen.Home
+    else -> Screen.ProspectHome
 }

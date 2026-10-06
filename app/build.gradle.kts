@@ -37,6 +37,10 @@ android {
 }
 
 dependencies {
+    // Tokens del sistema visual (paleta base y medidas). `:app` y `:campo`
+    // comparten este módulo para no declarar dos veces el mismo azul.
+    implementation(project(":ui"))
+
     // Módulo de captura en campo. Va primero porque `EnidAppRaiz` se compone
     // desde `:app`; el resto de dependencias de esta lista son suyas.
     implementation(project(":campo"))

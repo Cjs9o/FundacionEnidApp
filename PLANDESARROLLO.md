@@ -105,6 +105,9 @@ y los lleva hasta la matrícula, manteniendo los 12 módulos y la accesibilidad 
 | 10 | Seguimiento de interesados | Estados: Interesado → Contactado → Información enviada → Preinscrito → Documentos → Matrícula pendiente → Matriculado | ✅ Hecha — commit `124f8a5` |
 | 11 | Preinscripción completa y adjuntos | Datos de identificación, formación, documentos y familiar; el archivo de cada documento se adjunta desde el teléfono | ✅ Hecha — commits `663c56c`, `9601faf` |
 | 20 | Integración del módulo de captura en campo | `EnidAppOfflineFirst` pasa a ser el módulo Gradle `:campo` dentro del APK | ✅ Hecha — 5 Oct |
+| 21 | Tokens compartidos (`:ui`) | La paleta base y las medidas salen de un módulo compartido en vez de estar declaradas dos veces | ✅ Hecha — 5 Oct |
+| 22 | Orden en el flujo de navegación y datos | Un invitado no llega a módulos de estudiante; las pestañas dependen de la sesión; `EnlacesExternos` es la única salida externa y devuelve si abrió de verdad; botón de volver en todas las pantallas | ✅ Hecha — 5 Oct |
+| 23 | Unificación de los componentes duplicados | `:app` y `:campo` tienen 13 componentes con el mismo nombre y **cero cuerpos idénticos**: son dos implementaciones distintas. Unificarlos exige elegir una por componente y adaptar la otra | 🔲 Pendiente |
 
 > **Decisión:** No se añaden aún valor de matrícula, próxima fecha de inicio, horarios
 > disponibles ni formas de pago (el portafolio y la web no los publican). Queda pendiente.
@@ -184,6 +187,38 @@ Lo que **no** se hizo, y sigue pendiente:
 | Cifrar la base de campo y autenticar el acceso | Decisión de la Fundación (SQLCipher o equivalente) |
 | `PuertaRemotaFirebase`: hoy la puerta simulada | Proyecto de Firebase RTDB y reglas de seguridad |
 | Prueba manual de captura por cámara y galería | No se puede automatizar con fiabilidad por ADB |
+
+### Fases 21 y 22 — Orden en el flujo y tokens compartidos — 5 Oct 2026
+
+Una auditoría de las 18 pantallas encontró siete fallos que el usuario veía de verdad.
+No eran de maquetación sino de estructura: la app no tenía un modelo de permisos de
+navegación, y el sistema visual estaba duplicado.
+
+**Fase 22 — orden en el flujo:**
+
+| Qué estaba mal | Qué se hizo |
+|---|---|
+| El invitado llegaba a `Payments` y `Platform` por los pasos 9 y 10 de `rutaProspecto`, y veía "$180.000" y un historial de pagos **inventado** | Los pasos 5 a 10 son `enSede = true`. El invitado solo navega hasta el paso 4 |
+| 8 pantallas no pasaban `tabsSegunSesion` y pintaban las 4 pestañas de estudiante a cualquiera | `AppScaffold` decide con `SesionUi.conectado`. Ninguna pantalla pasa `tabs` ya |
+| `ProspectHome`, `Profile`, `Pse` y `Benefits` sin barra inferior: callejones sin salida | Las cuatro reciben `onTabNavigate` |
+| **`AppScaffold` recibía `onBack` y nunca dibujaba el botón.** No había flecha de retorno en toda la app | Se dibuja, con área táctil de 48 dp y `contentDescription` |
+| `PseScreen` ponía `pagado = true` y mostraba **"Pago procesado con éxito"** sin que pasara nada | `EnlacesExternos.abrirPse` devuelve si abrió; la pantalla dice la verdad en los dos casos |
+| 5 pantallas abrían `context.startActivity` saltándose el interruptor | Todas pasan por `EnlacesExternos`; una prueba lo verifica sobre el código fuente |
+| `$180.000` y `$830.000` escritos en 7 sitios, con dos valores distintos | `DataRepository.MONTO_MATRICULA` + `AVISO_MONTO`, que dice que es preliminar |
+
+**Fase 21 — tokens compartidos (` :ui `):** antes de integrar `:campo`, ese módulo
+traía copia de `Color.kt`, `Type.kt` y sus métricas. Había **doce colores con el
+mismo nombre y el mismo valor en dos ficheros** y seis colores iguales con nombres
+distintos (`EnidGreen` / `EnidVerdeWhatsapp`, `EnidGold` / `EnidOro`,
+`EnidChipDoneBg` / `EnidSincronizadoFondo`…). El módulo `:ui` deja la paleta base y
+`EnidDimens` en un solo sitio; cada módulo conserva solo lo propio y mantiene sus
+nombres antiguos como alias. Tres pruebas vigilan que no vuelva a duplicarse.
+
+**Lo que queda (Fase 23):** los 13 componentes con el mismo nombre en `:app` y
+`:campo` **no son copias**: ninguno tiene el cuerpo idéntico. Son dos
+implementaciones que convergieron en los mismos nombres. No es limpieza, es un
+refactor: hay que elegir una implementación por componente y adaptar la otra,
+cambiando el aspecto de uno de los dos módulos.
 
 ---
 

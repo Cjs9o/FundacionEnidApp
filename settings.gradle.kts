@@ -47,3 +47,7 @@ include(":app")
 // independiente (`EnidAppOfflineFirst`) y se integra aquí como biblioteca: un
 // solo APK, una sola Activity, y la app institucional como punto de entrada.
 include(":campo")
+// Tokens compartidos del sistema visual (paleta base y medidas). `:app` y
+// `:campo` dependían de él para que un color no se declare dos veces con
+// distinta deriva. No contiene componentes ni lógica de negocio.
+include(":ui")

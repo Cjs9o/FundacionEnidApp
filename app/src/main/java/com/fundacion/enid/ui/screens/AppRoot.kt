@@ -63,12 +63,12 @@ fun AppRoot(
         is Screen.ProspectHome -> ProspectHomeScreen(
             repository = repository,
             onNavigate = { nav.navegar(it) },
-            onIrAInicio = { nav.reemplazarTodo(Screen.Welcome) }
+            onIrAInicio = { nav.reemplazarTodo(Screen.Welcome) },
+            onTabNavigate = onTabNavigate
         )
 
         is Screen.Catalog -> CatalogScreen(
             repository = repository,
-            onBack = { nav.retroceder() },
             onOpenProgram = { id -> nav.navegar(Screen.ProgramDetail(id)) },
             onOpenFinder = { nav.navegar(Screen.ProgramFinder) },
             onTabNavigate = onTabNavigate
@@ -92,7 +92,6 @@ fun AppRoot(
 
         is Screen.Intereses -> InteresesScreen(
             repository = repository,
-            onBack = { nav.retroceder() },
             onOpenProgram = { id -> nav.navegar(Screen.ProgramDetail(id)) },
             onPreinscription = { id ->
                 if (id == null) nav.navegar(Screen.Catalog) else nav.navegar(Screen.Preinscription(id))
@@ -119,7 +118,8 @@ fun AppRoot(
                 repository.cerrarSesion()
                 nav.reemplazarTodo(Screen.Welcome)
                 onSessionChanged()
-            }
+            },
+            onTabNavigate = onTabNavigate
         )
 
         is Screen.Preinscription -> PreinscriptionScreen(
@@ -143,19 +143,17 @@ fun AppRoot(
         )
 
         is Screen.Pse -> PseScreen(
-            repository = repository,
-            onBack = { nav.retroceder() }
+            onBack = { nav.retroceder() },
+            onTabNavigate = onTabNavigate
         )
 
         is Screen.Benefits -> BenefitsCalculatorScreen(
-            repository = repository,
-            onBack = { nav.retroceder() }
+            onBack = { nav.retroceder() },
+            onTabNavigate = onTabNavigate
         )
 
         is Screen.Platform -> PlatformScreen(
-            repository = repository,
             onBack = { nav.retroceder() },
-            onGoHome = { nav.reemplazarTodo(Screen.Home) },
             onTabNavigate = onTabNavigate
         )
 

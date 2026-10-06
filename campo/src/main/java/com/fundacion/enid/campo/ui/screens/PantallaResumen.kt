@@ -50,20 +50,22 @@ import com.fundacion.enid.campo.ui.components.NotaFormulario
 import com.fundacion.enid.campo.ui.components.SectionTitle
 import com.fundacion.enid.campo.ui.components.TonoBanner
 import com.fundacion.enid.campo.ui.components.VerticalSpacer
-import com.fundacion.enid.campo.ui.theme.EnidBlueSoft
-import com.fundacion.enid.campo.ui.theme.EnidBorderSoft
-import com.fundacion.enid.campo.ui.theme.EnidCardBg
-import com.fundacion.enid.campo.ui.theme.EnidDarkBlue
-import com.fundacion.enid.campo.ui.theme.EnidDimens
 import com.fundacion.enid.campo.ui.theme.EnidErrorTexto
-import com.fundacion.enid.campo.ui.theme.EnidIconBox
-import com.fundacion.enid.campo.ui.theme.EnidInk
 import com.fundacion.enid.campo.ui.theme.EnidPendiente
-import com.fundacion.enid.campo.ui.theme.EnidRed
-import com.fundacion.enid.campo.ui.theme.EnidSincronizadoTexto
-import com.fundacion.enid.campo.ui.theme.EnidTextSec
 import com.fundacion.enid.campo.ui.vm.ResumenViewModel
 import com.fundacion.enid.campo.ui.vm.formatearFechaSincronizacion
+import com.fundacion.enid.ui.shared.EnidBlueSoft
+import com.fundacion.enid.ui.shared.EnidBorderSoft
+import com.fundacion.enid.ui.shared.EnidCardBg
+import com.fundacion.enid.ui.shared.EnidDarkBlue
+import com.fundacion.enid.ui.shared.EnidDimens
+import com.fundacion.enid.ui.shared.EnidIconBox
+import com.fundacion.enid.ui.shared.EnidInk
+import com.fundacion.enid.ui.shared.EnidRed
+import com.fundacion.enid.ui.shared.EnidSincronizadoTexto
+import com.fundacion.enid.ui.shared.EnidTextSec
+
+
 
 /**
  * ===========================================================================
@@ -109,7 +111,7 @@ fun PantallaResumen(
             Column(
                 Modifier
                     .fillMaxWidth()
-                    .background(com.fundacion.enid.campo.ui.theme.EnidBg)
+                    .background(com.fundacion.enid.ui.shared.EnidBg)
                     .padding(horizontal = EnidDimens.margenPantalla)
             ) {
                 // El Snackbar va ANTES de las acciones, no despues: al final del pie

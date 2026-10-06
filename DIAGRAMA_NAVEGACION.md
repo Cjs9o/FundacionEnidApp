@@ -78,7 +78,6 @@ flowchart TD
     INTERESES --> PREINSC
     INTERESES -->|"Sin programa elegido"| CATALOG
     PAYMENTS --> PSE
-    PLATFORM -->|"Volver al inicio"| HOME
     PROFILE -->|"Cerrar sesión"| WELCOME
 
     subgraph CAMPO["Equipo de campo — módulo :campo (NavHost propio)"]
@@ -136,16 +135,20 @@ flowchart TD
 | Login | Acceso válido | `Home` | `reemplazarTodo` |
 | Login | Invitado | `ProspectHome` | `reemplazarTodo` |
 | ProspectHome | ¿Qué puedo estudiar? | `ProgramFinder` | `navegar` |
-| ProspectHome | Ver resumen | `Intereses` | `navegar` |
+| ProspectHome | Ver resumen (⭐ **solo si hay intereses guardados**) | `Intereses` | `navegar` |
 | ProspectHome | Oferta | `Catalog` | `navegar` |
-| ProspectHome | Preinscripción / Dejar mis datos | `Preinscription(null)` | `navegar` |
-| ProspectHome | Sedes y FAQ | `Locations`, `Faq` | `navegar` |
-| ProspectHome | Logo de inicio | `Welcome` | `reemplazarTodo` |
+| ProspectHome | Ver programas / Dejar mis datos | `Catalog`, `Preinscription(null)` | `navegar` |
+| ProspectHome | Preinscripción | `Preinscription(null)` | `navegar` |
+| ProspectHome | Sedes y contacto / Preguntas frecuentes | `Locations`, `Faq` | `navegar` |
+| ProspectHome | **"Tu camino"**: pasos 1 a 4 | `Locations`, `Catalog`, `ProgramFinder`, `Preinscription(null)` | `navegar` |
+| ProspectHome | **"Tu camino"**: pasos 5 a 10 | **ninguno** — son `enSede = true` | — |
+| ProspectHome | ¿Ya eres estudiante ENID? | `Welcome` | `reemplazarTodo` |
 | Home | Mis Clases | `DailySchedule` | `navegar` |
 | Home | Pagos | `Payments` | `navegar` |
-| Home | Plataforma educativa | `Platform` | `navegar` |
-| Home | Mi cuenta | `Profile` | `navegar` |
-| Home | Oferta / Preinscripción / FAQ / Beneficios / Perfil / Intereses | `Catalog`, `Preinscription`, `Faq`, `Benefits`, `Profile`, `Intereses`, `Locations` | `navegar` |
+| Home | Plataforma Educativa (tarjeta y enlace) | `Platform` | `navegar` |
+| Home | Mi Cuenta / Mi Perfil | `Profile` | `navegar` |
+| Home | Más servicios → Oferta / Preinscripción / Calculadora | `Catalog`, `Preinscription(null)`, `Benefits` | `navegar` |
+| Home | Ver resumen (⭐ **solo si hay intereses guardados**) | `Intereses` | `navegar` |
 | ProspectHome | Equipo de campo | `Campo` | `navegar` |
 | Home | Más servicios → Captura en campo | `Campo` | `navegar` |
 | Campo | Resumen → Volver a la app / botón atrás | `ProspectHome` o `Home` | `retroceder` |
@@ -156,10 +159,33 @@ flowchart TD
 | Intereses | Ver programa / Preinscribirme | `ProgramDetail(id)`, `Preinscription(id)` | `navegar` |
 | Intereses | Sin programa elegido | `Catalog` | `navegar` |
 | Payments | Pagar por PSE | `Pse` | `navegar` |
-| Platform | Volver al inicio | `Home` | `reemplazarTodo` |
 | Profile | Cerrar sesión | `Welcome` | `reemplazarTodo` |
-| Cualquiera | Botón "Atrás" de la cabecera | pantalla anterior de la pila | `retroceder` |
+| Cualquiera | Botón **"Volver"** de la cabecera | pantalla anterior de la pila | `onBack` |
 | Cualquiera | Botón "atrás" del teléfono | pantalla anterior de la pila | `BackHandler` |
+| `Campo` | Resumen → "Volver a la app" | pantalla anterior de la pila | `retroceder` |
+
+> La flecha de la cabecera la dibuja `AppScaffold` **solo si recibe `onBack`**.
+> Hasta el 5 Oct la recibía y no la pintaba: no había ninguna flecha de retorno
+> en toda la app. Las pantallas que no la piden son las que son raíz de su
+> rama (`Welcome`, `Home`, `ProspectHome`).
+>
+> `AuthScreen` y `WelcomeScreen` **no usan `AppScaffold`** (traen su propio
+> layout), así que la flecha hay que dibujarlas a mano. `AuthScreen` la dibuja;
+> `WelcomeScreen` es la raíz de la pila y no la necesita. `Platform` y `Profile`
+> también la reciben.
+>
+> `Screen.Platform` ya **no** tiene botón "Volver al inicio". Antes lo tenía y
+> `AppRoot` lo encadenaba a `Screen.Home` fijo, de modo que un invitado que
+> llegara allí saldría al Home de estudiante. El parámetro `onGoHome` estaba
+> declarado y sin usar; se eliminó junto con el destino equivocado.
+
+### Pantallas sin entrada propia
+
+`Screen.Intereses` **no aparece en ninguna pestaña ni en ninguna tarjeta fija**.
+Solo se abre desde `Home` y `ProspectHome`, y ambas lo hacen dentro de un
+`if (primerInteres != null)`. Sin intereses registrados —es decir, en la
+práctica, la primera vez— esa pantalla no tiene por dónde abrirse. Es un hueco
+de navegación, no una decisión de diseño: está anotado como pendiente.
 
 ## 4. Barra inferior (`EnidTab`)
 
@@ -170,9 +196,16 @@ flowchart TD
 | Pagos | `Payments` | solo conectado |
 | Soporte | `Faq` | todos |
 
-El tab **Inicio** no siempre va a `Home`: `AppRoot` lo resuelve según la sesión
-(`inicioDelUsuario`). El invitado que abre el catálogo desde la barra vuelve a
-`ProspectHome`, no al Home de estudiante.
+**Quién ve qué pestañas no lo decide cada pantalla.** `AppScaffold` lee
+`SesionUi.conectado` y calcula la lista con `tabsSegunSesion(...)`; **ninguna
+pantalla pasa el parámetro `tabs`**. Antes el valor por defecto era
+`EnidTab.entries` y ocho pantallas no pasaban nada, así que el invitado veía las
+cuatro pestañas y podía entrar a `Payments` —con un historial de pagos
+fabricado— tocando "Pagos".
+
+El tab **Inicio** tampoco siempre va a `Home`: `AppRoot` lo resuelve según la
+sesión (`inicioDelUsuario`). El invitado que abre el catálogo desde la barra
+vuelve a `ProspectHome`, no al Home de estudiante.
 
 ## 5. Flujo interno de la preinscripción (3 pasos)
 
@@ -196,14 +229,28 @@ flowchart LR
 
 ## 6. Salidas a apps externas (fuera del diagrama)
 
-`data/EnlacesExternos.kt` centraliza WhatsApp, llamadas, mapa, web y PSE. Con
-`habilitados = false` **no se abre nada**: solo queda el registro en el log. Por
-eso la barra del asesor y los botones de sede son visibles pero inertes.
+`data/EnlacesExternos.kt` es la **única** salida de la app hacia otra aplicación:
+WhatsApp, llamadas, mapa, web, plataforma y PSE. Ninguna pantalla llama a
+`context.startActivity` por su cuenta; una prueba lo verifica leyendo el
+código fuente.
+
+Con `habilitados = false` **no se abre nada**: solo queda el registro en el log.
+Por eso la barra del asesor y los botones de sede son visibles pero inertes.
+
+**Cada función devuelve `Boolean`**: `true` solo si la app externa se abrió de
+verdad, `false` si el interruptor está apagado o si el dispositivo no tiene
+ninguna app capaz de atender la acción. Sin ese valor de retorno una pantalla
+no puede distinguir "se abrió" de "no pasó nada", y `PseScreen` por eso mismo
+llegaba a mostrar *"Pago procesado con éxito"*.
 
 | Desde | Acción | App destino |
 |-------|--------|-------------|
 | Varias | Contactar asesor | WhatsApp |
-| Varias | Llamar a la Fundación | Marcador |
-| Locations | Ver ubicación | Mapa |
+| Locations | Llamar a sede | Marcador |
+| Locations | Cómo llegar | Mapa |
 | Varias | Enlace institucional | Navegador |
-| Payments | Pagar por PSE | PSE bancario |
+| Platform | Ir a la plataforma | Navegador |
+| Pse | Pagar por PSE | PSE bancario |
+
+`Payments` ya **no** sale por sí sola: se llega desde `Pse` o desde el botón
+"PAGAR CON PSE", y en ambos casos la pasarela se abre desde `Pse`.

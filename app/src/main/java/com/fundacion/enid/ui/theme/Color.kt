@@ -1,38 +1,88 @@
 package com.fundacion.enid.ui.theme
 
 import androidx.compose.ui.graphics.Color
+import com.fundacion.enid.ui.shared.EnidDarkBlue
+import com.fundacion.enid.ui.shared.EnidFotoPlaceholder
+import com.fundacion.enid.ui.shared.EnidSincronizadoFondo
+import com.fundacion.enid.ui.shared.EnidSincronizadoTexto
+import com.fundacion.enid.ui.shared.EnidVerdeSoft
+import com.fundacion.enid.ui.shared.EnidVerdeWhatsapp
+import com.fundacion.enid.ui.shared.EnidOro
+import com.fundacion.enid.ui.shared.EnidOroSoft
 
-// ── Sistema de diseño Fundación ENID (guías SVG) ─────────────────────────────
-//  Referencia: "Proyecto movil.svg"
-// ───────────────────────────────────────────────────────────────────────────────
-val EnidDarkBlue = Color(0xFF322D6B)   // azul institucional: botones activos, tabs, CTA
-val EnidBlueBright = Color(0xFF3A3A6E)
+/**
+ * COLORES PROPIOS DE LA APP INSTITUCIONAL
+ * ---------------------------------------------------------------------------
+ * La paleta base y las medidas viven en `:ui` desde que `:campo` entró en el
+ * proyecto. Ese módulo traía su propia copia y, entre las dos, había doce
+ * colores con el mismo nombre y el mismo valor declarados dos veces, más seis
+ * colores iguales con nombres distintos (`EnidGreen` / `EnidVerdeWhatsapp`).
+ * Ahora hay un solo sitio: `com.fundacion.enid.ui.shared`.
+ *
+ * Este fichero conserva solo lo que la app institucional añade por su cuenta,
+ * y mantiene los nombres cortos que ya usa el código como alias para que
+ * ninguna pantalla cambie.
+ */
+
+// ── Alias de los colores compartidos ─────────────────────────────────────
+// El nombre histórico de la app. Se dejan como alias, no como declaraciones
+// nuevas: así el valor no puede volver a divergir del del módulo compartido.
+
+/** Azul principal. Alias de [EnidDarkBlue]. */
 val EnidBlue = EnidDarkBlue
-val EnidRed = Color(0xFFC81920)        // rojo institucional: CTA / punto activo
-val EnidRedSoft = Color(0xFFF5BDB8)    // coral / rojo claro: fondo del tab activo
-val EnidPurple = Color(0xFF322D6B)     // morado: PSE, Llamar a Sede
-val EnidGreen = Color(0xFF25D366)      // verde WhatsApp / soporte
+
+/** Morado: se usa en PSE y en "Llamar a Sede". */
+val EnidPurple = Color(0xFF322D6B)
+
+/** Verde de contacto. Alias de [EnidVerdeWhatsapp]. */
+val EnidGreen = EnidVerdeWhatsapp
+
+/** Verde de WhatsApp. Alias de [EnidVerdeWhatsapp]. */
 val EnidWhatsApp = EnidGreen
-val EnidWhite = Color(0xFFFFFFFF)      // tarjetas y campos
+
+/** Negro puro. */
 val EnidBlack = Color(0xFF000000)
-val EnidBg = Color(0xFFF4F3EF)         // fondo crema claro (guía SVG)
-val EnidInk = Color(0xFF111827)        // texto principal (guía SVG)
-val EnidTextSec = Color(0xFF4B5563)    // texto secundario / placeholders (guía SVG)
-val EnidBorderSoft = Color(0xFFD1D5DB) // borde de tarjetas y campos (guía SVG)
-val EnidBorder = EnidBorderSoft
-val EnidPhoto = Color(0xFFCBD5C0)      // zona de foto / banner
-val EnidIconBox = Color(0xFFEEEDF5)    // caja de ícono (plataforma)
-val EnidChipDoneBg = Color(0xFFDCFCE7) // chip "Pagado"
-val EnidChipDoneText = Color(0xFF15803D)
-val EnidChipWarnBg = Color(0xFFFDE8E9) // chip "Por pagar"
-val EnidChipWarnText = Color(0xFFC81920)
-val EnidNavDot = Color(0xFFD1D5DB)     // punto inactivo de la barra inferior (guía SVG)
-val EnidGold = Color(0xFFB08D00)       // "Vence pronto"
+
+/** Contorno de tarjetas y campos. Alias de la paleta compartida. */
+val EnidBorder = com.fundacion.enid.ui.shared.EnidBorderSoft
+
+/** Zona de foto o banner. Alias de [EnidFotoPlaceholder]. */
+val EnidPhoto = EnidFotoPlaceholder
+
+/** Azul muy claro, equivalente al fondo de la caja de ícono. */
 val EnidSky = Color(0xFFEEEDF5)
+
+/** Alias de [EnidSky]. */
 val EnidBlueLight = EnidSky
-val EnidCardBg = EnidWhite
-// ── Tonos claros de los colores de icono (fondo de la caja del icono) ────────
-val EnidBlueSoft = Color(0xFFDCE4F6)
-val EnidGreenSoft = Color(0xFFDCF7E3)
-val EnidGoldSoft = Color(0xFFF7EFD9)
+
+/** Punto inactivo de la barra inferior (guía SVG). */
+val EnidNavDot = Color(0xFFD1D5DB)
+
+/** Tono ocre de la app. Alias de [EnidOro]. */
+val EnidGold = EnidOro
+
+/** Tono ocre claro de la app. Alias de [EnidOroSoft]. */
+val EnidGoldSoft = EnidOroSoft
+
+/** Tono verde claro de la app. Alias de [EnidVerdeSoft]. */
+val EnidGreenSoft = EnidVerdeSoft
+
+/** Morado claro de realce. */
 val EnidPurpleSoft = Color(0xFFECE7F6)
+
+// ── Chips de estado ───────────────────────────────────────────────────────
+// El chip de resultado correcto es el color compartido de éxito. El de "por
+// pagar" es propio de esta app: es una alerta de deuda, no un error de
+// sistema, y por eso no se mezcla con el color de error de `:campo`.
+
+/** Fondo del chip "Pagado". Alias del verde de éxito compartido. */
+val EnidChipDoneBg = EnidSincronizadoFondo
+
+/** Texto del chip "Pagado". Alias del verde de éxito compartido. */
+val EnidChipDoneText = EnidSincronizadoTexto
+
+/** Fondo del chip "Por pagar". */
+val EnidChipWarnBg = Color(0xFFFDE8E9)
+
+/** Texto del chip "Por pagar". */
+val EnidChipWarnText = Color(0xFFC81920)

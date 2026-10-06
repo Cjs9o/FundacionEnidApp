@@ -25,9 +25,9 @@ import com.fundacion.enid.R
 import com.fundacion.enid.ui.components.BigButton
 import com.fundacion.enid.ui.components.BigOutlinedButton
 import com.fundacion.enid.ui.components.VerticalSpacer
-import com.fundacion.enid.ui.theme.EnidBg
-import com.fundacion.enid.ui.theme.EnidInk
-import com.fundacion.enid.ui.theme.EnidTextSec
+import com.fundacion.enid.ui.shared.EnidBg
+import com.fundacion.enid.ui.shared.EnidInk
+import com.fundacion.enid.ui.shared.EnidTextSec
 
 @Composable
 fun WelcomeScreen(

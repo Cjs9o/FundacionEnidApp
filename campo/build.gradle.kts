@@ -61,6 +61,10 @@ ksp {
 }
 
 dependencies {
+    // Tokens del sistema visual. `:campo` ya no declara su propia paleta: la
+    // comparte con `:app` para que los colores de la marca no puedan divergir.
+    implementation(project(":ui"))
+
     implementation(platform(libs.androidx.compose.bom))
     // `api` y no `implementation`: `:app` compone `EnidAppRaiz` y llama a
     // rememberLauncherForActivityResult / ViewModel, que vienen de aqui.

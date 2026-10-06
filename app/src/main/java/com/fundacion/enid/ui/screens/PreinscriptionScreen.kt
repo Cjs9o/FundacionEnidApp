@@ -63,15 +63,14 @@ import com.fundacion.enid.ui.components.PreguntaSiNo
 import com.fundacion.enid.ui.components.SelectorBotones
 import com.fundacion.enid.ui.components.SelectorDesplegable
 import com.fundacion.enid.ui.components.VerticalSpacer
-import com.fundacion.enid.ui.components.tabsSegunSesion
-import com.fundacion.enid.ui.theme.EnidBorderSoft
-import com.fundacion.enid.ui.theme.EnidDarkBlue
+import com.fundacion.enid.ui.shared.EnidBorderSoft
+import com.fundacion.enid.ui.shared.EnidDarkBlue
 import com.fundacion.enid.ui.theme.EnidGreen
 import com.fundacion.enid.ui.theme.EnidGreenSoft
-import com.fundacion.enid.ui.theme.EnidInk
-import com.fundacion.enid.ui.theme.EnidRed
-import com.fundacion.enid.ui.theme.EnidTextSec
-import com.fundacion.enid.ui.theme.EnidWhite
+import com.fundacion.enid.ui.shared.EnidInk
+import com.fundacion.enid.ui.shared.EnidRed
+import com.fundacion.enid.ui.shared.EnidTextSec
+import com.fundacion.enid.ui.shared.EnidWhite
 
 private const val TOTAL_PASOS = 3
 
@@ -346,7 +345,6 @@ fun PreinscriptionScreen(
         onBack = onBack,
         activeTab = EnidTab.INICIO,
         onTabNavigate = onTabNavigate,
-        tabs = tabsSegunSesion(repository.estaConectado)
     ) {
         if (enviado) {
             PantallaEnviado(

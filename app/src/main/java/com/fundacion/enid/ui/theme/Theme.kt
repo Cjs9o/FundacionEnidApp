@@ -3,6 +3,15 @@ package com.fundacion.enid.ui.theme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+// La paleta base vive en `:ui`. Este fichero está en el mismo paquete que el
+// `Color.kt` de la app, así que sin estos imports dejaría de ver los colores.
+import com.fundacion.enid.ui.shared.EnidBg
+import com.fundacion.enid.ui.shared.EnidDarkBlue
+import com.fundacion.enid.ui.shared.EnidIconBox
+import com.fundacion.enid.ui.shared.EnidInk
+import com.fundacion.enid.ui.shared.EnidRed
+import com.fundacion.enid.ui.shared.EnidTextSec
+import com.fundacion.enid.ui.shared.EnidWhite
 
 private val EnidColorScheme = lightColorScheme(
     primary = EnidDarkBlue,

@@ -32,16 +32,15 @@ import com.fundacion.enid.ui.components.AppScaffold
 import com.fundacion.enid.ui.components.BigTextField
 import com.fundacion.enid.ui.components.EnidIcons
 import com.fundacion.enid.ui.components.EnidTab
-import com.fundacion.enid.ui.components.tabsSegunSesion
 import com.fundacion.enid.ui.components.SmallButton
 import com.fundacion.enid.ui.components.VerticalSpacer
-import com.fundacion.enid.ui.theme.EnidBorderSoft
-import com.fundacion.enid.ui.theme.EnidDarkBlue
+import com.fundacion.enid.ui.shared.EnidBorderSoft
+import com.fundacion.enid.ui.shared.EnidDarkBlue
 import com.fundacion.enid.ui.theme.EnidGold
-import com.fundacion.enid.ui.theme.EnidInk
-import com.fundacion.enid.ui.theme.EnidRed
-import com.fundacion.enid.ui.theme.EnidTextSec
-import com.fundacion.enid.ui.theme.EnidWhite
+import com.fundacion.enid.ui.shared.EnidInk
+import com.fundacion.enid.ui.shared.EnidRed
+import com.fundacion.enid.ui.shared.EnidTextSec
+import com.fundacion.enid.ui.shared.EnidWhite
 
 private data class Filtro(val label: String, val tipo: TipoPrograma?)
 
@@ -60,7 +59,6 @@ private val FILTROS = listOf(
 @Composable
 fun CatalogScreen(
     repository: DataRepository,
-    onBack: () -> Unit,
     onOpenProgram: (Int) -> Unit,
     onOpenFinder: () -> Unit = {},
     onTabNavigate: ((Screen) -> Unit)? = null
@@ -75,7 +73,6 @@ fun CatalogScreen(
         title = "Oferta Académica",
         activeTab = EnidTab.INICIO,
         onTabNavigate = onTabNavigate,
-        tabs = tabsSegunSesion(repository.estaConectado)
     ) {
         Text(
             text = "Encuentra tu programa ideal",

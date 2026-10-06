@@ -52,17 +52,19 @@ import com.fundacion.enid.campo.ui.components.HojaOpciones
 import com.fundacion.enid.campo.ui.components.NotaFormulario
 import com.fundacion.enid.campo.ui.components.SelectorDesplegable
 import com.fundacion.enid.campo.ui.components.VerticalSpacer
-import com.fundacion.enid.campo.ui.theme.EnidBlueSoft
-import com.fundacion.enid.campo.ui.theme.EnidBorderSoft
-import com.fundacion.enid.campo.ui.theme.EnidDarkBlue
-import com.fundacion.enid.campo.ui.theme.EnidDimens
-import com.fundacion.enid.campo.ui.theme.EnidInk
-import com.fundacion.enid.campo.ui.theme.EnidRed
-import com.fundacion.enid.campo.ui.theme.EnidTextSec
 import com.fundacion.enid.campo.ui.vm.CapturaViewModel
 import com.fundacion.enid.campo.ui.vm.EventoCaptura
 import com.fundacion.enid.campo.ui.vm.HojaAbierta
+import com.fundacion.enid.ui.shared.EnidBlueSoft
+import com.fundacion.enid.ui.shared.EnidBorderSoft
+import com.fundacion.enid.ui.shared.EnidDarkBlue
+import com.fundacion.enid.ui.shared.EnidDimens
+import com.fundacion.enid.ui.shared.EnidInk
+import com.fundacion.enid.ui.shared.EnidRed
+import com.fundacion.enid.ui.shared.EnidTextSec
 import java.io.File
+
+
 
 /**
  * ===========================================================================
@@ -525,7 +527,7 @@ private fun BarraGuardar(
     Column(
         Modifier
             .fillMaxWidth()
-            .background(com.fundacion.enid.campo.ui.theme.EnidBg)
+            .background(com.fundacion.enid.ui.shared.EnidBg)
             .padding(horizontal = EnidDimens.margenPantalla)
             .padding(top = 10.dp, bottom = 12.dp)
     ) {
@@ -592,7 +594,7 @@ private fun BannerSoloLectura(motivo: String?) {
     Row(
         Modifier
             .fillMaxWidth()
-            .background(com.fundacion.enid.campo.ui.theme.EnidOroSoft)
+            .background(com.fundacion.enid.ui.shared.EnidOroSoft)
             .padding(horizontal = EnidDimens.margenPantalla, vertical = 12.dp)
     ) {
         Text(

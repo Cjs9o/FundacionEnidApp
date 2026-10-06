@@ -33,18 +33,17 @@ import com.fundacion.enid.ui.components.BigButton
 import com.fundacion.enid.ui.components.BigOutlinedButton
 import com.fundacion.enid.ui.components.EnidIcons
 import com.fundacion.enid.ui.components.EnidTab
-import com.fundacion.enid.ui.components.tabsSegunSesion
 import com.fundacion.enid.ui.components.SectionTitle
 import com.fundacion.enid.ui.components.VerticalSpacer
-import com.fundacion.enid.ui.theme.EnidBorderSoft
+import com.fundacion.enid.ui.shared.EnidBorderSoft
 import com.fundacion.enid.ui.theme.EnidChipDoneBg
 import com.fundacion.enid.ui.theme.EnidChipDoneText
-import com.fundacion.enid.ui.theme.EnidDarkBlue
+import com.fundacion.enid.ui.shared.EnidDarkBlue
 import com.fundacion.enid.ui.theme.EnidGreen
-import com.fundacion.enid.ui.theme.EnidInk
-import com.fundacion.enid.ui.theme.EnidRed
-import com.fundacion.enid.ui.theme.EnidTextSec
-import com.fundacion.enid.ui.theme.EnidWhite
+import com.fundacion.enid.ui.shared.EnidInk
+import com.fundacion.enid.ui.shared.EnidRed
+import com.fundacion.enid.ui.shared.EnidTextSec
+import com.fundacion.enid.ui.shared.EnidWhite
 
 private enum class DetalleTab(val label: String) {
     INFO("Información"), APRENDER("¿Qué aprenderás?"), REQUISITOS("Requisitos")
@@ -94,7 +93,6 @@ fun ProgramDetailScreen(
         onBack = onBack,
         activeTab = EnidTab.INICIO,
         onTabNavigate = onTabNavigate,
-        tabs = tabsSegunSesion(repository.estaConectado)
     ) {
         Text(
             text = programa.nombre,

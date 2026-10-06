@@ -1,8 +1,6 @@
 package com.fundacion.enid.ui.screens
 
 import android.content.Context
-import android.content.Intent
-import android.net.Uri
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -27,27 +25,26 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.fundacion.enid.data.DataRepository
 import com.fundacion.enid.navigation.Screen
+import com.fundacion.enid.data.DataRepository
+import com.fundacion.enid.data.EnlacesExternos
 import com.fundacion.enid.ui.components.AppScaffold
 import com.fundacion.enid.ui.components.BigButton
 import com.fundacion.enid.ui.components.EnidIcons
 import com.fundacion.enid.ui.components.EnidIconBox
 import com.fundacion.enid.ui.components.EnidTab
 import com.fundacion.enid.ui.components.VerticalSpacer
-import com.fundacion.enid.ui.theme.EnidBorderSoft
+import com.fundacion.enid.ui.shared.EnidBorderSoft
 import com.fundacion.enid.ui.theme.EnidChipDoneText
-import com.fundacion.enid.ui.theme.EnidDarkBlue
+import com.fundacion.enid.ui.shared.EnidDarkBlue
 import com.fundacion.enid.ui.theme.EnidGreen
-import com.fundacion.enid.ui.theme.EnidInk
-import com.fundacion.enid.ui.theme.EnidTextSec
-import com.fundacion.enid.ui.theme.EnidWhite
+import com.fundacion.enid.ui.shared.EnidInk
+import com.fundacion.enid.ui.shared.EnidTextSec
+import com.fundacion.enid.ui.shared.EnidWhite
 
 @Composable
 fun PlatformScreen(
-    repository: DataRepository,
     onBack: () -> Unit,
-    onGoHome: () -> Unit,
     onTabNavigate: ((Screen) -> Unit)? = null
 ) {
     val context = LocalContext.current
@@ -124,10 +121,4 @@ fun PlatformScreen(
     }
 }
 
-private fun abrirPlataforma(context: Context) {
-    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(DataRepository.PLATAFORMA_URL))
-    try {
-        context.startActivity(intent)
-    } catch (_: Exception) {
-    }
-}
+private fun abrirPlataforma(context: Context) = EnlacesExternos.abrirPlataforma(context)

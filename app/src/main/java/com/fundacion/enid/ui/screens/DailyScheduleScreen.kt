@@ -35,11 +35,11 @@ import com.fundacion.enid.model.SubjectPlan
 import com.fundacion.enid.ui.components.AppScaffold
 import com.fundacion.enid.ui.components.EnidTab
 import com.fundacion.enid.ui.components.VerticalSpacer
-import com.fundacion.enid.ui.theme.EnidBorderSoft
-import com.fundacion.enid.ui.theme.EnidDarkBlue
-import com.fundacion.enid.ui.theme.EnidInk
-import com.fundacion.enid.ui.theme.EnidTextSec
-import com.fundacion.enid.ui.theme.EnidWhite
+import com.fundacion.enid.ui.shared.EnidBorderSoft
+import com.fundacion.enid.ui.shared.EnidDarkBlue
+import com.fundacion.enid.ui.shared.EnidInk
+import com.fundacion.enid.ui.shared.EnidTextSec
+import com.fundacion.enid.ui.shared.EnidWhite
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale

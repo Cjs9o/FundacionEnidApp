@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Módulo de tokens compartidos: no declara componentes, permisos ni receivers.
+    Solo expone los valores del sistema visual que usan `:app` y `:campo`.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.fundacion.enid.ui.shared" >
+
+    <uses-sdk android:minSdkVersion="30" />
+
+</manifest>

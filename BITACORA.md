@@ -1299,3 +1299,135 @@ apareció aquí:
    automatización por ADB no permite dispararlas de forma fiable; el
    almacenamiento y la validación de la evidencia sí están cubiertos por las 10
    pruebas en dispositivo.
+
+---
+
+## 6 Oct — Auditoría de las 18 pantallas y corrección del desorden
+
+Al revisar la app en el teléfono, no por fases sino pantalla por pantalla,
+salieron siete cosas que el usuario ve de verdad. Ninguna era de maquetación:
+todas eran de estructura.
+
+### Lo que se encontró y se corrigió
+
+1. **El invitado llegaba a la pantalla de Pagos con datos inventados.**
+   Verificado en el moto g(20): como invitado, el paso "Realizar el pago" de
+   `rutaProspecto` abría `Payments` y mostraba "Valor de la Matrícula $180.000",
+   "Vence: 13 Oct" y un historial con "Matrícula Agosto 2025 · Pagado el 05 Ago ·
+   Pago confirmado. Ciclo 2025-2". Tres datos que la Fundación no ha dicho.
+   Los pasos 5 a 10 de `rutaProspecto` son ahora `enSede = true`.
+
+2. **`PseScreen` confirmaba pagos que no ocurrían.** El botón ponía
+   `pagado = true` después de un `try/catch` vacío, así que mostraba
+   "Pago procesado con éxito" incluso con las acciones externas apagadas.
+   Ahora `EnlacesExternos.abrirPse` devuelve `true` solo si la pasarela se
+   abrió, y la pantalla dice lo que corresponde en cada caso.
+
+3. **Ocho pantallas pintaban las pestañas de estudiante a cualquiera.**
+   `AppScaffold` tenía `tabs: List<EnidTab> = EnidTab.entries` como valor por
+   defecto, y ocho pantallas no pasaban `tabsSegunSesion(...)`. La afirmacion
+   del BITACORA anterior ("el invitado no ve Horario ni Pagos") era cierta solo
+   en 7 de 15 pantallas. Ahora `AppScaffold` lee `SesionUi.conectado` y ninguna
+   pantalla pasa `tabs`: se acabaron las dos formas de equivocarse.
+
+4. **No había botón de volver en ninguna pantalla.** `AppScaffold` recibía
+   `onBack` y nunca lo usaba; no existía ninguna flecha de retorno en toda la
+   app. El único camino de vuelta era el gesto del sistema, que no es lo que
+   asume una app para mayores de 60 años. Ahora se dibuja con 48 dp de área
+   táctil.
+
+5. **Cuatro pantallas eran callejones sin salida.** `ProspectHome` —el Home del
+   invitado—, `Profile`, `Pse` y `Benefits` no tenían barra inferior. Las cuatro
+   la reciben ya.
+
+6. **Cinco pantallas abrían apps externas por su cuenta**, saltándose el
+   interruptor `EnlacesExternos.habilitados`. Ahora las cinco pasan por
+   `EnlacesExternos`, y una prueba lo verifica leyendo el código fuente.
+
+7. **El monto de matrícula estaba escrito en siete sitios con dos valores.**
+   `$180.000` en `PaymentsScreen` y `BenefitsCalculatorScreen`, `$830.000` en
+   `PseScreen`. Ahora hay un `DataRepository.MONTO_MATRICULA` y las pantallas
+   que lo muestran añaden `AVISO_MONTO`, que dice que es preliminar.
+
+8. **El sistema visual estaba duplicado.** Al integrar `:campo`, ese módulo
+   traía copia de `Color.kt`: doce colores con el mismo nombre y el mismo valor
+   en dos ficheros, y seis colores iguales con nombres distintos
+   (`EnidGreen`/`EnidVerdeWhatsapp`, `EnidGold`/`EnidOro`,
+   `EnidChipDoneBg`/`EnidSincronizadoFondo`, `EnidPhoto`/`EnidFotoPlaceholder`).
+   Nace el módulo `:ui`, con la paleta base y `EnidDimens` en un solo sitio.
+
+### Lo que NO se corrigió, y por qué
+
+Los trece componentes con el mismo nombre en `:app` y `:campo`
+(`BigButton`, `SelectorDesplegable`, `AppScaffold`…) **no son código duplicado**:
+se comparó el cuerpo de los trece y **ninguno es idéntico** a su homólogo.
+Son dos implementaciones que convergieron en los mismos nombres, con firmas y
+tamaños distintos. Borrar una copia no compila; unificarlas es elegir una
+implementación por componente y adaptar la otra, cambiando el aspecto de uno de
+los dos módulos. Queda como Fase 23, no como limpieza.
+
+### Ejecuciones en el dispositivo (moto g(20), Android 11)
+
+| # | Qué se comprobó | Resultado |
+|---|---|---|
+| 1 | Arranque en frío, entrada como invitado | Pestañas **Inicio + Soporte** (antes ninguna). Los pasos 9 y 10 muestran "con asesor" en vez de abrir Pagos y Platform |
+| 2 | Navegación a Sedes y botón "Volver" | El botón aparece (`content-desc="Volver"`) y devuelve al Home del invitado. Pestañas correctas |
+| 3 | Pantallas de Pagos y PSE con las firmas nuevas | Compilan; el monto sale del repositorio y no se puede afirmar el pago |
+| 4 | Módulo `:campo` tras el refactor de tokens | Arranca igual. `#F4F3EF`, `#322D6B`, `#C81920`, `#D1D5DB`, `#4B5563`, `#111827`, `#EEEDF5` presentes con el valor exacto |
+| 5 | `:app` tras el refactor de tokens | `#F4F3EF`, `#322D6B`, `#C81920`, `#F5BDB8`, `#111827`, `#4B5563`, `#D1D5DB` presentes con el valor exacto |
+
+Los colores se comprobaron por muestreo de píxeles de la captura, no a ojo:
+siete de los once tokens de `:app` y ocho de `:campo` aparecen en pantalla con
+el valor exacto del token. Los que no aparecen no se usan en esa pantalla.
+
+### Pruebas
+
+| Ámbito | Antes | Ahora |
+|---|---|---|
+| Unitarias `:app` | 54 | 67 |
+| Unitarias `:campo` | 34 | 34 |
+| Instrumentadas `:app` | 1 | 1 |
+| Instrumentadas `:campo` | 10 | 10 |
+| **Total** | **99** | **115** |
+
+Las 13 pruebas nuevas (`NavegacionInvitadoTest`) cubren lo que se rompió: que
+ningún paso de la ruta del invitado abra pagos o la plataforma, que solo los
+cuatro primeros tengan pantalla, que el invitado no vea Horario ni Pagos, que el
+monto se formatee como pesos colombianos, que ninguna pantalla abra un `Intent`
+por su cuenta y que la paleta no vuelva a declararse dos veces.
+
+### Pendiente que sigue
+
+Lo de las fases 13 a 19, más:
+
+1. **Fase 23 — unificar los 13 componentes duplicados.** Es un refactor, no una
+   limpieza: hay que decidir qué implementación gana en cada uno.
+2. **`Screen.Intereses` sigue sin entrada propia.** Solo se llega desde el Home
+   con `if (primerInteres != null)`. Cuando no hay intereses guardados la
+   pantalla no tiene por dónde abrirse.
+3. **La barra inferior sigue durante los 3 pasos de la preinscripción**
+   (`PreinscriptionScreen.kt`), con `activeTab = INICIO`: a media inscripción se
+   puede tocar "Pagos" y perder lo escrito.
+
+### Dos hallazgos adicionales del reescaneo
+
+Al reescanear los parámetros al final de la pasada salieron dos que el primer
+barrido no había visto, y los dos importan:
+
+1. **`PlatformScreen` recibía `onGoHome` y no lo usaba.** El diagrama de
+   navegación documentaba un botón "Volver al inicio" que **no existe**, y
+   `AppRoot` lo encadenaba a `Screen.Home` fijo. Para un invitado eso significaba
+   salir al Home de estudiante: el mismo error que se arregló con las pestañas.
+   Se eliminó el parámetro muerto y con él el destino equivocado. La pantalla
+   conserva `onBack` y la barra inferior, así que el camino de vuelta correcto
+   sigue estando.
+
+2. **`AuthScreen` recibía `onBack` y no lo usaba.** No usa `AppScaffold` —trae
+   su propio `Column`— así que la flecha de volver había que dibujarla a mano y
+   no estaba dibujada. Como `Login` se alcanza con `nav.navegar` desde
+   Bienvenida, sí hay algo a lo que volver: se llega con un gesto invisible y no
+   hay forma visible de deshacerlo. Ahora `AuthScreen` dibuja el botón con los
+   mismos 48 dp y el mismo `contentDescription` que el resto.
+
+`WelcomeScreen` tampoco usa `AppScaffold`, pero es la raíz de la pila: ahí no hay
+nada a lo que volver y no se le pone botón.

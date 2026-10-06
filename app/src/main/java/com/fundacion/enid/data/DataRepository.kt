@@ -391,24 +391,11 @@ class DataRepository(context: Context) {
 
     /**
      * Requerimiento 02: camino B ("Quiero estudiar en ENID").
-     * Es la ruta que ve la persona que aún no está inscrita. Se muestra como
-     * lista de pasos en el Home del invitado para que quede claro qué sigue
-     * después de tomar la decisión. Los pasos que dependen del asesor o se
-     * resuelven en sede se marcan con [RutaStep.enSede] en vez de prometer una
-     * pantalla que la app no tiene.
+     * [rutaProspecto] se define en el `companion object` de esta clase
+     * porque son datos constantes de la Fundación: no dependen de la sesión
+     * ni de nada guardado en el dispositivo, y así se pueden verificar en
+     * pruebas unitarias sin levantar un `Context`.
      */
-    val rutaProspecto: List<RutaStep> = listOf(
-        RutaStep(1, "Conocer ENID", "Conoce la Fundación, su misión y dónde encontrarnos.", "Locations"),
-        RutaStep(2, "Explorar programas", "Revisa los 67 programas técnicos y complementarios.", "Catalog"),
-        RutaStep(3, "Elegir programa", "Responde 5 preguntas y te sugerimos los programas para ti.", "ProgramFinder"),
-        RutaStep(4, "Recibir información", "Déjanos tus datos y te contactamos con la información del programa.", "Preinscription"),
-        RutaStep(5, "Hablar con un asesor", "Un asesor ENID te acompaña para resolver dudas del proceso.", enSede = true),
-        RutaStep(6, "Completar la preinscripción", "Formalizas tu interés y dejas listo tu proceso de admisión.", enSede = true),
-        RutaStep(7, "Entregar documentos", "Los documentos se validan con el asesor, en sede o por el canal que él indique.", enSede = true),
-        RutaStep(8, "Realizar la matrícula", "Proceso de matrícula para activos y nuevos admitidos.", enSede = true),
-        RutaStep(9, "Realizar el pago", "Consulta tus pagos y pendientes desde la app.", "Payments"),
-        RutaStep(10, "¡Bienvenido a ENID!", "Accede a la plataforma, al horario y al soporte.", "Platform")
-    )
 
     val sedes: List<Sede> = listOf(
         Sede(
@@ -754,6 +741,35 @@ class DataRepository(context: Context) {
     }
 
     companion object {
+
+        // ----------------------------------------------------------------
+        // Requerimiento 02: camino B ("Quiero estudiar en ENID").
+        // ----------------------------------------------------------------
+        // Es la ruta que ve la persona que aún no está inscrita. Se muestra
+        // como lista de pasos en el Home del invitado para que quede claro qué
+        // sigue después de tomar la decisión. Los pasos que dependen del asesor
+        // o se resuelven en sede se marcan con [RutaStep.enSede] en vez de
+        // prometer una pantalla que la app no tiene.
+        //
+        // El invitado solo llega hasta el paso 4. Los pasos 9 y 10 (pago y
+        // plataforma) antes apuntaban a `Payments` y `Platform`, así que
+        // cualquiera que entrara como invitado podía abrir la pantalla de pagos
+        // de un estudiante —con un historial de pagos inventado— y la de la
+        // plataforma educativa. Esos módulos son de estudiante y se resuelven
+        // con el asesor o en sede, igual que los pasos 5 a 8.
+        val rutaProspecto: List<RutaStep> = listOf(
+            RutaStep(1, "Conocer ENID", "Conoce la Fundación, su misión y dónde encontrarnos.", "Locations"),
+            RutaStep(2, "Explorar programas", "Revisa los 67 programas técnicos y complementarios.", "Catalog"),
+            RutaStep(3, "Elegir programa", "Responde 5 preguntas y te sugerimos los programas para ti.", "ProgramFinder"),
+            RutaStep(4, "Recibir información", "Déjanos tus datos y te contactamos con la información del programa.", "Preinscription"),
+            RutaStep(5, "Hablar con un asesor", "Un asesor ENID te acompaña para resolver dudas del proceso.", enSede = true),
+            RutaStep(6, "Completar la preinscripción", "Formalizas tu interés y dejas listo tu proceso de admisión.", enSede = true),
+            RutaStep(7, "Entregar documentos", "Los documentos se validan con el asesor, en sede o por el canal que él indique.", enSede = true),
+            RutaStep(8, "Realizar la matrícula", "Proceso de matrícula para activos y nuevos admitidos.", enSede = true),
+            RutaStep(9, "Realizar el pago", "Pagas tu matrícula con el asesor, por PSE o en sede.", enSede = true),
+            RutaStep(10, "¡Bienvenido a ENID!", "Al matricularte activamos tu acceso a la plataforma y al horario.", enSede = true)
+        )
+
         private const val KEY_NOMBRE = "nombre"
         private const val KEY_CORREO = "correo"
         private const val KEY_ROL = "rol"
@@ -769,7 +785,30 @@ class DataRepository(context: Context) {
         /** URL de la pasarela de pagos PSE (Requerimiento 10). Reemplazar por la real. */
         const val PSE_URL = "https://www.pse.com.co/inicio/transacciones/confirmacionInit"
 
+        /** Sitio web institucional (Requerimiento 11). Reemplazar si cambia. */
+        const val SITIO_WEB = "https://www.enid.edu.co"
+
         /** Número base de WhatsApp de atención (Requerimiento 06). */
         const val WHATSAPP_NUMERO = "573017453334"
+
+        // ----------------------------------------------------------------
+        // Montos de matrícula  ·  PENDIENTE DE CONFIRMAR POR LA FUNDACIÓN
+        // ----------------------------------------------------------------
+        // Antes el valor estaba escrito en cinco sitios y con dos cifras
+        // distintas (180.000 en Pagos y Beneficios, 830.000 en PSE). Ahora hay
+        // una sola fuente y las pantallas la leen de aquí. El valor sigue
+        // siendo referencial: la Fundación aún no ha confirmado la cifra real
+        // (Fase 16 del PLANDESARROLLO), así que las pantallas que lo muestran
+        // lo etiquetan como preliminar en vez de presentarlo como un hecho.
+        const val MONTO_MATRICULA = 180000
+
+        /** El monto de matrícula, formateado como pesos colombianos. */
+        fun montoMatriculaTexto(conSigno: Boolean = true): String =
+            (if (conSigno) "$" else "") + "%,d".format(MONTO_MATRICULA).replace(',', '.')
+
+        /** Aviso que acompaña a los montos mientras la Fundación no confirme la cifra. */
+        const val AVISO_MONTO =
+            "Valor preliminar. La Fundación ENID aún no confirma el monto oficial " +
+                "de la matrícula."
     }
 }

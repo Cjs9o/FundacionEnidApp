@@ -42,17 +42,16 @@ import com.fundacion.enid.ui.components.AppScaffold
 import com.fundacion.enid.ui.components.BigButton
 import com.fundacion.enid.ui.components.EnidIcons
 import com.fundacion.enid.ui.components.EnidTab
-import com.fundacion.enid.ui.components.tabsSegunSesion
 import com.fundacion.enid.ui.components.SmallButton
 import com.fundacion.enid.ui.components.VerticalSpacer
-import com.fundacion.enid.ui.theme.EnidBorderSoft
-import com.fundacion.enid.ui.theme.EnidDarkBlue
+import com.fundacion.enid.ui.shared.EnidBorderSoft
+import com.fundacion.enid.ui.shared.EnidDarkBlue
 import com.fundacion.enid.ui.theme.EnidGold
 import com.fundacion.enid.ui.theme.EnidGreen
-import com.fundacion.enid.ui.theme.EnidInk
-import com.fundacion.enid.ui.theme.EnidRed
-import com.fundacion.enid.ui.theme.EnidTextSec
-import com.fundacion.enid.ui.theme.EnidWhite
+import com.fundacion.enid.ui.shared.EnidInk
+import com.fundacion.enid.ui.shared.EnidRed
+import com.fundacion.enid.ui.shared.EnidTextSec
+import com.fundacion.enid.ui.shared.EnidWhite
 
 /**
  * Orientador "¿Qué puedo estudiar?": 5 preguntas y una lista de programas sugeridos.
@@ -85,7 +84,6 @@ fun ProgramFinderScreen(
         titleEnd = if (terminado) null else "Pregunta ${indice + 1} de ${preguntas.size}",
         activeTab = EnidTab.INICIO,
         onTabNavigate = onTabNavigate,
-        tabs = tabsSegunSesion(repository.estaConectado)
     ) {
         if (terminado) {
             Text(

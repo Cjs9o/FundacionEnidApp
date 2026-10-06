@@ -1,7 +1,5 @@
 package com.fundacion.enid.ui.screens
 
-import android.content.Intent
-import android.net.Uri
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -27,48 +25,83 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.fundacion.enid.data.DataRepository
+import com.fundacion.enid.data.EnlacesExternos
+import com.fundacion.enid.navigation.Screen
 import com.fundacion.enid.ui.components.AppScaffold
 import com.fundacion.enid.ui.components.BigButton
 import com.fundacion.enid.ui.components.EnidIcons
+import com.fundacion.enid.ui.components.EnidTab
 import com.fundacion.enid.ui.components.VerticalSpacer
-import com.fundacion.enid.ui.theme.EnidDarkBlue
-import com.fundacion.enid.ui.theme.EnidGreen
+import com.fundacion.enid.ui.theme.EnidBorder
+import com.fundacion.enid.ui.shared.EnidDarkBlue
 import com.fundacion.enid.ui.theme.EnidPurple
-import com.fundacion.enid.ui.theme.EnidTextSec
-import com.fundacion.enid.ui.theme.EnidWhite
+import com.fundacion.enid.ui.shared.EnidTextSec
+import com.fundacion.enid.ui.shared.EnidWhite
 
 private val BANCOS = listOf(
     "Bancolombia", "Banco de Bogotá", "Davivienda", "BBVA Colombia", "Banco de Occidente"
 )
 
+/**
+ * Pago por PSE.
+ *
+ * Esta pantalla **no cobra nada**: no hay pasarela conectada ni confirmación del
+ * banco. Antes, al tocar "Pagar" ponía `pagado = true` y mostraba "Pago procesado
+ * con éxito" sin que hubiera ocurrido nada, incluso con [EnlacesExternos]
+ * apagado. Ahora el único resultado honesto es el que devuelve
+ * [EnlacesExternos.abrirPse]: si se abrió la pasarela se dice que el pago se
+ * confirma allá; si no se abrió, se dice que la Fundación lo confirma. Nunca se
+ * afirma que el pago se haya hecho.
+ */
 @Composable
 fun PseScreen(
-    repository: DataRepository,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onTabNavigate: ((Screen) -> Unit)? = null
 ) {
     var banco by remember { mutableStateOf(BANCOS.first()) }
-    var pagado by remember { mutableStateOf(false) }
+    var abierto by remember { mutableStateOf<Boolean?>(null) }
     val context = LocalContext.current
+    val monto = DataRepository.montoMatriculaTexto()
 
-    AppScaffold(title = "PAGO POR PSE", onBack = onBack) {
-        if (pagado) {
+    AppScaffold(
+        title = "PAGO POR PSE",
+        onBack = onBack,
+        activeTab = EnidTab.PAGOS,
+        onTabNavigate = onTabNavigate
+    ) {
+        // `null` = todavía no se intentó nada. `true` = la pasarela se abrió y
+        // el pago se completa allá. `false` = no se pudo abrir desde la app.
+        abierto?.let { seAbrio ->
             Icon(
-                imageVector = EnidIcons.VOkCirculo,
+                imageVector = if (seAbrio) EnidIcons.VOkCirculo else EnidIcons.VInfo,
                 contentDescription = null,
-                tint = EnidGreen,
+                tint = if (seAbrio) EnidDarkBlue else EnidPurple,
                 modifier = Modifier.size(44.dp)
             )
             VerticalSpacer(8)
             Text(
-                text = "Pago procesado con éxito",
+                text = if (seAbrio) "Continúa en la pasarela del banco"
+                else "El pago se confirma con un asesor",
                 style = MaterialTheme.typography.headlineMedium,
-                color = EnidGreen
+                color = if (seAbrio) EnidDarkBlue else EnidPurple
             )
             VerticalSpacer(8)
             Text(
-                text = "Tu transacción fue aprobada. Recibirás el recibo en tu correo.",
+                text = if (seAbrio)
+                    "Te llevamos a la pasarela segura de tu banco. El pago se " +
+                        "confirma cuando el banco lo apruebe; esta app no puede " +
+                        "decirte si se acreditó."
+                else
+                    "Desde la app no se puede abrir la banca en este momento. Un " +
+                        "asesor ENID te confirma el pago y te envía el recibo.",
                 style = MaterialTheme.typography.bodyLarge,
                 color = EnidTextSec
+            )
+            VerticalSpacer(16)
+            BigButton(
+                text = "VOLVER A INTENTAR",
+                containerColor = EnidDarkBlue,
+                onClick = { abierto = null }
             )
             return@AppScaffold
         }
@@ -83,7 +116,7 @@ fun PseScreen(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
             colors = CardDefaults.cardColors(containerColor = EnidWhite),
-            border = BorderStroke(2.dp, com.fundacion.enid.ui.theme.EnidBorder)
+            border = BorderStroke(2.dp, EnidBorder)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
@@ -93,9 +126,15 @@ fun PseScreen(
                 )
                 VerticalSpacer(4)
                 Text(
-                    text = "$830.000 COP",
+                    text = "$monto COP",
                     style = MaterialTheme.typography.displayMedium,
                     color = EnidDarkBlue
+                )
+                VerticalSpacer(8)
+                Text(
+                    text = DataRepository.AVISO_MONTO,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = EnidTextSec
                 )
             }
         }
@@ -110,7 +149,7 @@ fun PseScreen(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(14.dp),
             colors = CardDefaults.cardColors(containerColor = EnidWhite),
-            border = BorderStroke(2.dp, com.fundacion.enid.ui.theme.EnidBorder)
+            border = BorderStroke(2.dp, EnidBorder)
         ) {
             Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)) {
                 BANCOS.forEach { opcion ->
@@ -121,30 +160,23 @@ fun PseScreen(
                             .padding(vertical = 6.dp),
                         horizontalAlignment = Alignment.Start
                     ) {
-                        Column {
-                            RowAndRadio(opcion, banco) { banco = opcion }
-                        }
+                        RowAndRadio(opcion, banco) { banco = opcion }
                     }
                 }
             }
         }
         VerticalSpacer(18)
         BigButton(
-            text = "PAGAR $830.000 CON $banco",
+            text = "PAGAR $monto CON $banco",
             containerColor = EnidPurple,
             icon = EnidIcons.VCandado,
-            onClick = {
-                try {
-                    context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(DataRepository.PSE_URL)))
-                } catch (_: Exception) {
-                }
-                pagado = true
-            }
+            onClick = { abierto = EnlacesExternos.abrirPse(context) }
         )
         VerticalSpacer(8)
         Text(
-            text = "Transacción protegida por el sistema PSE. Serás redirigido a " +
-                "la pasarela segura de tu entidad.",
+            text = "Te llevamos a la pasarela segura de tu banco. " +
+                "ENID no cobra desde la app: el pago se confirma con el banco " +
+                "y con el asesor.",
             style = MaterialTheme.typography.bodyMedium,
             color = EnidTextSec
         )
@@ -153,7 +185,7 @@ fun PseScreen(
 
 @Composable
 private fun RowAndRadio(opcion: String, seleccion: String, onSeleccionar: () -> Unit) {
-    androidx.compose.foundation.layout.Row(
+    Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {

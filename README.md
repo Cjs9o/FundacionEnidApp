@@ -40,6 +40,36 @@ y ambas con razón: `:app` usa su pila propia y `:campo` un `NavHost` de
 un solo punto. El detalle completo, incluidos los cuatro problemas que hubo que
 resolver al integrar, está en [BITACORA.md](BITACORA.md).
 
+### Módulo `:ui` — tokens compartidos
+
+`:app` y `:campo` comparten un tercer módulo con la **paleta base** y las
+**medidas** del sistema visual. No contiene componentes ni lógica de negocio.
+
+| Qué | Dónde |
+|---|---|
+| Paleta base (12 colores de la marca) | `ui/src/main/java/com/fundacion/enid/ui/shared/Color.kt` |
+| Colores secundarios y de éxito | `ui/src/main/java/com/fundacion/enid/ui/shared/Green.kt` |
+| Medidas (`EnidDimens`) | `ui/src/main/java/com/fundacion/enid/ui/shared/Dimens.kt` |
+| Lo propio de `:app` | `app/.../ui/theme/Color.kt` — con alias hacia los compartidos |
+| Lo propio de `:campo` | `campo/.../ui/theme/Color.kt` — ámbar de pendiente, rojo de error |
+
+Nace porque al integrar `:campo` ese módulo traía copia de `Color.kt`: doce
+colores con el mismo nombre y el mismo valor en dos ficheros, más seis colores
+iguales con nombres distintos (`EnidGreen` / `EnidVerdeWhatsapp`,
+`EnidGold` / `EnidOro`, `EnidChipDoneBg` / `EnidSincronizadoFondo`). Con dos
+copias en un mismo APK, cambiar un color en un módulo deja el otro desalineado
+sin aviso. Tres pruebas lo vigilan.
+
+### Reglas de navegación que no hay que volver a romper
+
+| Regla | Dónde se aplica |
+|---|---|
+| Las pestañas dependen de la sesión, no de la pantalla | `AppScaffold` lee `SesionUi`; **ninguna** pantalla pasa `tabs` |
+| Toda salida a otra app pasa por `EnlacesExternos` | y cada función devuelve si de verdad abrió algo |
+| La app nunca afirma que ocurrió algo que no verificó | `PseScreen` usa el valor devuelto, no un `pagado = true` |
+| El monto de matrícula sale de un solo sitio | `DataRepository.MONTO_MATRICULA`, y se etiqueta como preliminar |
+| Ningún dato institucional se inventa en una pantalla | lo que la Fundación no ha confirmado va con su aviso al lado |
+
 ### Fases 12 y 13 — adjuntos de documentos
 
 El paso 2 de la preinscripción deja **adjuntar el archivo de cada documento**

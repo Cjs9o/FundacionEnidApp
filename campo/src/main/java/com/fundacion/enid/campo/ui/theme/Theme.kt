@@ -7,6 +7,21 @@ import androidx.compose.material3.Shapes
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
+import com.fundacion.enid.ui.shared.EnidDimens
+import com.fundacion.enid.ui.shared.EnidSincronizadoTexto
+import com.fundacion.enid.ui.shared.EnidSincronizadoFondo
+import com.fundacion.enid.ui.shared.EnidOroSoft
+import com.fundacion.enid.ui.shared.EnidOro
+import com.fundacion.enid.ui.shared.EnidVerdeWhatsapp
+import com.fundacion.enid.ui.shared.EnidBg
+import com.fundacion.enid.ui.shared.EnidBorderSoft
+import com.fundacion.enid.ui.shared.EnidCardBg
+import com.fundacion.enid.ui.shared.EnidDarkBlue
+import com.fundacion.enid.ui.shared.EnidIconBox
+import com.fundacion.enid.ui.shared.EnidInk
+import com.fundacion.enid.ui.shared.EnidRed
+import com.fundacion.enid.ui.shared.EnidTextSec
+import com.fundacion.enid.ui.shared.EnidWhite
 
 /**
  * Esquema de color único.
@@ -44,23 +59,10 @@ private val EnidColorScheme = lightColorScheme(
 )
 
 /**
- * Métricas de contenedores del sistema visual.
- *   · Margen horizontal de pantalla : 20 dp
- *   · Separación entre tarjetas    : 12 dp
- *   · Separación entre secciones   : 20 dp
- *   · Padding interno de tarjeta   : 14 dp
- *   · Alto mínimo táctil           : 48 dp
+ * Las métricas del sistema visual viven en `:ui` (`EnidDimens`), junto con la
+ * paleta base. Este módulo ya no mantiene su propia copia: tener las medidas
+ * en dos sitios era exactamente el problema que el módulo compartido resuelve.
  */
-object EnidDimens {
-    val margenPantalla = 20.dp
-    val separacionTarjeta = 12.dp
-    val separacionSeccion = 20.dp
-    val paddingTarjeta = 14.dp
-    val altoTactilMinimo = 48.dp
-    val radioTarjeta = 12.dp
-    val radioCampo = 8.dp
-    val altoBotonPrimario = 56.dp
-}
 
 private val EnidShapes = Shapes(
     extraSmall = RoundedCornerShape(6.dp),

@@ -14,12 +14,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsBottomHeight
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.windowInsetsTopHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -52,27 +52,29 @@ import androidx.compose.ui.unit.dp
 import com.fundacion.enid.campo.R
 import com.fundacion.enid.campo.data.local.AspiranteEntity
 import com.fundacion.enid.campo.data.model.EstadoSincronizacion
-import com.fundacion.enid.campo.ui.theme.EnidBg
-import com.fundacion.enid.campo.ui.theme.EnidBorderSoft
-import com.fundacion.enid.campo.ui.theme.EnidCardBg
-import com.fundacion.enid.campo.ui.theme.EnidDarkBlue
-import com.fundacion.enid.campo.ui.theme.EnidDimens
 import com.fundacion.enid.campo.ui.theme.EnidErrorFondo
 import com.fundacion.enid.campo.ui.theme.EnidErrorTexto
-import com.fundacion.enid.campo.ui.theme.EnidIconBox
-import com.fundacion.enid.campo.ui.theme.EnidInk
-import com.fundacion.enid.campo.ui.theme.EnidOroSoft
 import com.fundacion.enid.campo.ui.theme.EnidPendiente
 import com.fundacion.enid.campo.ui.theme.EnidPendienteFondo
 import com.fundacion.enid.campo.ui.theme.EnidPendienteTexto
-import com.fundacion.enid.campo.ui.theme.EnidPhotoPlaceholder
-import com.fundacion.enid.campo.ui.theme.EnidRed
-import com.fundacion.enid.campo.ui.theme.EnidSincronizadoFondo
-import com.fundacion.enid.campo.ui.theme.EnidSincronizadoTexto
-import com.fundacion.enid.campo.ui.theme.EnidTextSec
-import com.fundacion.enid.campo.ui.theme.EnidVerdeSoft
-import com.fundacion.enid.campo.ui.theme.EnidWhite
+import com.fundacion.enid.ui.shared.EnidFotoPlaceholder
+import com.fundacion.enid.ui.shared.EnidBg
+import com.fundacion.enid.ui.shared.EnidBorderSoft
+import com.fundacion.enid.ui.shared.EnidCardBg
+import com.fundacion.enid.ui.shared.EnidDarkBlue
+import com.fundacion.enid.ui.shared.EnidDimens
+import com.fundacion.enid.ui.shared.EnidIconBox
+import com.fundacion.enid.ui.shared.EnidInk
+import com.fundacion.enid.ui.shared.EnidOroSoft
+import com.fundacion.enid.ui.shared.EnidRed
+import com.fundacion.enid.ui.shared.EnidSincronizadoFondo
+import com.fundacion.enid.ui.shared.EnidSincronizadoTexto
+import com.fundacion.enid.ui.shared.EnidTextSec
+import com.fundacion.enid.ui.shared.EnidVerdeSoft
+import com.fundacion.enid.ui.shared.EnidWhite
 import java.io.File
+
+
 
 /**
  * BIBLIOTECA DE COMPONENTES
@@ -944,7 +946,7 @@ fun FotoEvidencia(
         Box(
             escala.then(
                 if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier
-            ).background(EnidPhotoPlaceholder),
+            ).background(EnidFotoPlaceholder),
             contentAlignment = Alignment.Center
         ) {
             if (bitmap != null) {
@@ -997,7 +999,7 @@ fun FotoEvidenciaAmpliada(ruta: String?, modifier: Modifier = Modifier) {
             .fillMaxWidth()
             .heightIn(min = 200.dp, max = 320.dp)
             .clip(RoundedCornerShape(12.dp))
-            .background(EnidPhotoPlaceholder),
+            .background(EnidFotoPlaceholder),
         contentAlignment = Alignment.Center
     ) {
         if (bitmap != null) {

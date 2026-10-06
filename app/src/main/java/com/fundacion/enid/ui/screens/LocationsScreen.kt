@@ -1,7 +1,5 @@
 package com.fundacion.enid.ui.screens
 
-import android.content.Intent
-import android.net.Uri
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -20,22 +18,22 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.fundacion.enid.data.DataRepository
 import com.fundacion.enid.navigation.Screen
 import com.fundacion.enid.model.Sede
+import com.fundacion.enid.data.DataRepository
+import com.fundacion.enid.data.EnlacesExternos
 import com.fundacion.enid.ui.components.AppScaffold
 import com.fundacion.enid.ui.components.BigButton
 import com.fundacion.enid.ui.components.BigOutlinedButton
 import com.fundacion.enid.ui.components.EnidIcons
 import com.fundacion.enid.ui.components.EnidTab
-import com.fundacion.enid.ui.components.tabsSegunSesion
 import com.fundacion.enid.ui.components.VerticalSpacer
-import com.fundacion.enid.ui.theme.EnidBorderSoft
-import com.fundacion.enid.ui.theme.EnidInk
+import com.fundacion.enid.ui.shared.EnidBorderSoft
+import com.fundacion.enid.ui.shared.EnidInk
 import com.fundacion.enid.ui.theme.EnidPurple
-import com.fundacion.enid.ui.theme.EnidRed
-import com.fundacion.enid.ui.theme.EnidTextSec
-import com.fundacion.enid.ui.theme.EnidWhite
+import com.fundacion.enid.ui.shared.EnidRed
+import com.fundacion.enid.ui.shared.EnidTextSec
+import com.fundacion.enid.ui.shared.EnidWhite
 
 @Composable
 fun LocationsScreen(
@@ -48,7 +46,6 @@ fun LocationsScreen(
         onBack = onBack,
         activeTab = EnidTab.SOPORTE,
         onTabNavigate = onTabNavigate,
-        tabs = tabsSegunSesion(repository.estaConectado)
     ) {
         Text(
             text = "Encuentra tu campus más cercano",
@@ -189,13 +186,7 @@ private fun SedeCard(sede: Sede) {
                         borderColor = EnidPurple,
                         contentColor = EnidPurple,
                         icon = EnidIcons.VLlamar,
-                        onClick = {
-                            val numero = sede.telefono.replace(Regex("[^+\\d]"), "")
-                            try {
-                                context.startActivity(Intent(Intent.ACTION_DIAL, Uri.parse("tel:$numero")))
-                            } catch (_: Exception) {
-                            }
-                        }
+                        onClick = { EnlacesExternos.abrirLlamar(context, sede.telefono) }
                     )
                     Spacer(modifier = Modifier.width(10.dp))
                     BigButton(
@@ -203,15 +194,7 @@ private fun SedeCard(sede: Sede) {
                         modifier = Modifier.weight(1f),
                         containerColor = EnidRed,
                         icon = EnidIcons.VComoLlegar,
-                        onClick = {
-                            val query = Uri.encode(sede.direccion)
-                            try {
-                                context.startActivity(
-                                    Intent(Intent.ACTION_VIEW, Uri.parse("https://www.google.com/maps/search/?api=1&query=$query"))
-                                )
-                            } catch (_: Exception) {
-                            }
-                        }
+                        onClick = { EnlacesExternos.abrirMapa(context, sede.direccion) }
                     )
                 }
             }

@@ -44,21 +44,21 @@ import com.fundacion.enid.ui.components.EnidIconBox
 import com.fundacion.enid.ui.components.EnidTab
 import com.fundacion.enid.ui.components.SectionTitle
 import com.fundacion.enid.ui.components.VerticalSpacer
-import com.fundacion.enid.ui.theme.EnidBorderSoft
-import com.fundacion.enid.ui.theme.EnidBlueSoft
+import com.fundacion.enid.ui.shared.EnidBorderSoft
+import com.fundacion.enid.ui.shared.EnidBlueSoft
 import com.fundacion.enid.ui.theme.EnidChipDoneText
-import com.fundacion.enid.ui.theme.EnidDarkBlue
+import com.fundacion.enid.ui.shared.EnidDarkBlue
 import com.fundacion.enid.ui.theme.EnidGold
 import com.fundacion.enid.ui.theme.EnidGoldSoft
 import com.fundacion.enid.ui.theme.EnidGreenSoft
-import com.fundacion.enid.ui.theme.EnidInk
+import com.fundacion.enid.ui.shared.EnidInk
 import com.fundacion.enid.ui.theme.EnidPhoto
 import com.fundacion.enid.ui.theme.EnidPurple
 import com.fundacion.enid.ui.theme.EnidPurpleSoft
-import com.fundacion.enid.ui.theme.EnidRed
-import com.fundacion.enid.ui.theme.EnidRedSoft
-import com.fundacion.enid.ui.theme.EnidTextSec
-import com.fundacion.enid.ui.theme.EnidWhite
+import com.fundacion.enid.ui.shared.EnidRed
+import com.fundacion.enid.ui.shared.EnidRedSoft
+import com.fundacion.enid.ui.shared.EnidTextSec
+import com.fundacion.enid.ui.shared.EnidWhite
 
 @Composable
 fun HomeScreen(

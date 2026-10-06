@@ -47,14 +47,14 @@ import androidx.compose.ui.unit.sp
 import com.fundacion.enid.data.FormatoEntrada
 import com.fundacion.enid.model.DocumentoAdjunto
 import com.fundacion.enid.model.FormatoArchivo
-import com.fundacion.enid.ui.theme.EnidBorderSoft
-import com.fundacion.enid.ui.theme.EnidDarkBlue
+import com.fundacion.enid.ui.shared.EnidBorderSoft
+import com.fundacion.enid.ui.shared.EnidDarkBlue
 import com.fundacion.enid.ui.theme.EnidGreen
 import com.fundacion.enid.ui.theme.EnidGreenSoft
-import com.fundacion.enid.ui.theme.EnidInk
-import com.fundacion.enid.ui.theme.EnidRed
-import com.fundacion.enid.ui.theme.EnidTextSec
-import com.fundacion.enid.ui.theme.EnidWhite
+import com.fundacion.enid.ui.shared.EnidInk
+import com.fundacion.enid.ui.shared.EnidRed
+import com.fundacion.enid.ui.shared.EnidTextSec
+import com.fundacion.enid.ui.shared.EnidWhite
 
 /**
  * Piezas de formulario compartidas por la preinscripción.

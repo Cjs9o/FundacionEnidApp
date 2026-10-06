@@ -27,16 +27,16 @@ import com.fundacion.enid.ui.components.EnidTab
 import com.fundacion.enid.ui.components.SectionTitle
 import com.fundacion.enid.ui.components.StatusChip
 import com.fundacion.enid.ui.components.VerticalSpacer
-import com.fundacion.enid.ui.theme.EnidBorderSoft
+import com.fundacion.enid.ui.shared.EnidBorderSoft
 import com.fundacion.enid.ui.theme.EnidChipDoneBg
 import com.fundacion.enid.ui.theme.EnidChipDoneText
 import com.fundacion.enid.ui.theme.EnidChipWarnBg
 import com.fundacion.enid.ui.theme.EnidChipWarnText
-import com.fundacion.enid.ui.theme.EnidInk
+import com.fundacion.enid.ui.shared.EnidInk
 import com.fundacion.enid.ui.theme.EnidPurple
-import com.fundacion.enid.ui.theme.EnidRed
-import com.fundacion.enid.ui.theme.EnidTextSec
-import com.fundacion.enid.ui.theme.EnidWhite
+import com.fundacion.enid.ui.shared.EnidRed
+import com.fundacion.enid.ui.shared.EnidTextSec
+import com.fundacion.enid.ui.shared.EnidWhite
 
 @Composable
 fun PaymentsScreen(
@@ -47,6 +47,7 @@ fun PaymentsScreen(
 ) {
     val venceMatricula = repository.pagos.firstOrNull { it.estado == EstadoPago.VENCE_PRONTAMENTE }
     val pagados = repository.pagos.filter { it.estado == EstadoPago.PAGADO }
+    val monto = DataRepository.montoMatriculaTexto(conSigno = false)
 
     AppScaffold(title = "Mis Pagos", onBack = onBack, activeTab = EnidTab.PAGOS, onTabNavigate = onTabNavigate) {
         // Valor de matrícula destacado
@@ -73,10 +74,18 @@ fun PaymentsScreen(
                 }
                 VerticalSpacer(8)
                 Text(
-                    text = "$180.000 COP",
+                    text = "$$monto COP",
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.Bold,
                     color = EnidInk,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                VerticalSpacer(6)
+                Text(
+                    text = DataRepository.AVISO_MONTO,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = EnidTextSec,
                     textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -84,13 +93,13 @@ fun PaymentsScreen(
                 HorizontalDivider(color = EnidBorderSoft, thickness = 1.dp)
                 VerticalSpacer(8)
                 Text(
-                    text = "Sistemas y Computación Básica: $180.000",
+                    text = "Matrícula del periodo: \$$monto",
                     style = MaterialTheme.typography.bodyMedium,
                     color = EnidTextSec
                 )
                 VerticalSpacer(4)
                 Text(
-                    text = "Total Pendiente: $180.000",
+                    text = "Total Pendiente: \$$monto",
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold,
                     color = EnidInk
@@ -103,9 +112,24 @@ fun PaymentsScreen(
 
         SectionTitle("Historial de Pagos")
         VerticalSpacer(6)
-        pagados.forEach { pago ->
-            PaymentRow(pago)
-            VerticalSpacer(8)
+        if (pagados.isEmpty()) {
+            Text(
+                text = "Todavía no tienes pagos registrados.",
+                style = MaterialTheme.typography.bodyLarge,
+                color = EnidTextSec
+            )
+        } else {
+            pagados.forEach { pago ->
+                PaymentRow(pago)
+                VerticalSpacer(8)
+            }
+            VerticalSpacer(4)
+            Text(
+                text = "Historial de demostración. La Fundación aún no ha confirmado " +
+                    "estos movimientos; no consultes este saldo como el definitivo.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = EnidTextSec
+            )
         }
     }
 }

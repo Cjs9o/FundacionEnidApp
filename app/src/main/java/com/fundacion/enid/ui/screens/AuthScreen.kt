@@ -8,10 +8,13 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -30,13 +33,14 @@ import androidx.compose.ui.unit.sp
 import com.fundacion.enid.data.DataRepository
 import com.fundacion.enid.ui.components.BigButton
 import com.fundacion.enid.ui.components.BigTextField
+import com.fundacion.enid.ui.components.EnidIcons
 import com.fundacion.enid.ui.components.VerticalSpacer
-import com.fundacion.enid.ui.theme.EnidBg
-import com.fundacion.enid.ui.theme.EnidDarkBlue
-import com.fundacion.enid.ui.theme.EnidInk
-import com.fundacion.enid.ui.theme.EnidRed
-import com.fundacion.enid.ui.theme.EnidTextSec
-import com.fundacion.enid.ui.theme.EnidWhite
+import com.fundacion.enid.ui.shared.EnidBg
+import com.fundacion.enid.ui.shared.EnidDarkBlue
+import com.fundacion.enid.ui.shared.EnidInk
+import com.fundacion.enid.ui.shared.EnidRed
+import com.fundacion.enid.ui.shared.EnidTextSec
+import com.fundacion.enid.ui.shared.EnidWhite
 import kotlinx.coroutines.launch
 
 private enum class AuthTab(val label: String) {
@@ -68,6 +72,22 @@ fun AuthScreen(
             .padding(start = 24.dp, end = 24.dp, bottom = 32.dp)
     ) {
         VerticalSpacer(18)
+
+        // Botón de volver a Bienvenida. Esta pantalla no usa `AppScaffold`, así
+        // que no lo recibe sola: hay que dibujarlo aquí. Antes no existía, y se
+        // llegaba desde "Iniciar Sesión", de modo que la única forma de volver
+        // era el gesto del sistema.
+        if (onBack != null) {
+            IconButton(onClick = onBack, modifier = Modifier.size(48.dp)) {
+                Icon(
+                    imageVector = EnidIcons.VVolver,
+                    contentDescription = "Volver",
+                    tint = EnidDarkBlue,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+            VerticalSpacer(8)
+        }
 
         // ── Tabs (guía SVG: dos botones rectangulares lado a lado) ─────────
         Row(modifier = Modifier.fillMaxWidth()) {

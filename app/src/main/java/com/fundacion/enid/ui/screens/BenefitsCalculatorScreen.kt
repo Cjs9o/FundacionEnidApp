@@ -20,29 +20,38 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.fundacion.enid.data.DataRepository
+import com.fundacion.enid.navigation.Screen
 import com.fundacion.enid.ui.components.AppScaffold
 import com.fundacion.enid.ui.components.BigButton
 import com.fundacion.enid.ui.components.BigTextField
+import com.fundacion.enid.ui.components.EnidTab
 import com.fundacion.enid.ui.components.InfoCard
 import com.fundacion.enid.ui.components.VerticalSpacer
-import com.fundacion.enid.ui.theme.EnidBorderSoft
-import com.fundacion.enid.ui.theme.EnidDarkBlue
+import com.fundacion.enid.ui.shared.EnidBorderSoft
+import com.fundacion.enid.ui.shared.EnidDarkBlue
 import com.fundacion.enid.ui.theme.EnidGreen
-import com.fundacion.enid.ui.theme.EnidInk
-import com.fundacion.enid.ui.theme.EnidTextSec
+import com.fundacion.enid.ui.shared.EnidInk
+import com.fundacion.enid.ui.shared.EnidTextSec
 
 @Composable
 fun BenefitsCalculatorScreen(
-    repository: DataRepository,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onTabNavigate: ((Screen) -> Unit)? = null
 ) {
     var referidos by remember { mutableStateOf("") }
     var descuento by remember { mutableStateOf(0) }
     var aplicado by remember { mutableStateOf(false) }
 
-    val montoBase = 180000
+    // El monto base sale del repositorio: antes estaba escrito aquí y en
+    // PseScreen y PaymentsScreen, con dos valores distintos.
+    val montoBase = DataRepository.MONTO_MATRICULA
 
-    AppScaffold(title = "Plan Referidos", onBack = onBack) {
+    AppScaffold(
+        title = "Plan Referidos",
+        onBack = onBack,
+        activeTab = EnidTab.INICIO,
+        onTabNavigate = onTabNavigate
+    ) {
         Text(
             text = "Recomienda y obtén grandes descuentos",
             style = MaterialTheme.typography.titleLarge,

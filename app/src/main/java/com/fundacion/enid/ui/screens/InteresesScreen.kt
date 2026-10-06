@@ -28,21 +28,19 @@ import com.fundacion.enid.ui.components.BigButton
 import com.fundacion.enid.ui.components.EnidIconBox
 import com.fundacion.enid.ui.components.EnidIcons
 import com.fundacion.enid.ui.components.EnidTab
-import com.fundacion.enid.ui.components.tabsSegunSesion
 import com.fundacion.enid.ui.components.SectionTitle
-import com.fundacion.enid.ui.components.tabsSegunSesion
 import com.fundacion.enid.ui.components.VerticalSpacer
-import com.fundacion.enid.ui.theme.EnidBorderSoft
+import com.fundacion.enid.ui.shared.EnidBorderSoft
 import com.fundacion.enid.ui.theme.EnidChipDoneBg
 import com.fundacion.enid.ui.theme.EnidChipDoneText
-import com.fundacion.enid.ui.theme.EnidDarkBlue
+import com.fundacion.enid.ui.shared.EnidDarkBlue
 import com.fundacion.enid.ui.theme.EnidGreen
 import com.fundacion.enid.ui.theme.EnidGreenSoft
-import com.fundacion.enid.ui.theme.EnidInk
-import com.fundacion.enid.ui.theme.EnidRed
-import com.fundacion.enid.ui.theme.EnidRedSoft
-import com.fundacion.enid.ui.theme.EnidTextSec
-import com.fundacion.enid.ui.theme.EnidWhite
+import com.fundacion.enid.ui.shared.EnidInk
+import com.fundacion.enid.ui.shared.EnidRed
+import com.fundacion.enid.ui.shared.EnidRedSoft
+import com.fundacion.enid.ui.shared.EnidTextSec
+import com.fundacion.enid.ui.shared.EnidWhite
 
 /**
  * Requerimiento 08: seguimiento de interesados.
@@ -54,7 +52,6 @@ import com.fundacion.enid.ui.theme.EnidWhite
 @Composable
 fun InteresesScreen(
     repository: DataRepository,
-    onBack: () -> Unit,
     onOpenProgram: (Int) -> Unit,
     onPreinscription: (Int?) -> Unit,
     onTabNavigate: ((Screen) -> Unit)? = null
@@ -69,7 +66,6 @@ fun InteresesScreen(
         activeTab = EnidTab.INICIO,
         onTabNavigate = onTabNavigate,
         mostrarAsesor = true,
-        tabs = tabsSegunSesion(repository.estaConectado),
         content = {
             if (intereses.isEmpty()) {
                 // Estado vacío: en vez de una pantalla en blanco, indica el camino.

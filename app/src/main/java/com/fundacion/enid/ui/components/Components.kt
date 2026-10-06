@@ -28,6 +28,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -50,16 +51,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.fundacion.enid.data.EnlacesExternos
 import com.fundacion.enid.navigation.Screen
-import com.fundacion.enid.ui.theme.EnidBg
-import com.fundacion.enid.ui.theme.EnidBorderSoft
-import com.fundacion.enid.ui.theme.EnidDarkBlue
-import com.fundacion.enid.ui.theme.EnidIconBox
-import com.fundacion.enid.ui.theme.EnidInk
+import com.fundacion.enid.ui.state.SesionUi
+import com.fundacion.enid.ui.shared.EnidBg
+import com.fundacion.enid.ui.shared.EnidBorderSoft
+import com.fundacion.enid.ui.shared.EnidDarkBlue
+import com.fundacion.enid.ui.shared.EnidIconBox
+import com.fundacion.enid.ui.shared.EnidInk
 import com.fundacion.enid.ui.theme.EnidPurple
-import com.fundacion.enid.ui.theme.EnidRed
-import com.fundacion.enid.ui.theme.EnidRedSoft
-import com.fundacion.enid.ui.theme.EnidTextSec
-import com.fundacion.enid.ui.theme.EnidWhite
+import com.fundacion.enid.ui.shared.EnidRed
+import com.fundacion.enid.ui.shared.EnidRedSoft
+import com.fundacion.enid.ui.shared.EnidTextSec
+import com.fundacion.enid.ui.shared.EnidWhite
 
 // ── Icon box (caja de icono estilo guías SVG) ─────────────────────────────────
 @Composable
@@ -309,9 +311,13 @@ fun AppScaffold(
     onTabNavigate: ((Screen) -> Unit)? = null,
     header: (@Composable () -> Unit)? = null,
     mostrarAsesor: Boolean = false,
-    tabs: List<EnidTab> = EnidTab.entries,
+    tabs: List<EnidTab>? = null,
     content: @Composable () -> Unit
 ) {
+    // Las pestañas dependen de quién mira, no de qué pantalla es. Se resuelve
+    // aquí para que ninguna pantalla pueda olvidarlo: si no se pasan `tabs`,
+    // se usan las de la sesión actual (el invitado no ve Horario ni Pagos).
+    val tabsVisibles = tabs ?: tabsSegunSesion(SesionUi.conectado)
     Column(
         modifier = Modifier.fillMaxSize().background(EnidBg).statusBarsPadding()
     ) {
@@ -341,6 +347,26 @@ fun AppScaffold(
                     modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+                    // Botón de volver. Antes `onBack` se recibía y se ignoraba:
+                    // no había flecha de retorno en ninguna pantalla y el único
+                    // camino de vuelta era el gesto del sistema. Para una app
+                    // pensada para mayores de 60 años eso deja fuera a quien no
+                    // conoce ese gesto. El área táctil es de 48 dp (mínimo
+                    // accesible) aunque el glifo sea de 24 dp.
+                    if (onBack != null) {
+                        IconButton(
+                            onClick = onBack,
+                            modifier = Modifier.size(48.dp)
+                        ) {
+                            Icon(
+                                imageVector = EnidIcons.VVolver,
+                                contentDescription = "Volver",
+                                tint = EnidDarkBlue,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(4.dp))
+                    }
                     Text(
                         text = title,
                         style = MaterialTheme.typography.titleLarge,
@@ -377,7 +403,7 @@ fun AppScaffold(
         }
 
         if (activeTab != null && onTabNavigate != null) {
-            EnidBottomNav(activeTab = activeTab, tabs = tabs, onNavigate = onTabNavigate)
+            EnidBottomNav(activeTab = activeTab, tabs = tabsVisibles, onNavigate = onTabNavigate)
         }
     }
 }
@@ -451,7 +477,7 @@ fun tabsSegunSesion(conectado: Boolean): List<EnidTab> =
 @Composable
 private fun EnidBottomNav(
     activeTab: EnidTab,
-    tabs: List<EnidTab> = EnidTab.entries,
+    tabs: List<EnidTab>,
     onNavigate: (Screen) -> Unit
 ) {
     Column(modifier = Modifier.fillMaxWidth().background(EnidWhite)) {

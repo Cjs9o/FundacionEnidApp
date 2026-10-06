@@ -24,17 +24,18 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.fundacion.enid.campo.ui.theme.EnidBorderSoft
-import com.fundacion.enid.campo.ui.theme.EnidCardBg
-import com.fundacion.enid.campo.ui.theme.EnidDarkBlue
 import com.fundacion.enid.campo.ui.theme.EnidErrorFondo
 import com.fundacion.enid.campo.ui.theme.EnidErrorTexto
-import com.fundacion.enid.campo.ui.theme.EnidIconBox
-import com.fundacion.enid.campo.ui.theme.EnidInk
-import com.fundacion.enid.campo.ui.theme.EnidRed
-import com.fundacion.enid.campo.ui.theme.EnidSincronizadoFondo
-import com.fundacion.enid.campo.ui.theme.EnidSincronizadoTexto
-import com.fundacion.enid.campo.ui.theme.EnidTextSec
+import com.fundacion.enid.ui.shared.EnidBorderSoft
+import com.fundacion.enid.ui.shared.EnidCardBg
+import com.fundacion.enid.ui.shared.EnidDarkBlue
+import com.fundacion.enid.ui.shared.EnidIconBox
+import com.fundacion.enid.ui.shared.EnidInk
+import com.fundacion.enid.ui.shared.EnidRed
+import com.fundacion.enid.ui.shared.EnidSincronizadoFondo
+import com.fundacion.enid.ui.shared.EnidSincronizadoTexto
+import com.fundacion.enid.ui.shared.EnidTextSec
+
 
 /**
  * BLOQUE DE EVIDENCIA FOTOGRAFICA

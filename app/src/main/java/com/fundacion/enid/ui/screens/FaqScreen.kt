@@ -1,8 +1,6 @@
 package com.fundacion.enid.ui.screens
 
 import android.content.Context
-import android.content.Intent
-import android.net.Uri
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -27,21 +25,21 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.fundacion.enid.data.DataRepository
 import com.fundacion.enid.navigation.Screen
 import com.fundacion.enid.model.FaqItem
+import com.fundacion.enid.data.DataRepository
+import com.fundacion.enid.data.EnlacesExternos
 import com.fundacion.enid.ui.components.AppScaffold
 import com.fundacion.enid.ui.components.BigButton
 import com.fundacion.enid.ui.components.BigOutlinedButton
 import com.fundacion.enid.ui.components.EnidIcons
 import com.fundacion.enid.ui.components.EnidTab
-import com.fundacion.enid.ui.components.tabsSegunSesion
 import com.fundacion.enid.ui.components.VerticalSpacer
-import com.fundacion.enid.ui.theme.EnidBorderSoft
+import com.fundacion.enid.ui.shared.EnidBorderSoft
 import com.fundacion.enid.ui.theme.EnidGreen
-import com.fundacion.enid.ui.theme.EnidInk
-import com.fundacion.enid.ui.theme.EnidTextSec
-import com.fundacion.enid.ui.theme.EnidWhite
+import com.fundacion.enid.ui.shared.EnidInk
+import com.fundacion.enid.ui.shared.EnidTextSec
+import com.fundacion.enid.ui.shared.EnidWhite
 
 private data class Categoria(val titulo: String, val claves: List<String>)
 
@@ -78,7 +76,6 @@ fun FaqScreen(
         onBack = onBack,
         activeTab = EnidTab.SOPORTE,
         onTabNavigate = onTabNavigate,
-        tabs = tabsSegunSesion(repository.estaConectado)
     ) {
         Text(
             text = "Resolvemos tus dudas rápidamente",
@@ -133,23 +130,13 @@ fun FaqScreen(
     }
 }
 
-private fun abrirWhatsApp(context: Context) {
-    val numero = DataRepository.WHATSAPP_NUMERO
-    val mensaje = Uri.encode("Hola, quisiera recibir más información sobre la Fundación ENID.")
-    val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://wa.me/$numero?text=$mensaje"))
-    try {
-        context.startActivity(intent)
-    } catch (_: Exception) {
-    }
-}
+private fun abrirWhatsApp(context: Context) =
+    EnlacesExternos.abrirWhatsApp(
+        context,
+        "Hola, quisiera recibir más información sobre la Fundación ENID."
+    )
 
-private fun abrirPaginaWeb(context: Context) {
-    val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://www.enid.edu.co"))
-    try {
-        context.startActivity(intent)
-    } catch (_: Exception) {
-    }
-}
+private fun abrirPaginaWeb(context: Context) = EnlacesExternos.abrirSitio(context)
 
 private fun categorizar(faqs: List<FaqItem>): Map<String, List<FaqItem>> {
     val resultado = LinkedHashMap<String, MutableList<FaqItem>>()

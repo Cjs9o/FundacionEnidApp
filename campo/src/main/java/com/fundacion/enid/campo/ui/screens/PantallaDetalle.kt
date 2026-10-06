@@ -44,24 +44,26 @@ import com.fundacion.enid.campo.ui.components.ParDato
 import com.fundacion.enid.campo.ui.components.SectionTitle
 import com.fundacion.enid.campo.ui.components.SmallButton
 import com.fundacion.enid.campo.ui.components.VerticalSpacer
-import com.fundacion.enid.campo.ui.theme.EnidBg
-import com.fundacion.enid.campo.ui.theme.EnidBlueSoft
-import com.fundacion.enid.campo.ui.theme.EnidCardBg
-import com.fundacion.enid.campo.ui.theme.EnidDarkBlue
-import com.fundacion.enid.campo.ui.theme.EnidDimens
 import com.fundacion.enid.campo.ui.theme.EnidErrorFondo
 import com.fundacion.enid.campo.ui.theme.EnidErrorTexto
-import com.fundacion.enid.campo.ui.theme.EnidIconBox
-import com.fundacion.enid.campo.ui.theme.EnidInk
-import com.fundacion.enid.campo.ui.theme.EnidOroSoft
 import com.fundacion.enid.campo.ui.theme.EnidPendienteTexto
-import com.fundacion.enid.campo.ui.theme.EnidRed
-import com.fundacion.enid.campo.ui.theme.EnidTextSec
 import com.fundacion.enid.campo.ui.vm.DetalleViewModel
 import com.fundacion.enid.campo.ui.vm.formatearFechaSincronizacion
+import com.fundacion.enid.ui.shared.EnidBg
+import com.fundacion.enid.ui.shared.EnidBlueSoft
+import com.fundacion.enid.ui.shared.EnidCardBg
+import com.fundacion.enid.ui.shared.EnidDarkBlue
+import com.fundacion.enid.ui.shared.EnidDimens
+import com.fundacion.enid.ui.shared.EnidIconBox
+import com.fundacion.enid.ui.shared.EnidInk
+import com.fundacion.enid.ui.shared.EnidOroSoft
+import com.fundacion.enid.ui.shared.EnidRed
+import com.fundacion.enid.ui.shared.EnidTextSec
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+
+
 
 /**
  * ===========================================================================
@@ -203,12 +205,12 @@ fun PantallaDetalle(
                         },
                         fondo = when (registro.estado) {
                             EstadoSincronizacion.PENDIENTE -> EnidOroSoft
-                            EstadoSincronizacion.SINCRONIZADO -> com.fundacion.enid.campo.ui.theme.EnidSincronizadoFondo
+                            EstadoSincronizacion.SINCRONIZADO -> com.fundacion.enid.ui.shared.EnidSincronizadoFondo
                             EstadoSincronizacion.ERROR -> EnidErrorFondo
                         },
                         tinte = when (registro.estado) {
                             EstadoSincronizacion.PENDIENTE -> EnidPendienteTexto
-                            EstadoSincronizacion.SINCRONIZADO -> com.fundacion.enid.campo.ui.theme.EnidSincronizadoTexto
+                            EstadoSincronizacion.SINCRONIZADO -> com.fundacion.enid.ui.shared.EnidSincronizadoTexto
                             EstadoSincronizacion.ERROR -> EnidErrorTexto
                         }
                     )
@@ -362,7 +364,7 @@ fun PantallaDetalle(
                         EnidIconos.Escudo,
                         null,
                         tint = if (registro.consentimientoDatos)
-                            com.fundacion.enid.campo.ui.theme.EnidSincronizadoTexto else EnidRed,
+                            com.fundacion.enid.ui.shared.EnidSincronizadoTexto else EnidRed,
                         modifier = Modifier.size(22.dp)
                     )
                     Spacer(Modifier.width(10.dp))

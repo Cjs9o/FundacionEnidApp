@@ -31,23 +31,25 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import com.fundacion.enid.campo.ui.components.AppScaffold
-import com.fundacion.enid.campo.ui.components.BigButton
 import com.fundacion.enid.campo.ui.components.BannerSinConexion
+import com.fundacion.enid.campo.ui.components.BigButton
 import com.fundacion.enid.campo.ui.components.EnidIconos
 import com.fundacion.enid.campo.ui.components.EstadoVacio
 import com.fundacion.enid.campo.ui.components.SmallButton
 import com.fundacion.enid.campo.ui.components.TarjetaAspirante
 import com.fundacion.enid.campo.ui.components.VerticalSpacer
-import com.fundacion.enid.campo.ui.theme.EnidBg
-import com.fundacion.enid.campo.ui.theme.EnidBlueSoft
-import com.fundacion.enid.campo.ui.theme.EnidCardBg
-import com.fundacion.enid.campo.ui.theme.EnidDarkBlue
-import com.fundacion.enid.campo.ui.theme.EnidDimens
-import com.fundacion.enid.campo.ui.theme.EnidIconBox
-import com.fundacion.enid.campo.ui.theme.EnidInk
-import com.fundacion.enid.campo.ui.theme.EnidTextSec
 import com.fundacion.enid.campo.ui.vm.FiltroListado
 import com.fundacion.enid.campo.ui.vm.ListadoViewModel
+import com.fundacion.enid.ui.shared.EnidBg
+import com.fundacion.enid.ui.shared.EnidBlueSoft
+import com.fundacion.enid.ui.shared.EnidCardBg
+import com.fundacion.enid.ui.shared.EnidDarkBlue
+import com.fundacion.enid.ui.shared.EnidDimens
+import com.fundacion.enid.ui.shared.EnidIconBox
+import com.fundacion.enid.ui.shared.EnidInk
+import com.fundacion.enid.ui.shared.EnidTextSec
+
+
 
 /**
  * ===========================================================================
