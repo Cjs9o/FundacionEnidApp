@@ -158,5 +158,10 @@ fun AppRoot(
             onGoHome = { nav.reemplazarTodo(Screen.Home) },
             onTabNavigate = onTabNavigate
         )
+
+        // El módulo de campo trae su propio NavHost. `onSalir` quita la hoja de
+        // la pila en vez de reiniciarla: al volver, la app institucional debe
+        // quedar donde estaba, no en el Inicio.
+        is Screen.Campo -> CampoSeccion(onSalir = { nav.retroceder() })
     }
 }

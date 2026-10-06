@@ -170,6 +170,11 @@ fun HomeScreen(
         SecondaryLink(EnidIcons.VSedes, "Sedes y Contacto") { onNavigate(Screen.Locations) }
         SecondaryLink(EnidIcons.VAyuda, "Preguntas Frecuentes") { onNavigate(Screen.Faq) }
         SecondaryLink(EnidIcons.VExterno, "Plataforma Educativa") { onNavigate(Screen.Platform) }
+        // Herramienta del equipo de campo (módulo `:campo`). Se ofrece a
+        // cualquier sesión para que pueda verificarse en el dispositivo sin
+        // crear una cuenta con rol; queda pendiente restringirla a
+        // `Rol.ADMINISTRATIVO` cuando la Fundación defina quién la usa.
+        SecondaryLink(EnidIcons.VPreinscripcion, "Captura en campo (equipo de campo)") { onNavigate(Screen.Campo) }
         if (conectado) {
             SecondaryLink(EnidIcons.VOferta, "Oferta Académica") { onNavigate(Screen.Catalog) }
             SecondaryLink(EnidIcons.VPreinscripcion, "Preinscripción") { onNavigate(Screen.Preinscription(null)) }
@@ -240,7 +245,13 @@ private fun MenuCard(
 }
 
 @Composable
-private fun SecondaryLink(icon: ImageVector, text: String, onClick: () -> Unit) {
+/**
+ * Fila de enlace a una sección, con icono a la izquierda y flecha a la derecha.
+ *
+ * No es `private`: la usan los dos Home (estudiante e invitado) y es un
+ * componente de navegación, no un detalle de una pantalla.
+ */
+fun SecondaryLink(icon: ImageVector, text: String, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()

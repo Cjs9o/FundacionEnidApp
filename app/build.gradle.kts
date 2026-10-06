@@ -37,6 +37,10 @@ android {
 }
 
 dependencies {
+    // Módulo de captura en campo. Va primero porque `EnidAppRaiz` se compone
+    // desde `:app`; el resto de dependencias de esta lista son suyas.
+    implementation(project(":campo"))
+
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.compose.material3)

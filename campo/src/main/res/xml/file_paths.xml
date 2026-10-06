@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!-- Carpeta interna de evidencias: sólo la propia app puede leerlas -->
+    <files-path
+        name="evidencias"
+        path="evidencias/" />
+    <files-path
+        name="capturas_temporales"
+        path="capturas/" />
+    <cache-path
+        name="cache_capturas"
+        path="." />
+</paths>

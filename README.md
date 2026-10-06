@@ -12,35 +12,76 @@ horarios, etc.).
 
 ## Estado
 
-**Última iteración: 29 Sep** — **plan de captación completo (4 fases) e instalado y
-probado en dispositivo:**
+**Última iteración: 5 Oct** — **módulo de captura en campo integrado** y las
+fases 12 y 13 cerradas.
+
+### Integración del módulo de captura en campo (`:campo`)
+
+La captura de preinscripciones **offline-first** —la promotora recorre el
+territorio sin señal y todo se guarda primero en el teléfono— se integró como
+**módulo Gradle `:campo`**, no como carpeta dentro de `:app`. Hay un solo APK,
+una sola `Activity` y un solo punto de entrada.
+
+Se llega desde **Inicio → Más servicios → Captura en campo** (estudiante) o
+**Inicio invitado → Equipo de campo**, y se vuelve con el botón "Volver a la
+app" de la cabecera o con el botón atrás del teléfono.
+
+| Qué | Dónde |
+|---|---|
+| Código del módulo | `campo/src/main/java/com/fundacion/enid/campo/` |
+| Único punto de contacto con `:app` | `ui/screens/CampoSeccion.kt` |
+| Base local (Room) | `campo/.../data/local/` — fuente de verdad, sin red |
+| Sincronización manual | `campo/.../data/sync/` — `PuertaRemota` (hoy simulada) |
+| Pruebas | 34 en JVM + 10 en dispositivo |
+
+Módulo y no carpeta porque las dos apps resuelven la navegación de forma distinta
+y ambas con razón: `:app` usa su pila propia y `:campo` un `NavHost` de
+`navigation-compose`. Como módulos, cada una resuelve lo suyo y se conectan en
+un solo punto. El detalle completo, incluidos los cuatro problemas que hubo que
+resolver al integrar, está en [BITACORA.md](BITACORA.md).
+
+### Fases 12 y 13 — adjuntos de documentos
+
+El paso 2 de la preinscripción deja **adjuntar el archivo de cada documento**
+desde el teléfono (selector del sistema con permiso persistente), con el nombre
+real del archivo y no un `content://`. El formato elegido filtra de verdad el
+selector, desmarcar la casilla borra el archivo y suelta el permiso, y la
+elección sobrevive al cambio de paso. 54 pruebas en verde.
+
+### Iteración anterior (29 Sep): plan de captación completo
 
 - **Oferta académica potente.** Los 67 programas se clasifican en 9 áreas; el catálogo
   tiene buscador y filtros, y el detalle muestra información, qué aprenderás y requisitos,
   con "Quiero estudiar este programa", "Me interesa" y los CTAs de asesor y WhatsApp.
 - **"¿Qué puedo estudiar?"** — cuestionario de 5 preguntas con recomendación ponderada
-  por área, tipo de programa y campo laboral (5 pruebas unitarias, 0 fallos).
+  por área, tipo de programa y campo laboral.
 - **Dos caminos de Home.** "Soy estudiante" y "Quiero estudiar en ENID", con los 10 pasos
-  del proceso de admisión a la vista y la barra del **asesor siempre visible**. El invitado
-  recorre el proceso sin crear cuenta, y no ve las pestañas de Horario ni Pagos.
+  del proceso de admisión a la vista y la barra del **asesor siempre visible**.
 - **Promociones y testimonios.** Pantallas listas; la Fundación aún no ha entregado el
   contenido, y **no se inventaron** descuentos ni citas de estudiantes.
-- **Seguimiento de interesados.** "Me interesa" guarda la decisión, el Home recuerda el
-  programa y "Mis interesados" resume el siguiente paso real y los datos ya dejados.
+- **Seguimiento de interesados.** "Me interesa" guarda la decisión y "Mis interesados"
+  resume el siguiente paso real y los datos ya dejados.
 
 Durante las pruebas **no se abrió ninguna app externa**: todo eso pasa por
 `EnlacesExternos`, que está en `habilitados = false`.
 
-Detalle completo, incluidos los fallos encontrados al probar y sus correcciones, en
-[BITACORA.md](BITACORA.md).
+### Qué falta
 
-**Iteración anterior (22 Sep):** actualización integral del catálogo con el
-**Portafolio ENID 2026**: 67 programas (25 técnicos laborales, 11 cursos, 30 diplomados,
-2 seminarios), cada uno con perfil profesional, perfil laboral y competencias. Se eliminó
-el registro de usuarios y ahora la bienvenida ofrece **Iniciar Sesión** o
-**Ingresar como Invitado**; el menú de Inicio cambia según haya sesión o no.
+- **De la Fundación** (Fase 16, bloquea los montos del PSE): valor de matrícula,
+  competencias de 42 de los 67 programas, sedes reales (el catálogo menciona
+  Girardot y `repository.sedes` solo tiene Chía y Sopó), promociones,
+  testimonios, teléfonos, correos y URLs de plataforma y PSE.
+- **Fases 14, 15, 17, 18 y 19**: cerrar el flujo de pago (hoy "Pago procesado"
+  sin pasarela), las cuatro pantallas que abren intents ignorando
+  `EnlacesExternos.habilitados = false`, la navegación de invitado, las
+  contraseñas en texto plano y los `StringSet` sin orden, los tamaños de
+  `SmallButton` y de las etiquetas de la barra, y las pruebas que faltan.
+- **Del módulo de campo**: restringirlo a `Rol.ADMINISTRATIVO`, cifrar la base
+  y autenticar el acceso, conectar Firebase RTDB y probar a mano la captura por
+  cámara.
 
-Detalle histórico de las 13 pruebas de compilación y correcciones: [BITACORA.md](BITACORA.md).
+El detalle y el orden, con su dependencia, están en
+[PLANDESARROLLO.md](PLANDESARROLLO.md) y [BITACORA.md](BITACORA.md).
 
 ## Documentación del proyecto
 
@@ -48,6 +89,7 @@ Detalle histórico de las 13 pruebas de compilación y correcciones: [BITACORA.m
 |---|---|
 | [PLANDESARROLLO.md](PLANDESARROLLO.md) | Plan, fases, requerimientos (12 módulos), entorno de compilación y definición de hecho. |
 | [BITACORA.md](BITACORA.md) | Registro cronológico del trabajo: decisiones, pantallas y pruebas de compilación. |
+| [DIAGRAMA_NAVEGACION.md](DIAGRAMA_NAVEGACION.md) | Mapa de pantallas y conexiones, incluido el módulo de campo. |
 | [docs/imagenes/](docs/imagenes/) | Imágenes de referencia de la presentación del proyecto. |
 
 ---

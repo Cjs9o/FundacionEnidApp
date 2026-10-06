@@ -1188,3 +1188,114 @@ resultado de cada fase y lo que quedó fuera.
 `testDebugUnitTest` en verde (hoy 45 pruebas; la meta tras la Fase 17 es de 55 o
 más). `compileDebugKotlin --offline` limpio. Recorrido de las cuatro rutas en
 dispositivo: invitado, estudiante, asesor y preinscripción de punta a punta.
+
+---
+
+## 5 Oct — Fases 12 y 13 cerradas, e integración del módulo `:campo`
+
+Dos cosas en esta pasada, en este orden porque la segunda necesitaba la primera
+en verde.
+
+### Fase 12 y Fase 13 (cierre del trabajo que estaba a medias)
+
+La Fase 12 estaba commiteada a medias y la Fase 13 empezada sin terminar. El
+proyecto **no compilaba**: `PasoFormacion` ya exigía el parámetro
+`formatosElegidos` y la llamada no lo pasaba.
+
+- **Arreglo:** `PreinscriptionScreen.kt` pasa `formatosElegidos` al paso 2.
+  Con eso las cuatro correcciones de la Fase 13 quedan cerradas: el texto ya no
+  niega el adjunto, desmarcar la casilla borra el archivo y suelta el permiso
+  persistente, el formato elegido filtra de verdad el selector del sistema, y la
+  elección sobrevive al cambio de paso.
+- **Pruebas:** de 45 a **54**, todas en verde.
+
+Commit `9601faf`.
+
+### Integración de `EnidAppOfflineFirst` como módulo `:campo`
+
+El módulo de captura en campo era una app Android independiente, con su
+`applicationId`, su `Activity` lanzadora y su `Application`. Se integra aquí como
+**biblioteca Gradle** (`:campo`), de modo que hay un solo APK, una sola
+`Activity` y un solo punto de entrada: el institucional.
+
+**Por qué módulo y no carpeta dentro de `:app`.** Las dos apps resuelven la
+navegación de forma distinta y ambas tienen razón: `:app` usa una pila propia
+(`NavController`) y `:campo` un `NavHost` de `navigation-compose`. En un solo
+módulo las dos pilas conviven en el mismo grafo sin relación entre sí; como
+módulos, cada una resuelve lo suyo y se conectan en un único punto.
+
+**Qué cambió dentro del código del módulo**
+
+| Cambio | Por qué |
+|---|---|
+| `MainActivity.kt` y `EnidApplication.kt` eliminados | En una biblioteca no puede haber una `Activity` lanzadera ni robarle el `Application` a la app que lo contiene |
+| `EnidAppHolder` nuevo | Reemplaza a `EnidApplication`: mismo criterio de una sola instancia por proceso, resuelta desde `applicationContext` y con doble comprobación `volatile` |
+| `campo/src/main/AndroidManifest.xml` reducido | Solo permisos, `<queries>` y el `FileProvider`. Icono, etiqueta y tema los pone `:app` |
+| `BotonSalirDelModulo` nuevo en la cabecera del resumen | El resumen era la pantalla de inicio y no tenía de dónde salir. Va en la cabecera y no en el pie porque el pie lo ocupa SINCRONIZAR |
+
+**Lo que hubo que resolver y no estaba previsto**
+
+1. **`com.android.library` no se podía resolver sin red.** El artefacto marcador
+   del plugin no está en la caché de Gradle, porque hasta ahora solo se usaba
+   `com.android.application`. Se resuelve en `settings.gradle.kts` con
+   `resolutionStrategy.eachPlugin`, que apunta al mismo JAR de AGP que ya está
+   descargado. Así el build sigue siendo reproducible con
+   `org.gradle.offline=true`.
+2. **`android.disallowKotlinSourceSets=false`** en `gradle.properties`: KSP
+   registra las carpetas generadas de Room con el DSL `kotlin.sourceSets`, que
+   AGP 9 con Kotlin integrado rechaza.
+3. **La autoridad del `FileProvider` had que coincidir con el código.**
+   `AlmacenEvidencias` construye `${context.packageName}.fileprovider`; al ser
+   ahora el mismo proceso, el paquete es `com.fundacion.enid` y no el que tenía
+   como app aparte. Si se hubiera cambiado solo un lado, la captura por cámara
+   falla con `FileNotFoundException`.
+4. **`SecondaryLink` era `private`** en `HomeScreen.kt` y hacía falta en el Home
+   de invitado. Ahora es pública, con el comentario que explica que es un
+   componente de navegación y no un detalle de una pantalla.
+
+**Verificación en dispositivo** — Motorola moto g(20), Android 11, `ZT322CVFC9`.
+
+| Ejecución | Qué se comprobó | Resultado |
+|---|---|---|
+| 1 · arranque en frío | Bienvenida → invitado → "Equipo de campo" → resumen → nueva captura | Sin crash. `0 locales / 0 pendientes / 0 sincronizados`, "Red ahora: WiFi". Las reglas R1..R8 disparan: "Ingrese el número de documento", "Ingrese la edad del aspirante" |
+| 2 · modo avión | Banner, indicador y SINCRONIZAR sin conexión | "Trabajando sin conexión…", "Red ahora: **sin conexión**" (no "activa", el error 5 del módulo ya corregido). Los contadores no cambian: no se pierde nada |
+| 3 · con conexión, tras cerrar y reabrir la app | Reinicio de red y persistencia | `airplane_mode_on=0` → banner desaparece y vuelve "Red ahora: WiFi". La base Room se reabre sin error tras el cierre |
+
+El retroceso del sistema se comporta como debe en la frontera de los dos
+grafos: dentro de `:campo` lo resuelve su `NavHost` (captura → resumen) y
+solo después pasa a la pila de `:app` (resumen → Home). El botón "Volver a la
+app" de la cabecera hace lo mismo de forma explícita, sin depender del gesto.
+
+**Pruebas tras la integración**
+
+| Suite | Dónde | Pruebas | Fallos |
+|---|---|---|---|
+| Formato, preinscripción, orientador | `:app` JVM | 54 | 0 |
+| Plantilla de instrumentación | `:app` dispositivo | 1 | 0 |
+| Validación R1..R8 y serializador RTDB | `:campo` JVM | 34 | 0 |
+| Room real, evidencia, duplicados, ciclo de vida | `:campo` dispositivo | 10 | 0 |
+| **Total** | | **99** | **0** |
+
+### Lo que queda pendiente después de esta pasada
+
+Lo de las fases 13 a 19 sigue pendiente salvo lo ya listado; lo nuevo que
+apareció aquí:
+
+1. **Restringir "Captura en campo" por rol.** Ahora se ofrece a cualquier
+   sesión para poder verificarla sin crear cuenta. Debería quedar solo para
+   `Rol.ADMINISTRATIVO`, que es quien lo usa en la Fundación. Depende de que la
+   Fundación confirme quién entra.
+2. **El scroll del Home se pierde al entrar y salir del módulo.** Al volver con
+   "Volver a la app" el Home se recompone desde arriba. Es el comportamiento de
+   una pila que no guarda estado de scroll, no un error del módulo.
+3. **`PuertaRemotaSimulada` sigue siendo la puerta remota.** El envío se
+   demuestra sin backend; conectar Firebase Realtime Database es el punto 8 del
+   `README` del módulo y sigue sin hacer.
+4. **La base de datos de campo no se cifra** y no hay autenticación en el
+   módulo: cualquiera que abra el teléfono y entre a "Equipo de campo" ve la
+   jornada y las fotos. Es el mismo punto que la Fase 17 plantea para `:app`, y
+   aquí es más delicado porque hay documentos de identidad de menores.
+5. **La captura por cámara y la galería siguen sin probarse a mano.** La
+   automatización por ADB no permite dispararlas de forma fiable; el
+   almacenamiento y la validación de la evidencia sí están cubiertos por las 10
+   pruebas en dispositivo.

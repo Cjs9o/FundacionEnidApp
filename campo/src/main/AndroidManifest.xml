@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Manifiesto del modulo `:campo` dentro de `FundacionEnidApp`.
+
+    A diferencia de cuando este modulo era una app independiente, aqui NO se
+    declara `<application android:name>`, ni icono, ni etiqueta, ni tema, ni una
+    `Activity`: todo eso lo pone `:app`. Este manifiesto solo aporta lo que el
+    modulo necesita y nadie mas tiene:
+
+      1. Permisos. `INTERNET` y `ACCESS_NETWORK_STATE` los necesita el
+         SyncManager; `CAMERA` y los de lectura de imagenes, la evidencia.
+      2. `<queries>`, sin los cuales en Android 11 el sistema no resuelve ni la
+         camara ni el navegador y el selector de archivos se cae.
+      3. El `FileProvider`, indispensable para que la app de camara pueda
+         escribir la foto en `filesDir/evidencias`.
+
+    El merge con el manifiesto de `:app` es lo que produce el manifiesto final.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!--
+        DISEÑO OFFLINE-FIRST:
+        INTERNET sólo se usa dentro del SyncManager y únicamente cuando el usuario
+        pulsa SINCRONIZAR. Ninguna otra parte del módulo abre sockets.
+    -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <!-- Evidencia fotográfica: captura con cámara y selección desde la galería -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
+
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
+
+    <queries>
+        <intent>
+            <action android:name="android.media.action.IMAGE_CAPTURE" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.DIAL" />
+            <data android:scheme="tel" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="https" />
+        </intent>
+    </queries>
+
+    <application>
+        <!--
+            FileProvider propio: las fotos se copian a filesDir/evidencias y se
+            comparten con la app de cámara mediante un content:// temporal.
+
+            La autoridad DEBE seguir la que construye `AlmacenEvidencias`, que es
+            "${context.packageName}.fileprovider". Al ser el mismo proceso, el
+            paquete es el de la app institucional (`com.fundacion.enid`) y no el
+            que tenía el módulo como app aparte: cambiar solo uno de los dos
+            lados rompe la captura por cámara con un FileNotFoundException.
+        -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+    </application>
+
+</manifest>

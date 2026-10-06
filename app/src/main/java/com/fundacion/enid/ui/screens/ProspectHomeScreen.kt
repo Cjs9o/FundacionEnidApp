@@ -218,6 +218,14 @@ fun ProspectHomeScreen(
             }
 
             VerticalSpacer(20)
+
+            // Herramienta del equipo de campo (módulo `:campo`). Se ofrece
+            // también al invitado para poder verificarla sin crear cuenta;
+            // queda pendiente restringirla a `Rol.ADMINISTRATIVO`.
+            SectionTitle("Equipo de campo", "Captura de preinscripciones sin señal.")
+            SecondaryLink(EnidIcons.VPreinscripcion, "Abrir captura en campo") { onNavigate(Screen.Campo) }
+
+            VerticalSpacer(20)
             Text(
                 text = "ENID · Fundación de Educación para el Desarrollo y la Dignidad Humana",
                 style = MaterialTheme.typography.bodySmall,

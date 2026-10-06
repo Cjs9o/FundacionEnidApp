@@ -80,7 +80,29 @@ flowchart TD
     PAYMENTS --> PSE
     PLATFORM -->|"Volver al inicio"| HOME
     PROFILE -->|"Cerrar sesión"| WELCOME
+
+    subgraph CAMPO["Equipo de campo — módulo :campo (NavHost propio)"]
+        CAMPO_RESUMEN["Resumen de jornada<br/>contadores + red + SINCRONIZAR"]
+        CAMPO_LISTADO["Listado<br/>4 filtros"]
+        CAMPO_CAPTURA["Captura<br/>nueva / edición"]
+        CAMPO_DETALLE["Detalle<br/>evidencia"]
+    end
+
+    PHOME --> CAMPO
+    HOME --> CAMPO
+    CAMPO_RESUMEN --> CAMPO_LISTADO
+    CAMPO_RESUMEN --> CAMPO_CAPTURA
+    CAMPO_LISTADO --> CAMPO_DETALLE
+    CAMPO_LISTADO --> CAMPO_CAPTURA
+    CAMPO_DETALLE --> CAMPO_CAPTURA
+    CAMPO_RESUMEN -->|"Volver a la app"| PHOME
 ```
+
+> El módulo `:campo` es una **hoja con grafo propio**: dentro, `NavHost` de
+> `navigation-compose` maneja las cuatro pantallas y el botón atrás del sistema
+> lo resuelve primero a él. Solo cuando la pila interna queda en el resumen, el
+> retroceso pasa a la pila de `:app` y vuelve al Home. Por eso `Campo` no lleva
+> parámetros y `Screen.kt` no conoce las cuatro rutas internas.
 
 ## 2. Rutas declaradas
 
@@ -103,6 +125,7 @@ flowchart TD
 | `Benefits` | Calculadora de beneficios | `BenefitsCalculatorScreen.kt` | — |
 | `Platform` | Plataforma educativa | `PlatformScreen.kt` | — |
 | `Pse` | Pago por PSE | `PseScreen.kt` | — |
+| `Campo` | Módulo de captura en campo | `CampoSeccion.kt` → `campo/ui/EnidAppRaiz.kt` | — |
 
 ## 3. Tabla de conexiones (pantalla → destinos)
 
@@ -123,6 +146,9 @@ flowchart TD
 | Home | Plataforma educativa | `Platform` | `navegar` |
 | Home | Mi cuenta | `Profile` | `navegar` |
 | Home | Oferta / Preinscripción / FAQ / Beneficios / Perfil / Intereses | `Catalog`, `Preinscription`, `Faq`, `Benefits`, `Profile`, `Intereses`, `Locations` | `navegar` |
+| ProspectHome | Equipo de campo | `Campo` | `navegar` |
+| Home | Más servicios → Captura en campo | `Campo` | `navegar` |
+| Campo | Resumen → Volver a la app / botón atrás | `ProspectHome` o `Home` | `retroceder` |
 | Catalog | Tarjeta de programa | `ProgramDetail(id)` | `navegar` |
 | Catalog | ¿Qué puedo estudiar? | `ProgramFinder` | `navegar` |
 | ProgramFinder | Recomendación | `ProgramDetail(id)` y `Preinscription(id)` | `navegar` |

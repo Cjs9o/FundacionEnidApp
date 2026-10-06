@@ -23,4 +23,14 @@ sealed class Screen {
     data object Benefits : Screen()
     data object Platform : Screen()
     data object Pse : Screen()
+
+    /**
+     * Módulo de captura en campo (`:campo`, offline-first).
+     *
+     * Es una hoja, no un destino más: dentro hay un `NavHost` propio con
+     * resumen, listado, captura y detalle, y no comparte la pila de `Screen`.
+     * Por eso no lleva parámetros y por eso el retroceso del sistema lo
+     * resuelve el `NavHost` interno primero y esta pila después.
+     */
+    data object Campo : Screen()
 }
