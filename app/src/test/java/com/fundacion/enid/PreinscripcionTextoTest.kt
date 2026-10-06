@@ -1,7 +1,10 @@
 package com.fundacion.enid.data
 
+import com.fundacion.enid.model.DocumentoAdjunto
 import com.fundacion.enid.model.Familiar
+import com.fundacion.enid.model.FormatoArchivo
 import com.fundacion.enid.model.Preinscripcion
+import com.fundacion.enid.model.adjuntosDeDocumentosMarcados
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
@@ -177,5 +180,134 @@ class PreinscripcionTextoTest {
         val guardada = PreinscripcionTexto.serializar(conSalto)
         assertEquals(1, guardada.split("\n").size)
         assertEquals("Ana Gómez", PreinscripcionTexto.leer(guardada)?.nombre)
+    }
+
+    @Test
+    fun `los adjuntos vuelven con su documento, formato y nombre`() {
+        val conAdjuntos = completa.copy(
+            adjuntos = listOf(
+                DocumentoAdjunto("DOCUMENTO", "PDF", "cedula.pdf", "content://docs/cedula.pdf"),
+                DocumentoAdjunto("ICFES", "JPG", "icfes.jpg", "content://fotos/icfes.jpg")
+            )
+        )
+        val leida = PreinscripcionTexto.leer(PreinscripcionTexto.serializar(conAdjuntos))
+        assertNotNull(leida)
+        assertEquals(2, leida!!.adjuntos.size)
+        assertEquals("DOCUMENTO", leida.adjuntos[0].documento)
+        assertEquals("PDF", leida.adjuntos[0].formato)
+        assertEquals("cedula.pdf", leida.adjuntos[0].nombreArchivo)
+        assertEquals("ICFES", leida.adjuntos[1].documento)
+        assertEquals("JPG", leida.adjuntos[1].formato)
+    }
+
+    @Test
+    fun `un nombre de archivo con coma y signos no desalinea los adjuntos`() {
+        // La URI y el nombre viajan en el mismo campo que separa un adjunto de
+        // otro; si no se escapan, el segundo adjunto se pierde al releerlo.
+        val conAdjuntos = completa.copy(
+            adjuntos = listOf(
+                DocumentoAdjunto("DOCUMENTO", "PDF", "titulo, 2 paginas.pdf", "content://a/x?y=1;z"),
+                DocumentoAdjunto("TITULOS", "PNG", "bachiller.png", "content://b/w")
+            )
+        )
+        val leida = PreinscripcionTexto.leer(PreinscripcionTexto.serializar(conAdjuntos))
+        assertEquals(2, leida!!.adjuntos.size)
+        assertEquals("titulo, 2 paginas.pdf", leida.adjuntos[0].nombreArchivo)
+        assertEquals("content://a/x?y=1;z", leida.adjuntos[0].uri)
+        assertEquals("TITULOS", leida.adjuntos[1].documento)
+    }
+
+    @Test
+    fun `una preinscripcion sin adjuntos los deja vacios`() {
+        val leida = PreinscripcionTexto.leer(PreinscripcionTexto.serializar(completa))
+        assertTrue(leida!!.adjuntos.isEmpty())
+    }
+
+    @Test
+    fun `una linea vieja de 21 campos se sigue leyendo sin adjuntos`() {
+        // Lo que ya está en los teléfonos no tiene el campo 22.
+        val vieja = PreinscripcionTexto.serializar(completa).split("|").dropLast(1).joinToString("|")
+        val leida = PreinscripcionTexto.leer(vieja)
+        assertNotNull(leida)
+        assertTrue(leida!!.adjuntos.isEmpty())
+        assertEquals("Ana Gómez", leida.nombre)
+    }
+
+    // ── Adjuntos que sí se pueden enviar ──────────────────────────────────
+    //
+    // La casilla marcada dice "puedo aportar este documento" y el adjunto es el
+    // archivo de ese documento. Si uno queda sin casilla marcada, enviarlo sería
+    // incluir una copia de un documento que la persona dijo no poder aportar.
+
+    private val adjuntosDeVarios = mapOf(
+        "DOCUMENTO" to DocumentoAdjunto("DOCUMENTO", "PDF", "cedula.pdf", "content://a/1"),
+        "ICFES" to DocumentoAdjunto("ICFES", "JPG", "icfes.jpg", "content://a/2"),
+        "TITULOS" to DocumentoAdjunto("TITULOS", "PNG", "titulos.png", "content://a/3")
+    )
+
+    @Test
+    fun `un adjunto de un documento desmarcado no se envia`() {
+        val marcados = setOf("DOCUMENTO", "ICFES")
+        val enviados = adjuntosDeDocumentosMarcados(adjuntosDeVarios, marcados)
+        assertEquals(2, enviados.size)
+        assertTrue(enviados.none { it.documento == "TITULOS" })
+    }
+
+    @Test
+    fun `desmarcar tras adjuntar deja el registro sin ese adjunto`() {
+        // El caso que motivó el filtro: marcar, adjuntar, desmarcar.
+        var adjuntos = mapOf("DOCUMENTO" to adjuntosDeVarios.getValue("DOCUMENTO"))
+        var documentos = setOf("DOCUMENTO")
+        // Se desmarca: la casilla sale y con ella el archivo.
+        documentos = documentos - "DOCUMENTO"
+        adjuntos = adjuntos - "DOCUMENTO"
+        assertTrue(adjuntosDeDocumentosMarcados(adjuntos, documentos).isEmpty())
+    }
+
+    @Test
+    fun `sin casillas marcadas no se envia ningun adjunto`() {
+        assertTrue(adjuntosDeDocumentosMarcados(adjuntosDeVarios, emptySet()).isEmpty())
+    }
+
+    @Test
+    fun `con todas las casillas marcadas se envian todos los adjuntos`() {
+        val marcados = setOf("DOCUMENTO", "ICFES", "TITULOS")
+        assertEquals(3, adjuntosDeDocumentosMarcados(adjuntosDeVarios, marcados).size)
+    }
+
+    @Test
+    fun `una casilla marcada sin adjunto no inventa ninguno`() {
+        val enviados = adjuntosDeDocumentosMarcados(emptyMap(), setOf("DOCUMENTO"))
+        assertTrue(enviados.isEmpty())
+    }
+
+    // ── Formato elegido ──────────────────────────────────────────────────
+    @Test
+    fun `el formato guardado se reconoce al releerlo`() {
+        for (formato in FormatoArchivo.entries) {
+            assertEquals(formato, FormatoArchivo.desdeEtiqueta(formato.etiqueta))
+        }
+    }
+
+    @Test
+    fun `un formato desconocido no inventa uno`() {
+        assertNull(FormatoArchivo.desdeEtiqueta("TIFF"))
+        assertNull(FormatoArchivo.desdeEtiqueta(""))
+        assertNull(FormatoArchivo.desdeEtiqueta(null))
+    }
+
+    @Test
+    fun `cada formato tiene un mime propio para el selector`() {
+        val mimes = FormatoArchivo.entries.map { it.mime }
+        assertEquals(3, mimes.distinct().size)
+        assertTrue(mimes.contains("application/pdf"))
+        assertTrue(mimes.contains("image/jpeg"))
+    }
+
+    @Test
+    fun `el formato elegido llega al adjunto guardado`() {
+        val adjunto = DocumentoAdjunto("ICFES", FormatoArchivo.JPG.etiqueta, "icfes.jpg", "content://f/1")
+        assertEquals("JPG", adjunto.formato)
+        assertEquals(FormatoArchivo.JPG, FormatoArchivo.desdeEtiqueta(adjunto.formato))
     }
 }

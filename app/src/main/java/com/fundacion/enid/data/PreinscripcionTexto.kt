@@ -1,5 +1,6 @@
 package com.fundacion.enid.data
 
+import com.fundacion.enid.model.DocumentoAdjunto
 import com.fundacion.enid.model.Familiar
 import com.fundacion.enid.model.Preinscripcion
 
@@ -65,6 +66,15 @@ object PreinscripcionTexto {
                 .joinToString(";")
         } ?: ""
 
+        // Los adjuntos van en el campo 22 con la misma mecánica. Cada adjunto es
+        // un bloque `clave=valor;clave=valor` y los bloques se unen con ','.
+        // Puede usarse ',' como unión porque todos los valores van escapados:
+        // una coma dentro de un nombre ya quedó como %2C.
+        val adjuntos = p.adjuntos.joinToString(",") { a ->
+            listOf("documento", "formato", "nombre", "uri")
+                .joinToString(";") { clave -> "$clave=${escapar(a.campo(clave))}" }
+        }
+
         return listOf(
             escapar(p.nombre), escapar(p.documento), escapar(p.correo), escapar(p.telefono),
             escapar(p.programa), escapar(p.fecha),
@@ -75,7 +85,7 @@ object PreinscripcionTexto {
             p.esMenorDeEdad?.toString() ?: "", p.tieneAcudiente?.toString() ?: "",
             escapar(p.nombreAcudiente), escapar(p.prefijoEmergencia),
             escapar(p.telefonoEmergencia), escapar(p.condicionEspecial),
-            familiar
+            familiar, adjuntos
         ).joinToString("|")
     }
 
@@ -112,8 +122,33 @@ object PreinscripcionTexto {
             prefijoEmergencia = campo(17) ?: "",
             telefonoEmergencia = campo(18) ?: "",
             condicionEspecial = campo(19) ?: "",
-            familiar = campo(20)?.let(::leerFamiliar)
+            familiar = campo(20)?.let(::leerFamiliar),
+            // A diferencia de los demás campos, aquí NO se desescapa el campo
+            // entero antes de dividirlo: los adjuntos se unen entre sí con ','
+            // y desescapar antes de partir volvería a ser coma la que traía un
+            // nombre de archivo ("titulo%2C2 paginas.pdf") y partiría el bloque.
+            // El desescape se hace valor por valor dentro de leerAdjuntos.
+            adjuntos = leerAdjuntos(partes.getOrNull(21)?.takeIf { it.isNotBlank() })
         )
+    }
+
+    /** Bloques `documento=..;formato=..;nombre=..;uri=..` unidos por comas. */
+    private fun leerAdjuntos(crudo: String?): List<DocumentoAdjunto> {
+        if (crudo.isNullOrBlank()) return emptyList()
+        return crudo.split(",").mapNotNull { bloque ->
+            if (bloque.isBlank()) return@mapNotNull null
+            val valores = bloque.split(";").mapNotNull { par ->
+                val i = par.indexOf('=')
+                if (i <= 0) null else par.substring(0, i) to desescapar(par.substring(i + 1))
+            }.toMap()
+            val uri = valores["uri"] ?: return@mapNotNull null
+            DocumentoAdjunto(
+                documento = valores["documento"] ?: "",
+                formato = valores["formato"] ?: "",
+                nombreArchivo = valores["nombre"] ?: "",
+                uri = uri
+            )
+        }
     }
 
     /**
@@ -150,5 +185,13 @@ object PreinscripcionTexto {
         "numeroDocumento" -> numeroDocumento
         "telefono" -> telefono
         else -> correo
+    }
+
+    /** Los cuatro datos de un adjunto, por nombre de clave. */
+    private fun DocumentoAdjunto.campo(clave: String): String = when (clave) {
+        "documento" -> documento
+        "formato" -> formato
+        "nombre" -> nombreArchivo
+        else -> uri
     }
 }

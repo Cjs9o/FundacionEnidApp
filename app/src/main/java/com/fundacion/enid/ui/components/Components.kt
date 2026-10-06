@@ -143,10 +143,12 @@ fun BigOutlinedButton(
     borderColor: Color = EnidPurple,
     contentColor: Color = EnidPurple,
     icon: ImageVector? = null,
+    enabled: Boolean = true,
     onClick: () -> Unit
 ) {
     OutlinedButton(
         onClick = onClick,
+        enabled = enabled,
         modifier = modifier.fillMaxWidth().defaultMinSize(minHeight = 48.dp),
         border = BorderStroke(1.5.dp, borderColor),
         shape = RoundedCornerShape(8.dp),
@@ -226,6 +228,13 @@ fun BigTextField(
         isError = isError,
         supportingText = supportingText?.let { { Text(it) } },
         colors = OutlinedTextFieldDefaults.colors(
+            // El campo se pinta de blanco: sin esto el OutlinedTextField deja
+            // ver el crema del fondo de la pantalla y la caja de texto se
+            // confunde con el resto del formulario.
+            focusedContainerColor = EnidWhite,
+            unfocusedContainerColor = EnidWhite,
+            disabledContainerColor = EnidWhite,
+            errorContainerColor = EnidWhite,
             focusedBorderColor = EnidDarkBlue,
             unfocusedBorderColor = EnidBorderSoft,
             errorBorderColor = EnidRed

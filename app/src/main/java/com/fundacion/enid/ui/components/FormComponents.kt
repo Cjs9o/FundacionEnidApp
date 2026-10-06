@@ -8,7 +8,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -39,9 +41,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.fundacion.enid.data.FormatoEntrada
+import com.fundacion.enid.model.DocumentoAdjunto
+import com.fundacion.enid.model.FormatoArchivo
 import com.fundacion.enid.ui.theme.EnidBorderSoft
 import com.fundacion.enid.ui.theme.EnidDarkBlue
 import com.fundacion.enid.ui.theme.EnidGreen
@@ -254,59 +259,170 @@ fun PreguntaSiNo(
     )
 }
 
-/** Casilla de un documento requerido, con su nota. */
+/**
+ * Casilla de un documento requerido, con su nota y, debajo, la opción de
+ * adjuntar el archivo.
+ *
+ * La casilla y el archivo son cosas distintas: marcar dice "puedo aportar esto",
+ * adjuntar deja la copia digital en el mismo teléfono. Por eso el bloque de
+ * adjunto solo aparece cuando la casilla está marcada, y no es obligatorio:
+ * quien no pueda tomar la foto ahora puede terminar la preinscripción y
+ * adjuntar el archivo después con el asesor.
+ */
 @Composable
 fun CasillaDocumento(
     titulo: String,
     nota: String,
     obligatorio: Boolean,
     marcado: Boolean,
-    onCambiar: (Boolean) -> Unit
+    onCambiar: (Boolean) -> Unit,
+    adjunto: DocumentoAdjunto? = null,
+    formatoElegido: FormatoArchivo? = null,
+    onFormatoElegido: ((FormatoArchivo) -> Unit)? = null,
+    onAdjuntar: ((FormatoArchivo) -> Unit)? = null,
+    onQuitarAdjunto: (() -> Unit)? = null
 ) {
     val activo = if (marcado) EnidGreen else EnidWhite
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onCambiar(!marcado) },
+        modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(10.dp),
         colors = CardDefaults.cardColors(containerColor = activo),
-        border = BorderStroke(
-            1.5.dp,
-            if (marcado) EnidGreen else if (obligatorio) EnidBorderSoft else EnidBorderSoft
-        )
+        border = BorderStroke(1.5.dp, if (marcado) EnidGreen else EnidBorderSoft)
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Checkbox(
-                checked = marcado,
-                onCheckedChange = onCambiar
-            )
-            Column(modifier = Modifier.weight(1f).padding(start = 4.dp)) {
-                Text(
-                    text = titulo,
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = EnidInk
-                )
-                Text(
-                    text = nota,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = EnidTextSec,
-                    modifier = Modifier.padding(top = 1.dp)
+        Column(modifier = Modifier.fillMaxWidth().padding(12.dp)) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onCambiar(!marcado) },
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Checkbox(checked = marcado, onCheckedChange = onCambiar)
+                Column(modifier = Modifier.weight(1f).padding(start = 4.dp)) {
+                    Text(
+                        text = titulo,
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = EnidInk
+                    )
+                    Text(
+                        text = nota,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = EnidTextSec,
+                        modifier = Modifier.padding(top = 1.dp)
+                    )
+                }
+                if (obligatorio) {
+                    Text(
+                        text = "Obligatorio",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = EnidRed,
+                        modifier = Modifier
+                            .background(EnidWhite.copy(alpha = 0.7f), RoundedCornerShape(6.dp))
+                            .padding(horizontal = 6.dp, vertical = 2.dp)
+                    )
+                }
+            }
+
+            if (marcado && onAdjuntar != null) {
+                SelectorFormatoArchivo(
+                    adjunto = adjunto,
+                    formatoElegido = formatoElegido,
+                    onFormatoElegido = onFormatoElegido,
+                    onAdjuntar = { formato -> onAdjuntar(formato) },
+                    onQuitar = onQuitarAdjunto
                 )
             }
-            if (obligatorio) {
-                Text(
-                    text = "Obligatorio",
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = EnidRed,
-                    modifier = Modifier
-                        .background(EnidWhite.copy(alpha = 0.7f), RoundedCornerShape(6.dp))
-                        .padding(horizontal = 6.dp, vertical = 2.dp)
-                )
+        }
+    }
+}
+
+/**
+ * Lista de formatos + botón para cargar el archivo.
+ *
+ * El formato se elige de una lista, igual que el tipo de documento de la cédula,
+ * porque el sistema de archivos decide la extensión y una foto de la galería
+ * puede no tenerla.
+ *
+ * La elección llega desde arriba ([formatoElegido]) y no se guarda aquí: el
+ * bloque se destruye al cambiar de paso, y con un `remember` propio el formato
+ * se perdería y el botón volvería a PDF en silencio.
+ */
+@Composable
+private fun SelectorFormatoArchivo(
+    adjunto: DocumentoAdjunto?,
+    formatoElegido: FormatoArchivo?,
+    onFormatoElegido: ((FormatoArchivo) -> Unit)?,
+    onAdjuntar: (FormatoArchivo) -> Unit,
+    onQuitar: (() -> Unit)?
+) {
+    // En cuanto hay archivo, manda el formato del adjunto guardado. Mientras no
+    // lo haya, manda el que eligió la persona.
+    val formatoActual = FormatoArchivo.desdeEtiqueta(adjunto?.formato) ?: formatoElegido
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 10.dp)
+            .background(EnidWhite, RoundedCornerShape(8.dp))
+            .padding(10.dp)
+    ) {
+        Text(
+            text = "Formato del archivo",
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = FontWeight.SemiBold,
+            color = EnidTextSec
+        )
+        SelectorBotones(
+            opciones = FormatoArchivo.entries.toList(),
+            etiqueta = { it.etiqueta },
+            seleccionado = formatoActual?.etiqueta ?: "",
+            columnas = 3,
+            onElegir = { formato -> onFormatoElegido?.invoke(formato) }
+        )
+        Spacer(Modifier.height(8.dp))
+        if (adjunto == null) {
+            BigOutlinedButton(
+                // Sin formato elegido no se abre el selector: antes ofrecía los
+                // tres tipos y podía terminar guardando un archivo distinto del
+                // que decía el registro.
+                text = if (formatoActual == null) "Elige un formato" else "Cargar archivo ${formatoActual.etiqueta}",
+                icon = EnidIcons.VExterno,
+                enabled = formatoActual != null,
+                onClick = { formatoActual?.let { onAdjuntar(it) } },
+                modifier = Modifier.fillMaxWidth()
+            )
+        } else {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = adjunto.nombreArchivo,
+                        style = MaterialTheme.typography.bodySmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = EnidGreen,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Text(
+                        text = "${adjunto.formato} · listo para enviar",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = EnidTextSec
+                    )
+                }
+                if (onQuitar != null) {
+                    Text(
+                        text = "Quitar",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = EnidRed,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(6.dp))
+                            .clickable { onQuitar() }
+                            .padding(horizontal = 8.dp, vertical = 6.dp)
+                    )
+                }
             }
         }
     }
@@ -368,6 +484,10 @@ fun CampoFecha(
         shape = RoundedCornerShape(8.dp),
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
         colors = OutlinedTextFieldDefaults.colors(
+            focusedContainerColor = EnidWhite,
+            unfocusedContainerColor = EnidWhite,
+            disabledContainerColor = EnidWhite,
+            errorContainerColor = EnidWhite,
             focusedBorderColor = EnidDarkBlue,
             unfocusedBorderColor = EnidBorderSoft,
             errorBorderColor = EnidRed

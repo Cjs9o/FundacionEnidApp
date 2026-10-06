@@ -594,3 +594,597 @@ acudiente "Maria Ramirez" y en los documentos aparece `CEDULA_MENOR`.
 También se comprobó en esa pasada que para una menor de edad el paso 2 pide la
 cédula del acudiente además de los tres documentos de siempre, y que para un
 adulto no la pide.
+
+---
+
+## Fase 12: adjuntar el documento como archivo, campos blancos y diagrama
+
+### Adjuntar archivo en el paso 2
+
+Antes la casilla de cada documento solo decía "puedo aportar esto" y la
+fundación recibía la fotocopia por el canal del asesor. Ahora, cuando la casilla
+está marcada, debajo aparece:
+
+- Una lista de **formato** (PDF, JPG, PNG) con la misma mecánica que la lista
+  del tipo de documento de la cédula: se elige de una lista y no se escribe a
+  mano, porque el sistema de archivos decide la extensión y una foto de la
+  galería puede no tenerla.
+- Un botón **Cargar archivo** que abre el selector del sistema, filtrado por
+  esos tres tipos.
+
+Lo que se guarda es la **referencia** (documento, formato, nombre y URI), no el
+archivo: copiar el contenido dentro de las preferencias llenaría el
+almacenamiento. La URI conserva el permiso de lectura, así que el archivo se
+puede volver a abrir después. Sigue sin haber servidor: esto deja el documento
+bajo control de la persona, en su propio teléfono.
+
+Al marcar la casilla el bloque de adjunto aparece; al desmarcarla desaparece, y
+el archivo adjunto no es obligatorio para enviar (quien no pueda tomar la foto
+ahora la sube después con el asesor).
+
+Campo 22 nuevo en el formato de guardado, con el mismo esquema `clave=valor;`
+del familiar. Los bloques de adjuntos se unen con coma, y ahí hubo un fallo que
+atrapó una prueba: al leer, el campo se desescapaba entero **antes** de
+dividirse, con lo que la coma de un nombre de archivo ("titulo%2C2 paginas.pdf")
+volvía a ser coma y partía el bloque en dos, perdiendo el segundo adjunto. Ahora
+el campo se divide en crudo y el desescape se hace valor por valor.
+
+**Verificado en el dispositivo:** al marcar "Fotocopia del documento de identidad"
+aparecen "Formato del archivo", los tres formatos y el botón "Cargar archivo";
+al pulsarlo se abre el selector del sistema mostrando PDF y JPG. No se llegó a
+completar la selección de un archivo: el picker del sistema no respondió al tap
+programático y, para no elegir documentos personales del teléfono, se canceló.
+La ida y vuelta de los adjuntos está cubierta por 4 pruebas nuevas.
+
+### Campos de texto con fondo blanco
+
+`BigTextField` y `CampoFecha` se pintan de blanco. Sin eso el `OutlinedTextField`
+deja ver el crema del fondo de la pantalla y la caja de texto se confundía con
+el resto del formulario.
+
+### Diagrama de navegación
+
+`DIAGRAMA_NAVEGACION.md`: mapa de las 18 rutas y de todas las conexiones entre
+pantallas (mermaid + tablas), la barra inferior por tipo de sesión, el flujo
+interno de los 3 pasos de la preinscripción y las salidas a apps externas.
+
+### Pruebas
+
+De 41 a 45, todas en verde: 4 nuevas para los adjuntos (ida y vuelta, nombre de
+archivo con coma y signos, preinscripción sin adjuntos y línea vieja de 21
+campos).
+
+### Pendiente
+
+- El archivo no se sube a ningún sitio: falta definir servidor, cuenta y
+  privacidad de los documentos de identidad de menores de edad.
+- La selección dentro del selector del sistema conviene probarla a mano una vez.
+
+---
+
+## 1 Oct — Revisión de lectura completa del proyecto (sin cambios de código)
+
+Pasada de lectura sobre todo el árbol del proyecto, sin tocar código ni datos:
+41 archivos fuente Kotlin, `AndroidManifest.xml`, los recursos (`values`,
+`drawable`, `mipmap`, `xml`), los cuatro archivos de prueba, la configuración de
+Gradle y los cuatro documentos (`README.md`, `PLANDESARROLLO.md`,
+`DIAGRAMA_NAVEGACION.md` y esta bitácora). También se leyó el diff sin commitear
+de la Fase 12 para no duplicar trabajo ya hecho. No se compiló ni se ejecutaron
+pruebas: el alcance era solo lectura.
+
+### Estado del repositorio al momento de la revisión
+
+Siete archivos modificados sin commit (los siete de la Fase 12) y dos sin
+rastrear: `DIAGRAMA_NAVEGACION.md` y `PORTAFOLIO ENID.pdf`. Ninguna modificación
+de esta pasada.
+
+### Lo que está bien y conviene no tocar
+
+- `FormatoEntrada` es la pieza más sólida del proyecto: máscara, validación de
+  fechas reales (incluye bisiestos y siglo), edad cumplida y límites. Sus 25
+  pruebas de `FormatoEntradaTest` la cubren bien.
+- `PreinscripcionTexto` mantiene compatibilidad hacia atrás con la línea de 6
+  campos, la de 21 y el familiar antiguo unido por comas. Es la decisión correcta
+  para un dispositivo con datos ya escritos.
+- El orientador (`ProgramFinder`) tiene 5 preguntas con ≥4 opciones y ordena por
+  puntaje estable.
+
+### Adjuntos: lo que quedó a medias
+
+- **El formato elegido no se aplica.** El selector del sistema se lanza siempre
+  con los tres MIME (`FormatoArchivo.entries.map { it.mime }`), así que quien
+  marca JPG puede terminar guardando un PDF y el registro dirá `JPG`.
+- **Desmarcar la casilla no borra el adjunto.** `onDocumento` quita la clave de
+  `documentos` pero el adjunto sigue en el mapa `adjuntos`, y al enviar se
+  guarda con `adjuntos.values.toList()`. La casilla dice "no" y el archivo viaja.
+- **El texto del paso 2 quedó desactualizado.** Sigue diciendo que "la app no
+  adjunta archivos: las fotocopias se entregan al asesor por el canal que él
+  indique", que es justo lo que la Fase 12 dejó de hacer.
+- El formato elegido se guarda en un `remember` dentro de `SelectorFormatoArchivo`,
+  que se destruye al salir del paso 2: si no hay archivo aún, al volver aparece
+  PDF.
+- Detalle menor: sobra una línea en blanco en `Models.kt` tras `DocumentoAdjunto`.
+
+### Acciones externas
+
+`EnlacesExternos.habilitados = false` es correcto mientras no haya enlaces
+oficiales, pero el interruptor no se respeta en todas partes:
+`LocationsScreen` (llamar y mapa), `PseScreen` (URL del PSE), `PlatformScreen` y
+`FaqScreen` lanzan intents directamente. Mientras siga en `false`, esas cuatro
+pantallas deben respetar el mismo criterio.
+
+### Datos que necesitan validación institucional
+
+- Montos contraditorios: `$180.000` en el resumen del PSE, `$830.000` en el
+  bloque de valores y base de `$180.000` en el total.
+- `PseScreen` muestra "Pago procesado" sin que exista confirmación real de pago.
+- Catálogo con 67 programas: 42 sin `competencias`, lo que deja tarjetas y
+  comparaciones vacías en la ficha.
+- Sedes: el catálogo y el texto hablan de Girardot, pero `repository.sedes` solo
+  tiene Chía y Sopó.
+- Promociones y testimonios vacíos, a la espera de contenido oficial.
+- Sin fuente institucional, también a la espera: correos, teléfonos, horarios,
+  requisitos del cuestionario y textos del FAQ.
+
+### Sesión de invitado y navegación
+
+- El invitado puede llegar a `Payments` y `Platform`, pantallas pensadas para
+  estudiante con tabs fijas; `Platform` además vuelve a `Screen.Home` de
+  estudiante.
+- `ProspectHomeScreen` no dibuja barra inferior aunque el diagrama le asigne
+  "Inicio" en ambos tipos de sesión.
+- Al abrir la preinscripción sin `programaId`, queda preseleccionado el primer
+  programa del catálogo (Analítica de Datos e IA) sin avisar: parece elegido y
+  no lo está.
+- Sin uso: `loggedIn` en `MainActivity`, `onBack` en `AuthScreen`, `onAdvisor` en
+  `ProgramDetailScreen` y el parámetro `repository` en varias pantallas.
+
+### Seguridad y almacenamiento
+
+- Las contraseñas del modo local quedan en texto plano en `SharedPreferences`
+  (el respaldo local de `AuthScreen`).
+- Preinscripciones, interesados y usuarios se guardan en `StringSet`, que no
+  garantiza el orden: "Mis interesados" y "Mis datos" pueden mostrar una entrada
+  al azar.
+- El login local exige una contraseña más corta que el registro local, y el
+  registro local tiene un máximo de 25 preinscripciones que se descartan en
+  silencio.
+- `allowBackup="true"` con `backup_rules.xml` y `data_extraction_rules.xml` sin
+  excluir nada: los datos personales de los interesados pueden ir a la nube de
+  Google sin que esté decidido.
+
+### Accesibilidad
+
+- `SmallButton` mide unos `34.dp` de alto, por debajo del mínimo cómodo para
+  dedo de adulto mayor.
+- Etiquetas de la barra inferior en `10.sp`.
+- `SelectorDesplegable` pinta el borde rojo cuando ya tiene valor, lo que parece
+  un error en un campo ya diligenciado.
+- Las tarjetas de documentos y de requisitos no exponen `contentDescription` ni
+  semántica de estado marcado/no marcado.
+
+### Pruebas
+
+- 45 pruebas declaradas: 25 de formato, 15 de preinscripción y 5 del
+  orientador, más 1 instrumentada de plantilla y 2 de plantilla sin valor.
+- Debilidad del orientador: `una respuesta neutra devuelve los tecnicos como
+  base` da 1 punto a todos los tipos y espera solo técnicos; hoy pasa por el
+  orden de la lista, no por la lógica de puntuación.
+- Sin pruebas de `DataRepository` (sesión, orden de los `StringSet`, tope de 25)
+  ni de la navegación de invitado.
+
+### Pendiente
+
+Nada de lo anterior se corrigió en esta pasada. En orden de urgencia:
+
+1. Corregir el texto del paso 2 que niega el adjunto, y decidir si desmarcar la
+   casilla debe borrar también el archivo.
+2. Aplicar el formato elegido al filtro del selector, o quitar el formato como
+   dato guardado si no se puede garantizar.
+3. Cerrar el flujo de pago real o marcarlo como demostración explícita.
+4. Unificar los montos y validar con la Fundación el catálogo, las sedes, las
+   listas y los textos vacíos.
+5. Cerrar o restringir las cuatro pantallas que abren intents con el interruptor
+   en `false`.
+6. Revisar el flujo de invitado a `Payments` y `Platform` y la barra inferior de
+   `ProspectHomeScreen`.
+7. Sacar las contraseñas del texto plano y definir qué se excluye del respaldo.
+8. Sustituir los `StringSet` por almacenamiento ordenado y avisar cuando se
+   llegue al tope de 25.
+9. Subir el tamaño de `SmallButton`, las etiquetas de navegación y corregir el
+   borde rojo de los desplegables ya diligenciados.
+10. Probar a mano la selección dentro del selector del sistema (sigue pendiente
+    desde la Fase 12).
+
+### Plan por fases de lo pendiente
+
+Ordenado por dependencia, no por urgencia: primero lo que no depende de nadie,
+después lo que espera una respuesta de la Fundación, y al final el cierre.
+
+| Fase | Nombre | Depende de | Esfuerzo |
+|---|---|---|---|
+| 13 | Adjuntos coherentes de verdad | — | bajo |
+| 14 | Pagos y salidas externas | Fase 13 / Fase 16 (montos) | medio |
+| 15 | Navegación y sesión de invitado | — | medio |
+| 16 | Datos oficiales de la Fundación | Fundación | bajo el código, alto el espera |
+| 17 | Seguridad y almacenamiento | — | medio |
+| 18 | Accesibilidad | — | bajo |
+| 19 | Pruebas y cierre | 13–18 | medio |
+
+Las fases 13, 15, 17 y 18 se pueden hacer en cualquier orden: no se tocan entre
+sí. La 16 es la única que bloquea a otra (los montos del PSE), y por eso conviene
+enviar la consulta a la Fundación de una sola vez, antes de empezar la 13.
+
+---
+
+## Fase 13 — Adjuntos coherentes de verdad
+
+Continúa la Fase 12, que dejó el camino a medio hacer. Sin dependencias y sin
+riesgo: son cuatro correcciones dentro de archivos que ya están modificados y sin
+commit, así que la fase se cierra sobre un diff conocido.
+
+### Qué se hace
+
+**1. El texto del paso 2 que contradice la función.** En
+`PreinscriptionScreen.kt:675` sigue la nota "La app no adjunta archivos: las
+fotocopias se entregan al asesor por el canal que él indique". Es exactamente lo
+que la Fase 12 dejó de hacer, y la persona que lee el formulario antes de marcar
+la casilla se lleva esa impresión. Se reemplaza por la explicación real: al
+marcar la casilla puede adjuntar el archivo desde el teléfono, la copia queda en
+el mismo dispositivo, no se sube a ningún servidor y si no puede tomar la foto
+ahora la entrega después con el asesor.
+
+**2. Desmarcar la casilla debe borrar el adjunto.** Hoy `onDocumento` (línea 335)
+solo quita la clave del conjunto `documentos`; el mapa `adjuntos` queda intacto
+y al enviar se guarda con `adjuntos.values.toList()` (línea 286). El resultado es
+una preinscripción con el archivo adjunto de un documento que la persona
+desmarcó. Se cambia para que quitar la casilla quite también la entrada del mapa
+y llame a `releasePersistableUriPermission`, para no dejar concedido un permiso
+de lectura sobre un archivo que ya no se referencia.
+
+**3. El formato elegido tiene que valer algo.** En la línea 167 se lanza el
+selector con los tres MIME siempre (`FormatoArchivo.entries.map { it.mime }`),
+así que quien elige JPG puede terminar guardando un PDF y el registro dirá `JPG`.
+Hay dos caminos y la decisión es de producto:
+
+- *Filtrar de verdad*: pasar a `selectorArchivo.launch(arrayOf(formato.mime))` y
+  dejar el formato como dato fiable.
+- *Quitar el formato del formulario*: mostrar el nombre real del archivo que ya
+  trae el sistema y no pedir un dato que no se puede garantir.
+
+La primera es la coherente con la justificación que quedó escrita en la Fase 12
+("el sistema decide la extensión"), pero obliga a que el botón "Cargar archivo"
+deje de ser único y offererse por formato, o a que el formato elegido por
+defecto sea el que manda. Se decide antes de tocar código.
+
+**4. El formato elegido no sobrevive al cambio de paso.**
+`SelectorFormatoArchivo` (línea 344) guarda la elección en un `remember` propio
+(línea 351), que se destruye al salir del paso 2: al volver, y sin archivo aún,
+el botón vuelve a PDF sin avisar. Se sube la elección al estado del paso, junto a
+`adjuntos`, para que sobreviva.
+
+**5. Limpieza menor.** Línea en blanco sobrante tras `DocumentoAdjunto` en
+`Models.kt`, y el encabezado vacío `── Utilidades de entrada ──` al final de
+`PreinscriptionScreen.kt`.
+
+### Archivos
+
+`PreinscriptionScreen.kt`, `FormComponents.kt`, `Models.kt`,
+`PreinscripcionTextoTest.kt`.
+
+### Cómo se verifica
+
+- Prueba unitaria nueva: desmarcar tras adjuntar deja `adjuntos` vacío y la
+  preinscripción serializada sin el campo 22.
+- Prueba unitaria: el formato elegido llega al `DocumentoAdjunto` guardado.
+- Prueba unitaria: `documentos` y `adjuntos` no se contradicen (todo adjunto
+  tiene su casilla marcada).
+- `testDebugUnitTest` en verde (hoy 45).
+- En dispositivo: marcar, elegir JPG, confirmar que el selector solo ofrece JPG;
+  cambiar de paso y volver, que el formato siga ahí; desmarcar, que el archivo
+  desaparezca de la lista y del registro enviado.
+
+---
+
+## Fase 14 — Pagos y salidas externas
+
+Dos mitades: una se puede hacer hoy y la otra espera los montos de la Fase 16.
+
+### Qué se hace, parte 1 (hoy)
+
+**El pago que no es pago.** `PseScreen.kt:141` pone `pagado = true` en el mismo
+`onClick` que abre la URL del PSE, y la pantalla muestra "Pago procesado con
+éxito" y "Recibirás el recibo en tu correo" (líneas 63 y 69). Nada de eso ocurre:
+no hay pasarela, no hay confirmación y no hay recibo. Peor: con
+`EnlacesExternos.habilitados = false` ni siquiera se abre la URL, así que el
+"pago" se completa sin haber salido de la app. Se cambia por una pantalla que
+diga lo que es verdad: que el pago se hace en la pasarela y que la app aún no
+recibe la confirmación, con la opción de volver al inicio. El `pagado` se elimina
+o se reemplaza por "redirigiendo".
+
+**Cuatro pantallas que ignoran el interruptor.** `EnlacesExternos` existe
+justamente para que con `habilitados = false` no se abra ninguna app externa, y
+su comentario lo dice. Pero hay intents launching directo en:
+
+- `LocationsScreen.kt:195` (marcador telefónico) y `:209` (mapa de Google).
+- `FaqScreen.kt:139` (WhatsApp) y `:147` (sitio web).
+- `PseScreen.kt:138` (URL del PSE).
+- `PlatformScreen.kt:128` (URL de la plataforma).
+
+Se reemplazan por `EnlacesExternos.abrirLlamar`, `abrirMapa`, `abrirWeb` y
+`abrirAsesor`, que además traen el `try/catch` que evita el crash cuando el
+dispositivo no tiene la app instalada y el log de la acción omitida. Efecto
+colateral útil: mientras el interruptor siga en `false`, las cuatro pantallas
+quedan inertes en las pruebas de dispositivo, como ya se pidió.
+
+### Qué se hace, parte 2 (tras la Fase 16)
+
+Los montos están escritos a mano y no coinciden: `$830.000` en el resumen y en
+el botón (`PseScreen.kt:96` y `:133`), y `$180.000` en los dos pagos de
+`DataRepository.kt:511` y `:518`. Se sacan a una constante única con su
+descripción (por programa y por concepto, no un número suelto) y ambas pantallas
+leen de ahí, para que la próxima actualización sea un cambio de un sitio y no
+una búsqueda de cifras.
+
+### Archivos
+
+`PseScreen.kt`, `LocationsScreen.kt`, `FaqScreen.kt`, `PlatformScreen.kt`,
+`DataRepository.kt`.
+
+### Cómo se verifica
+
+- Con `habilitados = false`: ninguno de los cuatro botones abre nada y la app no
+  se cae.
+- Con `habilitados = true`: cada botón abre su destino, y si la app falta se ve
+  el log en vez de un crash.
+- Búsqueda final de `startActivity` en `ui/screens`: cero resultados directos.
+- El monto aparece una sola vez en el código.
+- En dispositivo: recorrer el flujo de pago y confirmar que no promete un pago
+  que no ocurre.
+
+---
+
+## Fase 15 — Navegación y sesión de invitado
+
+Sin dependencias. `AppRoot.kt` ya sabe distinguir invitado y estudiante en la
+barra inferior (`inicioDelUsuario`, línea 31); el problema es que esa distinción
+no se aplica a las rutas.
+
+### Qué se hace
+
+**1. El invitado llega a pantallas de estudiante.** `inicioDelUsuario` corrige
+el caso "volver a Inicio", pero `onNavigate` deja pasar a `Screen.Payments` y
+`Screen.Platform`, que están diseñadas con tabs fijas de estudiante. Dos caminos:
+cerrarlas con un aviso ("inicia sesión para ver tus pagos"), que es el cambio
+menor, o abrir un equivalente de invitado. Se recomienda el aviso: un invitado no
+tiene pagos que ver todavía.
+
+**2. `Platform` vuelve al Home equivocado.** `AppRoot.kt:158` tiene
+`onGoHome = { nav.reemplazarTodo(Screen.Home) }`, o sea, el Home de estudiante.
+Debe pasar por `inicioDelUsuario` como ya hace la barra inferior.
+
+**3. `ProspectHomeScreen` no tiene barra inferior.** El diagrama le asigna
+"Inicio" en ambos tipos de sesión, y el catálogo, la ficha y el resto sí la
+tienen. Hoy el invitado navega por Home sin barra y sin forma de volver al
+catálogo. Se le pasa el mismo `onTabNavigate` que usan las demás pantallas.
+
+**4. Programa preseleccionado sin avisar.** `PreinscriptionScreen` recibe
+`programaId: Int?`; si viene `null`, toma el primero del catálogo. Quien entra
+desde el Home ve "Analítica de Datos e IA" ya marcado y lo envía como elección
+suya. Cuando no hay `programaId`, el campo debe quedar vacío y pedir elegir, o
+mostrar el nombre como referencia no seleccionable. Ojo: el texto del botón dice
+"Siguiente" y el nombre aparece arriba, así que el cambio debe verse claro en
+ambos sitios.
+
+**5. Limpieza de lo que no se usa.** `loggedIn` en `MainActivity.kt`,
+`onBack` en `AuthScreen`, `onAdvisor` en `ProgramDetailScreen` y el parámetro
+`repository` en varias pantallas que no leen datos. Se quitan; si alguno se va a
+usar después, se vuelve a agregar cuando se use.
+
+### Archivos
+
+`AppRoot.kt`, `ProspectHomeScreen.kt`, `PreinscriptionScreen.kt`, `MainActivity.kt`,
+`AuthScreen.kt`, `ProgramDetailScreen.kt`.
+
+### Cómo se verifica
+
+- Recorrido completo como invitado: Welcome → Home → catálogo → ficha → preinscripción
+  → enviado, sin ver ninguna pantalla de estudiante y sin topar con pantallas
+  bloqueadas salvo los avisos previstos.
+- El mismo recorrido con sesión iniciada, comprobando que la barra lleva a
+  Payments y Platform.
+- En ambos casos, "Inicio" vuelve al Home que corresponde.
+- Preinscripción abierta sin programa: no aparece ninguno elegido.
+- `DIAGRAMA_NAVEGACION.md` se actualiza para que siga describiendo lo que hace
+  el código.
+
+---
+
+## Fase 16 — Datos oficiales de la Fundación
+
+Bloqueada por la Fundación. Es una fase de consulta: el código puede quedar
+preparado, pero los valores se llenan cuando lleguen. Todo en una sola consulta,
+porque cada respuesta llega lenta.
+
+### Qué se pide
+
+**Montos.** Valor de matrícula y de générosité por programa y por concepto. Es lo
+único que bloquea otra fase (los montos del PSE, parte 2 de la Fase 14).
+
+**Competencias.** 42 de los 67 programas del catálogo no tienen
+`competencias`, lo que deja la ficha y el comparador vacíos. Se puede aceptar
+entregar solo los programas con competencies completas y quitar los demás del
+catálogo mientras tanto, que es mejor que mostrar fichas a medio llenar.
+
+**Sedes.** El catálogo y los textos mencionan Girardot, pero
+`repository.sedes` solo tiene Chía y Sopó. Confirmar cuáles son reales y si
+`repository.sedes` es la lista buena o hay otra.
+
+**Promociones y testimonios.** Listas vacías a la espera de contenido. Hace
+falta texto, imagen y, si se puede, fecha de vigencia.
+
+**Contacto y enlaces.** Teléfonos, correos, URL de la plataforma
+(`PLATAFORMA_URL`) y del PSE (`PSE_URL`), y el número de WhatsApp
+(`WHATSAPP_NUMERO`). Hoy son constantes provisionales en `DataRepository`.
+
+**Contenido operativo.** Horarios del cronograma, requisitos del cuestionario
+del orientador, textos del FAQ, y los textos de requisitos de cada documento del
+paso 2.
+
+### Cómo se avanza mientras tanto
+
+Marcar en el código qué valores son provisionales, para que no se lea como
+dato oficial. Los de contacto, al menos, son los que más riesgo tienen si
+alguien los usa para llamar.
+
+### Archivos
+
+`DataRepository.kt` y, según el contenido, los textos de las pantallas.
+
+### Cómo se verifica
+
+Cada dato nuevo entra con su fuente anotada en esta bitácora: quién lo confirmó
+y cuándo. Es la diferencia entre un dato que la Fundación puede cambiar en
+octubre y uno que nadie va a saber de dónde salió.
+
+---
+
+## Fase 17 — Seguridad y almacenamiento
+
+Sin dependencias. Lo más delicado del conjunto: aquí los datos son de personas
+reales, en su mayoría mayores de edad con documentos de identidad.
+
+### Qué se hace
+
+**1. Contraseñas en texto plano.** El modo local de `AuthScreen` guarda la
+contraseña tal cual en `SharedPreferences`. Un respaldo del dispositivo o un
+`adb backup` la dejan legible. Opciones, de mejor a peor: no guardar contraseñas
+en local y validar contra Firebase siempre; o guardar un hash con salt; o, como
+mínimo, dejar claro en pantalla que el modo local es solo para demostración.
+
+**2. `StringSet` no tiene orden.** Interesados, usuarios y preinscripciones se
+guardan en conjuntos de strings, y `SharedPreferences` no garantiza el orden de
+un `StringSet`: "Mis interesados" y "Mis datos" muestran una entrada al azar.
+Se cambia a un string con separador por registro (el mismo criterio que ya usa
+`PreinscripcionTexto` con `\n`) o a `DataStore`.
+
+**3. Tope de 25 sin aviso.** Al llegar a 25 preinscripciones se descartan en
+silencio. Pasa de "no veo el que guardé" a un mensaje que diga cuántos hay y que
+el asesor los revise.
+
+**4. Respaldo a la nube sin criterio.** `allowBackup="true"` con
+`backup_rules.xml` y `data_extraction_rules.xml` sin una sola exclusión: los
+datos personales de los interesados (documento, teléfono, correo, fecha de
+nacimiento, condiciones especiales, archivos adjuntos) pueden ir al respaldo de
+Google. Se excluye el directorio de preferencias y se documenta el criterio.
+
+**5. Adjuntos y permisos.** Los permisos persistentes de lectura sobre los
+documentos se conceden al vuelo (Fase 12) y quedan vivos en `Activity` aunque el
+adjunto se desmarque. Se liberan cuando el registro se descarta.
+
+### Archivos
+
+`DataRepository.kt`, `AuthScreen.kt`, `MainActivity.kt`,
+`res/xml/backup_rules.xml`, `res/xml/data_extraction_rules.xml`,
+`AndroidManifest.xml`, `PreinscriptionScreen.kt`.
+
+### Cómo se verifica
+
+- `adb backup` de la app y revisar que no salga ninguna contraseña ni documento.
+- Guardar 30 interesados y comprobar que aparecen en orden y que el aviso del
+  tope aparece.
+- Sesión local: registrar, cerrar la app, volver a entrar.
+- Con `habilitados = false` y sin red, la app debe seguir siendo usable en modo
+  local.
+
+---
+
+## Fase 18 — Accesibilidad
+
+Sin dependencias, y es la fase de mejor relación entre trabajo y resultado:
+`PLANDESARROLLO.md` pone a los adultos mayores como público prioritario, y casi
+todo lo pendiente aquí es de un cambio de número.
+
+### Qué se hace
+
+**1. `SmallButton` mide 34.dp** (`Components.kt:186`). Es un botón que se toca
+con el dedo y a veces con temblor. A 48.dp mínimo, con el texto centrado y sin
+perder el color que lo distingue como acción secundaria.
+
+**2. Las etiquetas de la barra inferior están en 10.sp** (`Components.kt:476`).
+Con buen eyesight se leen, con el texto grande del sistema y a distancia de la
+pantalla no. A 12.sp, revisando que la barra siga cabiendo en pantallas angostas
+con "Mis interesados" y "Comunidad", que son las etiquetas más largas.
+
+**3. `SelectorDesplegable` pinta borde rojo cuando ya tiene valor**
+(`FormComponents.kt:101`). El rojo se lee como error en un campo ya diligenciado,
+y estos campos son positivos, no de error. El borde de error se reserva para
+cuando el campo está vacío y es obligatorio.
+
+**4. Las tarjetas de documentos no se anuncian.** `CasillaDocumento` es una
+tarjeta clicable con un `Checkbox` dentro, sin `contentDescription` ni semántica
+de estado. Con TalkBack se lee el título y la nota, pero no que está marcado ni
+que hay un archivo adjunto. Se agrega semántica de estado marcado y el nombre del
+archivo. Lo mismo en las tarjetas de requisitos y de sesión de día.
+
+**5. Una pasada con TalkBack al final**, no antes: recorrer Welcome, Home,
+catálogo, preinscripción de punta a punta con el lector de pantalla activo, y
+corregir lo que salga. Al probar de a un componente se pierde el contexto, que es
+justo donde aparecen los problemas.
+
+### Archivos
+
+`Components.kt`, `FormComponents.kt`, `ProspectHomeScreen.kt`, y las pantallas
+con tarjetas interactivas.
+
+### Cómo se verifica
+
+- `SmallButton` y las etiquetas medidos con el inspector de Compose.
+- TalkBack de punta a punta en el recorrido principal, anotando cada anuncio que
+  no se entienda.
+- Revisar la barra inferior en un emulador de pantalla angosta con fuente de
+  sistema al máximo.
+
+---
+
+## Fase 19 — Pruebas y cierre
+
+Depende de todas las anteriores. Nada de esto se puede hacer antes.
+
+### Qué se hace
+
+**1. Pruebas de `DataRepository`, que hoy no existen.** Son la pieza con más
+lógica y menos cobertura: sesión local y de Firebase, orden de los registros tras
+el cambio de `StringSet`, aviso del tope, y que las contraseñas no queden legibles.
+
+**2. Pruebas de navegación de invitado**, que hoy no existen. Con la Fase 15
+toca poder comprobar que el invitado no alcanza pantallas de estudiante. Si el
+`NavController` es una lista, es trabajo barato: recorrer la pila desde Welcome y
+afirmar qué rutas son alcanzables con y sin sesión.
+
+**3. Endurecer la prueba débil del orientador.**
+`una respuesta neutra devuelve los tecnicos como base` (en `ProgramFinderTest`)
+da 1 punto a todos los tipos y espera solo técnicos; hoy pasa por el orden de la
+lista, no por la lógica de puntuación. Si un cambio en el orden del catálogo la
+rompe, la culpa será de la prueba, no del orientador. O se corrige la puntuación
+o se reescribe la prueba para que afirme lo que realmente quiere afirmar.
+
+**4. Borrar `ExampleUnitTest` y `ExampleInstrumentedTest`**, que son de plantilla
+y no prueban nada del proyecto. La instrumentada se puede convertir en la primera
+prueba real de la app.
+
+**5. Prueba manual del selector del sistema**, pendiente desde la Fase 12: elegir
+un archivo de verdad, verificar que la URI persiste al cerrar y reabrir la
+preinscripción, y que un archivo con coma y signos en el nombre sobrevive al
+guardado. Con un archivo de prueba del propio proyecto, no con documentos del
+teléfono.
+
+**6. Cierre.** `README.md` y `PLANDESARROLLO.md` al día con lo implementado,
+`DIAGRAMA_NAVEGACION.md` coherente con el código, y esta bitácora con el
+resultado de cada fase y lo que quedó fuera.
+
+### Cómo se verifica
+
+`testDebugUnitTest` en verde (hoy 45 pruebas; la meta tras la Fase 17 es de 55 o
+más). `compileDebugKotlin --offline` limpio. Recorrido de las cuatro rutas en
+dispositivo: invitado, estudiante, asesor y preinscripción de punta a punta.

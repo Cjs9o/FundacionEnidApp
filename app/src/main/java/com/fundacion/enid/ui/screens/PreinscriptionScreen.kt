@@ -1,5 +1,10 @@
 package com.fundacion.enid.ui.screens
 
+import android.content.Intent
+import android.net.Uri
+import android.provider.OpenableColumns
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -34,12 +39,15 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.fundacion.enid.data.DataRepository
 import com.fundacion.enid.data.FormatoEntrada
+import com.fundacion.enid.model.DocumentoAdjunto
 import com.fundacion.enid.model.DocumentoRequerido
 import com.fundacion.enid.model.EstadoCivil
 import com.fundacion.enid.model.Familiar
+import com.fundacion.enid.model.FormatoArchivo
 import com.fundacion.enid.model.NivelFormacion
 import com.fundacion.enid.model.PrefijoTelefono
 import com.fundacion.enid.model.Preinscripcion
+import com.fundacion.enid.model.adjuntosDeDocumentosMarcados
 import com.fundacion.enid.model.TipoDocumento
 import com.fundacion.enid.navigation.Screen
 import com.fundacion.enid.ui.components.AppScaffold
@@ -93,6 +101,36 @@ fun PreinscriptionScreen(
     programaId: Int? = null,
     onTabNavigate: ((Screen) -> Unit)? = null
 ) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+
+    /** Nombre real del archivo escolhido, para mostrarlo en vez de un `content://`. */
+    fun nombreDeArchivo(uri: Uri): String {
+        val desdeColumna = context.contentResolver.query(uri, null, null, null, null)?.use { c ->
+            val i = c.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+            if (i >= 0 && c.moveToFirst()) c.getString(i) else null
+        }
+        return desdeColumna ?: uri.lastPathSegment?.substringAfterLast('/') ?: "archivo"
+    }
+
+    /**
+     * Suelta el permiso de lectura de un archivo que ya no se referencia.
+     *
+     * El permiso es persistente (`takePersistableUriPermission` en el paso 2) y vive
+     * hasta que se libera o hasta que se reinstala la app. Si la persona desmarca
+     * la casilla o quita el archivo, dejarlo concedido es dejar acceso al
+     * documento de identidad más tiempo del necesario.
+     */
+    fun soltarPermiso(uri: String) {
+        try {
+            context.contentResolver.releasePersistableUriPermission(
+                Uri.parse(uri), Intent.FLAG_GRANT_READ_URI_PERMISSION
+            )
+        } catch (e: Exception) {
+            // El permiso puede no haber sido persistente (proveedor sin
+            // persistencia), o el archivo ya no existir. No hay nada que soltar.
+        }
+    }
+
     // ── Paso 1: datos personales ────────────────────────────────────────
     var paso by remember { mutableStateOf(1) }
     var nombre by remember { mutableStateOf(repository.currentUser?.nombre ?: "") }
@@ -114,10 +152,76 @@ fun PreinscriptionScreen(
     var mostrarDocumento by remember { mutableStateOf(false) }
     var mostrarPrograma by remember { mutableStateOf(false) }
 
+    // ── Paso 2: archivo adjunto de cada documento ──────────────────────
+    // Se guarda la referencia (documento -> adjunto), no el archivo. Al elegir
+    // un formato se abre el selector del sistema y se guarda lo que la persona
+    // escoja. `documentoPendiente` transporta qué casilla se está adjuntando,
+    // porque el lanzador devuelve solo la URI, sin decir de qué documento era.
+    var documentos by remember { mutableStateOf(setOf<String>()) }
+    var adjuntos by remember { mutableStateOf<Map<String, DocumentoAdjunto>>(emptyMap()) }
+    // El formato elegido vive aquí, no dentro de cada tarjeta: el bloque de
+    // adjunto se recompone al cambiar de paso y un `remember` en la tarjeta se
+    // perdería, dejando el botón en PDF sin avisar.
+    var formatosElegidos by remember { mutableStateOf<Map<String, FormatoArchivo>>(emptyMap()) }
+    var documentoPendiente by remember { mutableStateOf<Pair<String, FormatoArchivo>?>(null) }
+    val selectorArchivo = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { uri: Uri? ->
+        val pendiente = documentoPendiente
+        documentoPendiente = null
+        if (uri == null || pendiente == null) return@rememberLauncherForActivityResult
+        val (clave, formato) = pendiente
+        // El permiso de lectura se conserva para poder volver a abrir el archivo
+        // al reabrir la preinscripción; sin esto la URI deja de servir.
+        try {
+            context.contentResolver.takePersistableUriPermission(
+                uri, Intent.FLAG_GRANT_READ_URI_PERMISSION
+            )
+        } catch (e: SecurityException) {
+            // Algunos proveedores no dan permiso persistente: el archivo se
+            // puede leer mientras la app esté abierta, que es lo habitual.
+        }
+        // Reemplazar el archivo de un documento que ya tenía uno suelta el
+        // permiso del anterior: si no, quedan concedidos permisos sobre
+        // documentos que la preinscripción ya no referencia.
+        adjuntos[clave]?.let { viejo -> soltarPermiso(viejo.uri) }
+        adjuntos = adjuntos + (clave to DocumentoAdjunto(
+            documento = clave,
+            formato = formato.etiqueta,
+            nombreArchivo = nombreDeArchivo(uri),
+            uri = uri.toString()
+        ))
+    }
+    val pedirArchivo: (DocumentoRequerido, FormatoArchivo) -> Unit = { doc, formato ->
+        documentoPendiente = doc.name to formato
+        // Solo se ofrecen archivos del formato elegido, para que lo que se
+        // guarda como `formato` sea siempre cierto. Con los tres MIME abiertos a
+        // la vez, se podía marcar JPG y terminar guardando un PDF.
+        selectorArchivo.launch(arrayOf(formato.mime))
+    }
+    // Desmarcar la casilla borra también el adjunto: el archivo es de ese
+    // documento, y dejarlo guardado enviaría un archivo que la persona dijo no
+    // poder aportar.
+    fun alternarDocumento(doc: DocumentoRequerido) {
+        val clave = doc.name
+        if (clave in documentos) {
+            documentos = documentos - clave
+            adjuntos[clave]?.let { soltarPermiso(it.uri) }
+            adjuntos = adjuntos - clave
+            formatosElegidos = formatosElegidos - clave
+        } else {
+            documentos = documentos + clave
+        }
+    }
+    fun quitarAdjunto(doc: DocumentoRequerido) {
+        val clave = doc.name
+        adjuntos[clave]?.let { soltarPermiso(it.uri) }
+        adjuntos = adjuntos - clave
+    }
+
     // ── Paso 2: formación y documentos ─────────────────────────────────
     var nivelFormacion by remember { mutableStateOf<NivelFormacion?>(null) }
     var icfes by remember { mutableStateOf("") }
-    var documentos by remember { mutableStateOf(setOf<String>()) }
 
     // ── Paso 3: situación personal ─────────────────────────────────────
     var esMenor by remember { mutableStateOf<Boolean?>(null) }
@@ -229,7 +333,8 @@ fun PreinscriptionScreen(
                         telefono = "$familiarPrefijo $familiarTelefono",
                         correo = familiarCorreo.trim()
                     )
-                } else null
+                } else null,
+                adjuntos = adjuntosDeDocumentosMarcados(adjuntos, documentos)
             )
         )
         enviado = true
@@ -248,6 +353,10 @@ fun PreinscriptionScreen(
                 onOtra = {
                     paso = 1; enviado = false; error = null
                     documentos = setOf(); esMenor = null; estadoCivil = null
+                    // Los adjuntos tampoco sobreviven a una preinscripción nueva:
+                    // si no, el segundo registro hereda los archivos del primero.
+                    adjuntos.values.forEach { soltarPermiso(it.uri) }
+                    adjuntos = emptyMap(); formatosElegidos = emptyMap()
                 }
             )
             return@AppScaffold
@@ -276,10 +385,13 @@ fun PreinscriptionScreen(
             2 -> PasoFormacion(
                 nivelFormacion = nivelFormacion, onNivelFormacion = { nivelFormacion = it },
                 edadEstimada = edadEstimada,
-                documentos = documentos, onDocumento = { d ->
-                    val clave: String = d.name
-                    documentos = if (documentos.contains(clave)) documentos - clave else documentos + clave
+                documentos = documentos, onDocumento = { d -> alternarDocumento(d) },
+                adjuntos = adjuntos, formatosElegidos = formatosElegidos,
+                onAdjuntar = { doc, formato -> pedirArchivo(doc, formato) },
+                onFormatoElegido = { doc, formato ->
+                    formatosElegidos = formatosElegidos + (doc.name to formato)
                 },
+                onQuitarAdjunto = { doc -> quitarAdjunto(doc) },
                 icfes = icfes, onIcfes = { icfes = it }
             )
 
@@ -304,7 +416,6 @@ fun PreinscriptionScreen(
                 familiarCorreo = familiarCorreo, onFamiliarCorreo = { familiarCorreo = it }
             )
         }
-
         VerticalSpacer(18)
         error?.let {
             Text(it, color = EnidRed, style = MaterialTheme.typography.bodyMedium)
@@ -599,6 +710,11 @@ private fun PasoFormacion(
     nivelFormacion: NivelFormacion?, onNivelFormacion: (NivelFormacion) -> Unit,
     edadEstimada: Int?,
     documentos: Set<String>, onDocumento: (DocumentoRequerido) -> Unit,
+    adjuntos: Map<String, DocumentoAdjunto>,
+    formatosElegidos: Map<String, FormatoArchivo>,
+    onAdjuntar: (DocumentoRequerido, FormatoArchivo) -> Unit,
+    onFormatoElegido: (DocumentoRequerido, FormatoArchivo) -> Unit,
+    onQuitarAdjunto: (DocumentoRequerido) -> Unit,
     icfes: String, onIcfes: (String) -> Unit
 ) {
     val esMenorSegunFecha = edadEstimada != null && edadEstimada < 18
@@ -614,7 +730,10 @@ private fun PasoFormacion(
 
     CampoLabel("Documentos para entregar", "Marca los que puedes aportar.")
     Text(
-        text = "La app no adjunta archivos: las fotocopias se entregan al asesor por el canal que él indique.",
+        text = "Al marcar cada casilla puedes adjuntar el archivo desde tu teléfono: " +
+            "elige el formato y carga la foto o el PDF. El archivo se queda en tu " +
+            "teléfono y no se sube a ningún servidor. Si no puedes tomarlo ahora, " +
+            "marca la casilla y entrégaselo después al asesor.",
         style = MaterialTheme.typography.bodySmall,
         color = EnidTextSec,
         modifier = Modifier.padding(top = 2.dp, bottom = 10.dp)
@@ -633,7 +752,12 @@ private fun PasoFormacion(
                 nota = doc.nota,
                 obligatorio = doc.obligatorio,
                 marcado = documentos.contains(doc.name),
-                onCambiar = { onDocumento(doc) }
+                onCambiar = { onDocumento(doc) },
+                adjunto = adjuntos[doc.name],
+                formatoElegido = formatosElegidos[doc.name],
+                onFormatoElegido = { formato -> onFormatoElegido(doc, formato) },
+                onAdjuntar = { formato -> onAdjuntar(doc, formato) },
+                onQuitarAdjunto = { onQuitarAdjunto(doc) }
             )
             VerticalSpacer(8)
         }
@@ -875,6 +999,4 @@ private fun PantallaEnviado(onOtra: () -> Unit) {
         }
     }
 }
-
-// ── Utilidades de entrada ────────────────────────────────────────────────────
 

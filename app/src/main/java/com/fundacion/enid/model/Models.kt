@@ -148,9 +148,13 @@ enum class NivelFormacion(val etiqueta: String, val pideTitulos: Boolean) {
 }
 
 /**
- * Un documento que el aspirante debe entregar. La app **registra el estado**
- * (lo deja marcado) pero no adjunta el archivo: no hay servidor donde subirlo
- * y ENID recibe las fotocopias por el canal que indique el asesor.
+ * Un documento que el aspirante debe entregar.
+ *
+ * La casilla sigue siendo la confirmación de que puede aportar el documento,
+ * pero ahora además puede **adjuntar el archivo**: la persona elige el formato
+ * en una lista y carga el archivo desde el teléfono. El archivo no viaja a
+ * ningún servidor: se guarda la referencia (nombre y URI) en la preinscripción
+ * para que la Fundación lo abra desde el mismo dispositivo.
  */
 enum class DocumentoRequerido(
     val etiqueta: String,
@@ -162,6 +166,54 @@ enum class DocumentoRequerido(
     ICFES("Certificado del ICFES", true, "Resultado del examen Saber 11"),
     CEDULA_MENOR("Cédula del acudiente (si es menor de edad)", false, "Documento del responsable")
 }
+
+/**
+ * Formatos en los que la Fundación acepta el archivo adjunto.
+ *
+ * Es la misma mecánica que la lista de "Tipo de documento" de la cédula: se elige
+ * de una lista, no se escribe a mano, porque "documento.pdf", "documento.jpg" y
+ * "documento" son cosas distintas para quien recibe la preinscripción y una
+ * extensión mal escrita se descubre tarde.
+ */
+enum class FormatoArchivo(val etiqueta: String, val ayuda: String, val mime: String) {
+    PDF("PDF", "Documento escaneado en PDF", "application/pdf"),
+    JPG("JPG", "Foto del documento con el celular", "image/jpeg"),
+    PNG("PNG", "Captura o imagen sin pérdida", "image/png");
+
+    companion object {
+        /** El formato guardado en un [DocumentoAdjunto], o `null` si no se reconoce. */
+        fun desdeEtiqueta(etiqueta: String?): FormatoArchivo? =
+            entries.firstOrNull { it.etiqueta == etiqueta }
+    }
+}
+
+/**
+ * Archivo que la persona adjuntó para un documento requerido.
+ *
+ * [uri] es la referencia del archivo en el dispositivo. No se copia el contenido:
+ * guardarlo entero en las preferencias llenaría el almacenamiento. Con el permiso
+ * de lectura que otorga el selector de archivos, la URI sigue siendo válida al
+ * volver a abrir la preinscripción.
+ */
+data class DocumentoAdjunto(
+    val documento: String,
+    val formato: String,
+    val nombreArchivo: String,
+    val uri: String
+)
+
+/**
+ * Los adjuntos que sí se pueden enviar: los de documentos que siguen marcados.
+ *
+ * Es una red de seguridad, no el mecanismo principal. Desmarcar una casilla ya
+ * borra su adjunto (y suelta el permiso del archivo), pero si por lo que sea
+ * quedara un adjunto de un documento desmarcado, enviarlo significaría incluir
+ * una copia de un documento que la persona dijo no poder aportar.
+ */
+fun adjuntosDeDocumentosMarcados(
+    adjuntos: Map<String, DocumentoAdjunto>,
+    documentos: Set<String>
+): List<DocumentoAdjunto> = adjuntos.filterKeys { documentos.contains(it) }.values.toList()
 
 // ---------- Requerimiento 03: Preinscripción ----------
 /** Familiar o persona de confianza que la Fundación puede contactar. */
@@ -201,7 +253,8 @@ data class Preinscripcion(
     val telefonoEmergencia: String = "",
     val prefijoEmergencia: String = "",
     val condicionEspecial: String = "",
-    val familiar: Familiar? = null
+    val familiar: Familiar? = null,
+    val adjuntos: List<DocumentoAdjunto> = emptyList()
 )
 
 // ---------- Captación: promociones y testimonios (requerimientos 05 y 06) ----------
