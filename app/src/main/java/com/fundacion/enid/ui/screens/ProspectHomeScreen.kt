@@ -1,47 +1,43 @@
 package com.fundacion.enid.ui.screens
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.fundacion.enid.data.DataRepository
-import com.fundacion.enid.data.EnlacesExternos
-import com.fundacion.enid.model.RutaStep
 import com.fundacion.enid.navigation.Screen
 import com.fundacion.enid.ui.components.AppScaffold
 import com.fundacion.enid.ui.components.BigButton
 import com.fundacion.enid.ui.components.EnidIconBox
 import com.fundacion.enid.ui.components.EnidIcons
 import com.fundacion.enid.ui.components.EnidTab
+import com.fundacion.enid.ui.components.RedesSociales
 import com.fundacion.enid.ui.components.SectionTitle
-import com.fundacion.enid.ui.components.SmallButton
 import com.fundacion.enid.ui.components.VerticalSpacer
 import com.fundacion.enid.ui.shared.EnidBorderSoft
 import com.fundacion.enid.ui.shared.EnidDarkBlue
-import com.fundacion.enid.ui.theme.EnidGreen
-import com.fundacion.enid.ui.theme.EnidGreenSoft
 import com.fundacion.enid.ui.shared.EnidInk
 import com.fundacion.enid.ui.shared.EnidRed
 import com.fundacion.enid.ui.shared.EnidRedSoft
@@ -49,13 +45,13 @@ import com.fundacion.enid.ui.shared.EnidTextSec
 import com.fundacion.enid.ui.shared.EnidWhite
 
 /**
- * Requerimientos 02 y 03: Home del invitado.
+ * Requerimientos 02 y 03: Inicio del invitado.
  *
  * Este es el "camino B" (quiero estudiar en ENID). El "camino A" (soy
  * estudiante) sigue en [HomeScreen] y solo se muestra cuando hay sesión
- * iniciada. Aquí el invitado ve, en orden, los 10 pasos que lo separan de
- * matricularse, de modo que la app funciona también como herramienta de venta:
- * puede recorrer el proceso completo sin crear cuenta.
+ * iniciada. El invitado ya no recibe todo apilado en una sola pantalla larga:
+ * Inicio presenta los dos caminos y la barra inferior los separa en **Conoce
+ * ENID** y **Inscríbete**.
  */
 @Composable
 fun ProspectHomeScreen(
@@ -64,8 +60,6 @@ fun ProspectHomeScreen(
     onIrAInicio: () -> Unit,
     onTabNavigate: ((Screen) -> Unit)? = null
 ) {
-    val ruta = DataRepository.rutaProspecto
-    val context = LocalContext.current
     // Requerimiento 08: recordatorio del programa que le interesa.
     val primerInteres = repository.consultarIntereses().firstOrNull()
 
@@ -74,39 +68,46 @@ fun ProspectHomeScreen(
         titleEnd = "Invitado",
         brandLine = null,
         mostrarAsesor = true,
-        // Antes esta pantalla no tenía barra inferior: era el Home del
-        // invitado y todas las pantallas a las que lleva sí la tenían. De ahí
-        // no se salía a nada salvo con el gesto del sistema. Con la barra, el
-        // invitado ve solo Inicio y Soporte, que es lo que le corresponde.
         activeTab = EnidTab.INICIO,
         onTabNavigate = onTabNavigate,
         content = {
-            // Bienvenida
+            // Bienvenida (tarjeta con ilustración del Figma)
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
+                shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(containerColor = EnidDarkBlue)
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        text = "No capacitamos personas, transformamos vidas.",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = EnidWhite
-                    )
-                    VerticalSpacer(6)
-                    Text(
-                        text = "Técnicos y complementarios con Titulación SENA. " +
-                            "Te mostramos el camino completo para que decidas con claridad.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = EnidWhite.copy(alpha = 0.85f)
-                    )
-                    VerticalSpacer(14)
-                    BigButton(
-                        text = "¿Qué puedo estudiar?",
-                        modifier = Modifier.fillMaxWidth(),
-                        containerColor = EnidRed,
-                        onClick = { onNavigate(Screen.ProgramFinder) }
+                Box(modifier = Modifier.fillMaxWidth()) {
+                    Column(modifier = Modifier.fillMaxWidth(0.76f).padding(16.dp)) {
+                        Text(
+                            text = "No capacitamos personas, transformamos vidas.",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = EnidWhite
+                        )
+                        VerticalSpacer(6)
+                        Text(
+                            text = "Técnicos y complementarios con Titulación SENA. " +
+                                "Te mostramos el camino completo para que decidas con claridad.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = EnidWhite.copy(alpha = 0.85f)
+                        )
+                        VerticalSpacer(14)
+                        BigButton(
+                            text = "¿Qué puedo estudiar?",
+                            modifier = Modifier.fillMaxWidth(),
+                            containerColor = EnidRed,
+                            onClick = { onNavigate(Screen.ProgramFinder) }
+                        )
+                    }
+                    Image(
+                        painter = androidx.compose.ui.res.painterResource(com.fundacion.enid.R.drawable.img_74),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .size(112.dp)
+                            .offset(x = 10.dp, y = 10.dp),
+                        contentScale = androidx.compose.ui.layout.ContentScale.Fit
                     )
                 }
             }
@@ -122,33 +123,30 @@ fun ProspectHomeScreen(
                 )
             }
 
-            // ── Paso a paso ────────────────────────────────────────────────
-            SectionTitle("Tu camino para estudiar en ENID", "Cada paso es tuyo. Puedes empezar sin crear cuenta.")
+            // ── Los dos caminos del invitado ───────────────────────────────
+            SectionTitle(
+                "¿Qué quieres hacer?",
+                "Puedes recorrer todo el proceso sin crear cuenta."
+            )
+            VerticalSpacer(12)
 
-            ruta.forEach { paso ->
-                RutaStepCard(paso = paso, onClick = { paso.pantalla?.let { onNavigate(destinoDe(paso.pantalla)) } })
-            }
-
+            CaminoCard(
+                icon = EnidIcons.VOferta,
+                title = "Conoce ENID",
+                detalle = "La Fundación, sus programas, la sede de Chía y las respuestas a tus dudas.",
+                iconTint = EnidDarkBlue,
+                iconBg = EnidRedSoft,
+                onClick = { onNavigate(Screen.ProspectKnow) }
+            )
             VerticalSpacer(10)
-
-            // Atajos a los pasos que sí tienen pantalla
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                SmallButton(
-                    text = "Ver programas",
-                    modifier = Modifier.weight(1f),
-                    icon = EnidIcons.VOferta,
-                    onClick = { onNavigate(Screen.Catalog) }
-                )
-                SmallButton(
-                    text = "Dejar mis datos",
-                    modifier = Modifier.weight(1f),
-                    icon = EnidIcons.VPreinscripcion,
-                    onClick = { onNavigate(Screen.Preinscription(null)) }
-                )
-            }
+            CaminoCard(
+                icon = EnidIcons.VPreinscripcion,
+                title = "Inscríbete",
+                detalle = "Mira los pasos, explora programas y deja tus datos cuando estés listo.",
+                iconTint = EnidRed,
+                iconBg = EnidRedSoft,
+                onClick = { onNavigate(Screen.ProspectEnroll) }
+            )
 
             VerticalSpacer(20)
 
@@ -165,8 +163,8 @@ fun ProspectHomeScreen(
                 ) {
                     EnidIconBox(
                         icon = EnidIcons.VPerfil,
-                        boxSize = 38.dp,
-                        iconSize = 21.dp,
+                        boxSize = 40.dp,
+                        iconSize = 24.dp,
                         iconTint = EnidRed,
                         background = EnidRedSoft
                     )
@@ -178,7 +176,7 @@ fun ProspectHomeScreen(
                             color = EnidInk
                         )
                         Text(
-                            text = "Inicia sesión para ver tu horario, pagos y soporte.",
+                            text = "Inicia sesión para ver tu horario y soporte.",
                             style = MaterialTheme.typography.bodySmall,
                             color = EnidTextSec
                         )
@@ -192,46 +190,11 @@ fun ProspectHomeScreen(
                 }
             }
 
-            VerticalSpacer(18)
-
-            // ── Promociones y testimonios (req. 05 y 06) ──────────────────
-            PromocionesTestimoniosSection(
-                promociones = repository.promociones,
-                testimonios = repository.testimonios,
-                onHablarAsesor = { EnlacesExternos.abrirAsesor(context) },
-                onDejarDatos = { onNavigate(Screen.Preinscription(null)) }
-            )
-
             VerticalSpacer(20)
 
-            // ── Enlaces institucionales ────────────────────────────────────
-            SectionTitle("Conoce ENID", "Sedes, preguntas frecuentes y contacto.")
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                SmallButton(
-                    text = "Sedes",
-                    modifier = Modifier.weight(1f),
-                    icon = EnidIcons.VSedes,
-                    onClick = { onNavigate(Screen.Locations) }
-                )
-                SmallButton(
-                    text = "Preguntas",
-                    modifier = Modifier.weight(1f),
-                    icon = EnidIcons.VAyuda,
-                    onClick = { onNavigate(Screen.Faq) }
-                )
-            }
-
-            VerticalSpacer(20)
-
-            // Herramienta del equipo de campo (módulo `:campo`). Se ofrece
-            // también al invitado para poder verificarla sin crear cuenta;
-            // queda pendiente restringirla a `Rol.ADMINISTRATIVO`.
-            SectionTitle("Equipo de campo", "Captura de preinscripciones sin señal.")
-            SecondaryLink(EnidIcons.VPreinscripcion, "Abrir captura en campo") { onNavigate(Screen.Campo) }
-
+            // Redes oficiales también en el Inicio del invitado: es la primera
+            // pantalla que ve quien todavía no tiene cuenta.
+            RedesSociales()
             VerticalSpacer(20)
             Text(
                 text = "ENID · Fundación de Educación para el Desarrollo y la Dignidad Humana",
@@ -243,89 +206,56 @@ fun ProspectHomeScreen(
     )
 }
 
-/** Un paso del camino. Los pasos de sede/asesor no navegan: se explican y se offeren al asesor. */
+/** Tarjeta grande para elegir uno de los dos caminos del invitado. */
 @Composable
-private fun RutaStepCard(paso: RutaStep, onClick: () -> Unit) {
-    val navegable = paso.pantalla != null
+private fun CaminoCard(
+    icon: ImageVector,
+    title: String,
+    detalle: String,
+    iconTint: Color,
+    iconBg: Color,
+    onClick: () -> Unit
+) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(bottom = 10.dp)
-            .then(if (navegable) Modifier.clickable { onClick() } else Modifier),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = if (navegable) EnidWhite else EnidGreenSoft
-        ),
-        border = BorderStroke(1.5.dp, if (navegable) EnidBorderSoft else EnidGreen.copy(alpha = 0.35f))
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = EnidWhite),
+        border = BorderStroke(1.dp, EnidBorderSoft),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(12.dp),
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Número del paso: círculo con la cifra centrada. Antes el número se
-            // dibujaba pegado a la esquina de una Card anidada y se veía descentrado.
-            Box(
-                modifier = Modifier
-                    .size(32.dp)
-                    .clip(CircleShape)
-                    .background(if (navegable) EnidRed else EnidGreen),
-                contentAlignment = Alignment.Center
-            ) {
+            EnidIconBox(
+                icon = icon,
+                boxSize = 48.dp,
+                iconSize = 26.dp,
+                iconTint = iconTint,
+                background = iconBg
+            )
+            Column(modifier = Modifier.weight(1f).padding(start = 14.dp)) {
                 Text(
-                    text = "${paso.numero}",
-                    color = EnidWhite,
+                    text = title,
+                    style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 14.sp,
-                    textAlign = TextAlign.Center
+                    color = EnidInk
                 )
-            }
-
-            Column(modifier = Modifier.weight(1f).padding(start = 12.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = paso.titulo,
-                        style = MaterialTheme.typography.bodyLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = EnidInk,
-                        modifier = Modifier.weight(1f, fill = false)
-                    )
-                    if (!navegable) {
-                        Text(
-                            text = "  con asesor",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = EnidGreen,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                    }
-                }
+                VerticalSpacer(3)
                 Text(
-                    text = paso.detalle,
+                    text = detalle,
                     style = MaterialTheme.typography.bodySmall,
                     color = EnidTextSec
                 )
             }
-
-            if (navegable) {
-                Text(
-                    text = "›",
-                    color = EnidRed,
-                    fontSize = 22.sp,
-                    modifier = Modifier.padding(start = 8.dp)
-                )
-            }
+            Icon(
+                imageVector = EnidIcons.VFlechaAdelante,
+                contentDescription = null,
+                tint = EnidRed,
+                modifier = Modifier.padding(start = 8.dp).size(20.dp)
+            )
         }
     }
-}
-
-/**
- * Traduce el nombre de pantalla guardado en [RutaStep.pantalla] a la ruta de
- * navegación. Solo los pasos 1 a 4 de [DataRepository.rutaProspecto] tienen
- * pantalla; el resto se hace en sede o con el asesor.
- */
-private fun destinoDe(nombre: String): Screen = when (nombre) {
-    "Locations" -> Screen.Locations
-    "Catalog" -> Screen.Catalog
-    "ProgramFinder" -> Screen.ProgramFinder
-    "Preinscription" -> Screen.Preinscription(null)
-    else -> Screen.ProspectHome
 }

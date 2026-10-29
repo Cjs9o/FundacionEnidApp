@@ -8,6 +8,8 @@ sealed class Screen {
     // Menú principal e institucional
     data object Home : Screen()
     data object ProspectHome : Screen()
+    data object ProspectKnow : Screen()
+    data object ProspectEnroll : Screen()
     data object Catalog : Screen()
     data class ProgramDetail(val programId: Int) : Screen()
     data object ProgramFinder : Screen()
@@ -18,11 +20,12 @@ sealed class Screen {
 
     // Módulos de estudiante
     data class Preinscription(val programaId: Int? = null) : Screen()
+    data object Learn : Screen()
+    data object Agenda : Screen()
     data object DailySchedule : Screen()
-    data object Payments : Screen()
     data object Benefits : Screen()
     data object Platform : Screen()
-    data object Pse : Screen()
+    data object Admin : Screen()
 
     /**
      * Módulo de captura en campo (`:campo`, offline-first).

@@ -1,6 +1,7 @@
 package com.fundacion.enid.ui.components
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -14,6 +15,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -36,17 +38,22 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.fundacion.enid.R
 import com.fundacion.enid.data.FormatoEntrada
 import com.fundacion.enid.model.DocumentoAdjunto
 import com.fundacion.enid.model.FormatoArchivo
+import com.fundacion.enid.model.PrefijoTelefono
 import com.fundacion.enid.ui.shared.EnidBorderSoft
 import com.fundacion.enid.ui.shared.EnidDarkBlue
 import com.fundacion.enid.ui.theme.EnidGreen
@@ -96,12 +103,12 @@ fun SelectorDesplegable(
 ) {
     Card(
         modifier = Modifier.fillMaxWidth().clickable { onClick() },
-        shape = RoundedCornerShape(8.dp),
+        shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(containerColor = EnidWhite),
         border = BorderStroke(1.5.dp, if (valor.isBlank()) EnidBorderSoft else EnidRed)
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 13.dp),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
@@ -109,6 +116,54 @@ fun SelectorDesplegable(
                 style = MaterialTheme.typography.bodyLarge,
                 color = if (valor.isBlank()) EnidTextSec else EnidInk,
                 modifier = Modifier.weight(1f)
+            )
+            Icon(
+                imageVector = EnidIcons.VExpandir,
+                contentDescription = null,
+                tint = EnidTextSec,
+                modifier = Modifier.size(20.dp)
+            )
+        }
+    }
+}
+
+/**
+ * Selector corto para acompañar un campo de texto, como el tipo de documento o
+ * el prefijo del teléfono. Muestra solo la sigla (`CC`, `+57`) para no repetir
+ * el nombre completo dentro del formulario; el nombre aparece al desplegarlo.
+ */
+@Composable
+fun SelectorCompacto(
+    valor: String,
+    placeholder: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    ancho: Dp = 90.dp,
+    alto: Dp = 52.dp
+) {
+    Card(
+        modifier = modifier
+            .width(ancho)
+            .height(alto)
+            .clickable { onClick() },
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = EnidWhite),
+        border = BorderStroke(1.5.dp, if (valor.isBlank()) EnidBorderSoft else EnidRed)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 10.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = valor.ifBlank { placeholder },
+                style = MaterialTheme.typography.bodyLarge,
+                color = if (valor.isBlank()) EnidTextSec else EnidInk,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f, fill = false)
             )
             Icon(
                 imageVector = EnidIcons.VExpandir,
@@ -124,6 +179,9 @@ fun SelectorDesplegable(
  * Lista desplegable con desplazamiento interno. Se limita la altura para que
  * con 67 programas (o con las 7 opciones de documento) la lista no empuje el
  * resto del formulario fuera de la pantalla.
+ *
+ * [icono] es opcional: los prefijos telefónicos lo usan para mostrar una mini
+ * bandera sin que el selector cerrado tenga que cargarla.
  */
 @Composable
 fun <T> ListaOpciones(
@@ -131,19 +189,20 @@ fun <T> ListaOpciones(
     etiqueta: (T) -> String,
     seleccionado: String,
     onElegir: (T) -> Unit,
-    onCerrar: () -> Unit
+    onCerrar: () -> Unit,
+    icono: (@Composable (T) -> Unit)? = null
 ) {
     Card(
-        modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
-        shape = RoundedCornerShape(8.dp),
+        modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+        shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(containerColor = EnidWhite),
         border = BorderStroke(1.5.dp, EnidBorderSoft)
     ) {
-        Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
+        Column(modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .heightIn(max = 260.dp)
+                    .heightIn(max = 250.dp)
                     .verticalScroll(rememberScrollState())
             ) {
                 Column {
@@ -153,9 +212,13 @@ fun <T> ListaOpciones(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clickable { onElegir(opcion); onCerrar() }
-                                .padding(vertical = 8.dp),
+                                .padding(vertical = 6.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
+                            if (icono != null) {
+                                icono(opcion)
+                                Spacer(modifier = Modifier.width(8.dp))
+                            }
                             RadioButton(
                                 selected = texto == seleccionado,
                                 onClick = { onElegir(opcion); onCerrar() },
@@ -187,10 +250,33 @@ fun <T> ListaOpciones(
 /** Segunda línea de la opción (por ejemplo, el nombre completo de una sigla). */
 private fun <T> detalle(opcion: T): String? = when (opcion) {
     is com.fundacion.enid.model.TipoDocumento -> opcion.ayuda
-    is com.fundacion.enid.model.PrefijoTelefono -> opcion.pais
+    is PrefijoTelefono -> opcion.pais
     is com.fundacion.enid.model.NivelFormacion ->
         if (opcion.pideTitulos) "Se pedirá el título registrado" else null
     else -> null
+}
+
+/** Mini bandera del país del prefijo. Solo se dibuja dentro de la lista. */
+@Composable
+fun BanderaPrefijo(prefijo: PrefijoTelefono) {
+    Image(
+        painter = painterResource(banderaDe(prefijo)),
+        contentDescription = "Bandera de ${prefijo.pais}",
+        modifier = Modifier
+            .size(width = 24.dp, height = 16.dp)
+            .clip(RoundedCornerShape(2.dp)),
+        contentScale = ContentScale.Crop
+    )
+}
+
+private fun banderaDe(prefijo: PrefijoTelefono): Int = when (prefijo) {
+    PrefijoTelefono.COL -> R.drawable.bandera_co
+    PrefijoTelefono.VEN -> R.drawable.bandera_ve
+    PrefijoTelefono.MEX -> R.drawable.bandera_mx
+    PrefijoTelefono.PER -> R.drawable.bandera_pe
+    PrefijoTelefono.ECU -> R.drawable.bandera_ec
+    PrefijoTelefono.USA -> R.drawable.bandera_us
+    PrefijoTelefono.ESP -> R.drawable.bandera_es
 }
 
 /** Grupo de opciones excluyentes que se muestran como botones, no como una lista. */
@@ -211,15 +297,15 @@ fun <T> SelectorBotones(
                     Box(
                         modifier = Modifier
                             .weight(1f)
-                            .clip(RoundedCornerShape(8.dp))
+                            .clip(RoundedCornerShape(10.dp))
                             .background(if (activo) EnidRed else EnidWhite)
                             .border(
                                 width = 1.5.dp,
                                 color = if (activo) EnidRed else EnidBorderSoft,
-                                shape = RoundedCornerShape(8.dp)
+                                shape = RoundedCornerShape(10.dp)
                             )
                             .clickable { onElegir(opcion) }
-                            .padding(horizontal = 10.dp, vertical = 11.dp),
+                            .padding(horizontal = 10.dp, vertical = 9.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
@@ -285,9 +371,9 @@ fun CasillaDocumento(
     val activo = if (marcado) EnidGreen else EnidWhite
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(10.dp),
+        shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(containerColor = activo),
-        border = BorderStroke(1.5.dp, if (marcado) EnidGreen else EnidBorderSoft)
+        border = BorderStroke(1.dp, if (marcado) EnidGreen else EnidBorderSoft)
     ) {
         Column(modifier = Modifier.fillMaxWidth().padding(12.dp)) {
             Row(
@@ -363,7 +449,7 @@ private fun SelectorFormatoArchivo(
         modifier = Modifier
             .fillMaxWidth()
             .padding(top = 10.dp)
-            .background(EnidWhite, RoundedCornerShape(8.dp))
+            .background(EnidWhite, RoundedCornerShape(12.dp))
             .padding(10.dp)
     ) {
         Text(
@@ -434,7 +520,7 @@ fun NotaFormulario(texto: String) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(EnidGreenSoft, RoundedCornerShape(8.dp))
+            .background(EnidGreenSoft, RoundedCornerShape(12.dp))
             .padding(12.dp)
     ) {
         Text(
@@ -479,9 +565,9 @@ fun CampoFecha(
         },
         modifier = modifier.fillMaxWidth(),
         textStyle = MaterialTheme.typography.bodyLarge,
-        placeholder = { Text(placeholder, style = MaterialTheme.typography.bodyLarge) },
+        placeholder = { Text(placeholder, style = MaterialTheme.typography.bodyMedium) },
         singleLine = true,
-        shape = RoundedCornerShape(8.dp),
+        shape = RoundedCornerShape(12.dp),
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
         colors = OutlinedTextFieldDefaults.colors(
             focusedContainerColor = EnidWhite,

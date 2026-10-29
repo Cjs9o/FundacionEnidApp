@@ -67,6 +67,18 @@ fun AppRoot(
             onTabNavigate = onTabNavigate
         )
 
+        is Screen.ProspectKnow -> ProspectKnowScreen(
+            repository = repository,
+            onNavigate = { nav.navegar(it) },
+            onTabNavigate = onTabNavigate
+        )
+
+        is Screen.ProspectEnroll -> ProspectEnrollScreen(
+            repository = repository,
+            onNavigate = { nav.navegar(it) },
+            onTabNavigate = onTabNavigate
+        )
+
         is Screen.Catalog -> CatalogScreen(
             repository = repository,
             onOpenProgram = { id -> nav.navegar(Screen.ProgramDetail(id)) },
@@ -111,14 +123,31 @@ fun AppRoot(
             onTabNavigate = onTabNavigate
         )
 
+        is Screen.Learn -> LearnScreen(
+            repository = repository,
+            onTabNavigate = onTabNavigate
+        )
+
+        is Screen.Agenda -> AgendaScreen(
+            repository = repository,
+            onTabNavigate = onTabNavigate
+        )
+
         is Screen.Profile -> ProfileScreen(
             repository = repository,
-            onBack = { nav.retroceder() },
             onLogout = {
                 repository.cerrarSesion()
                 nav.reemplazarTodo(Screen.Welcome)
                 onSessionChanged()
             },
+            onTabNavigate = onTabNavigate,
+            onOpenAdmin = { nav.navegar(Screen.Admin) },
+            onPreinscription = { nav.navegar(Screen.Preinscription()) }
+        )
+
+        is Screen.Admin -> AdminScreen(
+            repository = repository,
+            onBack = { nav.retroceder() },
             onTabNavigate = onTabNavigate
         )
 
@@ -131,18 +160,6 @@ fun AppRoot(
 
         is Screen.DailySchedule -> DailyScheduleScreen(
             repository = repository,
-            onBack = { nav.retroceder() },
-            onTabNavigate = onTabNavigate
-        )
-
-        is Screen.Payments -> PaymentsScreen(
-            repository = repository,
-            onBack = { nav.retroceder() },
-            onPse = { nav.navegar(Screen.Pse) },
-            onTabNavigate = onTabNavigate
-        )
-
-        is Screen.Pse -> PseScreen(
             onBack = { nav.retroceder() },
             onTabNavigate = onTabNavigate
         )

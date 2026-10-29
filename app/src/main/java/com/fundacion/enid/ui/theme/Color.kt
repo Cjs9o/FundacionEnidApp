@@ -1,11 +1,11 @@
 package com.fundacion.enid.ui.theme
 
 import androidx.compose.ui.graphics.Color
+import com.fundacion.enid.ui.shared.EnidBlueMid
 import com.fundacion.enid.ui.shared.EnidDarkBlue
 import com.fundacion.enid.ui.shared.EnidFotoPlaceholder
-import com.fundacion.enid.ui.shared.EnidSincronizadoFondo
-import com.fundacion.enid.ui.shared.EnidSincronizadoTexto
-import com.fundacion.enid.ui.shared.EnidVerdeSoft
+import com.fundacion.enid.ui.shared.EnidTealDark
+import com.fundacion.enid.ui.shared.EnidTealSoft
 import com.fundacion.enid.ui.shared.EnidVerdeWhatsapp
 import com.fundacion.enid.ui.shared.EnidOro
 import com.fundacion.enid.ui.shared.EnidOroSoft
@@ -28,11 +28,11 @@ import com.fundacion.enid.ui.shared.EnidOroSoft
 // El nombre histórico de la app. Se dejan como alias, no como declaraciones
 // nuevas: así el valor no puede volver a divergir del del módulo compartido.
 
-/** Azul principal. Alias de [EnidDarkBlue]. */
-val EnidBlue = EnidDarkBlue
+/** Azul de apoyo. Alias de [EnidBlueMid] (#4B6195). */
+val EnidBlue = EnidBlueMid
 
-/** Morado: se usa en PSE y en "Llamar a Sede". */
-val EnidPurple = Color(0xFF322D6B)
+/** Violeta institucional: se usa en "Llamar a Sede" y en la identidad. */
+val EnidPurple = Color(0xFF352F6F)
 
 /** Verde de contacto. Alias de [EnidVerdeWhatsapp]. */
 val EnidGreen = EnidVerdeWhatsapp
@@ -50,7 +50,7 @@ val EnidBorder = com.fundacion.enid.ui.shared.EnidBorderSoft
 val EnidPhoto = EnidFotoPlaceholder
 
 /** Azul muy claro, equivalente al fondo de la caja de ícono. */
-val EnidSky = Color(0xFFEEEDF5)
+val EnidSky = Color(0xFFECEBF4)
 
 /** Alias de [EnidSky]. */
 val EnidBlueLight = EnidSky
@@ -64,25 +64,21 @@ val EnidGold = EnidOro
 /** Tono ocre claro de la app. Alias de [EnidOroSoft]. */
 val EnidGoldSoft = EnidOroSoft
 
-/** Tono verde claro de la app. Alias de [EnidVerdeSoft]. */
-val EnidGreenSoft = EnidVerdeSoft
+/**
+ * Fondo suave de estados completados y progreso. Ya no es verde: la paleta
+ * reserva el turquesa para "hecho / positivo", y el verde queda solo para el
+ * contacto de WhatsApp, que es una marca externa.
+ */
+val EnidGreenSoft = EnidTealSoft
 
-/** Morado claro de realce. */
-val EnidPurpleSoft = Color(0xFFECE7F6)
+/** Violeta claro de realce. */
+val EnidPurpleSoft = Color(0xFFECE9F4)
 
 // ── Chips de estado ───────────────────────────────────────────────────────
-// El chip de resultado correcto es el color compartido de éxito. El de "por
-// pagar" es propio de esta app: es una alerta de deuda, no un error de
-// sistema, y por eso no se mezcla con el color de error de `:campo`.
+// El chip de resultado correcto es el color compartido de éxito.
 
-/** Fondo del chip "Pagado". Alias del verde de éxito compartido. */
-val EnidChipDoneBg = EnidSincronizadoFondo
+/** Fondo del chip "Completado": turquesa suave. */
+val EnidChipDoneBg = EnidTealSoft
 
-/** Texto del chip "Pagado". Alias del verde de éxito compartido. */
-val EnidChipDoneText = EnidSincronizadoTexto
-
-/** Fondo del chip "Por pagar". */
-val EnidChipWarnBg = Color(0xFFFDE8E9)
-
-/** Texto del chip "Por pagar". */
-val EnidChipWarnText = Color(0xFFC81920)
+/** Texto del chip "Completado": turquesa oscuro (AA sobre el fondo). */
+val EnidChipDoneText = EnidTealDark

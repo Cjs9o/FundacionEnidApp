@@ -91,7 +91,7 @@ fun PlatformScreen(
                         imageVector = EnidIcons.VOkCirculo,
                         contentDescription = null,
                         tint = EnidGreen,
-                        modifier = Modifier.size(17.dp)
+                        modifier = Modifier.size(20.dp)
                     )
                     Text(
                         text = "Plataforma Activa",

@@ -39,7 +39,7 @@ fun AppEntry() {
     // La capa visual (pestañas, rótulos) lee el mismo valor que `loggedIn`.
     // Sin esto, `AppScaffold` no sabría si quien mira es invitado o estudiante.
     LaunchedEffect(loggedIn) {
-        SesionUi.actualizar(loggedIn)
+        SesionUi.actualizar(loggedIn, repository.currentUser?.rol)
     }
 
     val nav = remember {

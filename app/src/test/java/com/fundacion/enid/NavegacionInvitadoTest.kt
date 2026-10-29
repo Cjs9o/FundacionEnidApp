@@ -11,8 +11,9 @@ import org.junit.Test
  * Pruebas del camino del invitado y de las pestañas por sesión.
  *
  * Estos casos cubren tres errores que el usuario veía en el teléfono:
- * el invitado llegaba a la pantalla de Pagos con un historial inventado,
- * veía las cuatro pestañas de estudiante y no tenía cómo volver.
+ * el invitado llegaba a pantallas de estudiante, veía pestañas que no le
+ * correspondían y no tenía cómo volver. El módulo de pagos se retiró el
+ * 27 Oct 2026, así que estas pruebas también vigilan que no vuelva.
  */
 class NavegacionInvitadoTest {
 
@@ -21,10 +22,10 @@ class NavegacionInvitadoTest {
     // ── El invitado no debe llegar a pantallas de estudiante ──────────────
 
     @Test
-    fun `ningun paso de la ruta del invitado abre pagos`() {
+    fun `ningun paso de la ruta del invitado abre pantallas de pago`() {
         assertFalse(
-            "El invitado no debe llegar a la pantalla de Pagos",
-            ruta.any { it.pantalla == "Payments" }
+            "El invitado no debe llegar a pantallas de pago",
+            ruta.any { it.pantalla == "Payments" || it.pantalla == "Pse" }
         )
     }
 
@@ -68,19 +69,69 @@ class NavegacionInvitadoTest {
     // ── Pestañas según sesión ──────────────────────────────────────────────
 
     @Test
-    fun `el invitado no ve las pestanas de horario ni de pagos`() {
-        val etiquetas = com.fundacion.enid.ui.components.EnidTab.entries
-            .filter { it in com.fundacion.enid.ui.components.tabsSegunSesion(conectado = false) }
+    fun `el invitado ve inicio conoce enid inscribete y soporte`() {
+        val etiquetas = com.fundacion.enid.ui.components
+            .tabsSegunSesion(conectado = false)
             .map { it.label }
-        assertEquals(listOf("Inicio", "Soporte"), etiquetas)
+        assertEquals(listOf("Inicio", "Conoce ENID", "Inscríbete", "Soporte"), etiquetas)
     }
 
     @Test
-    fun `el estudiante ve las cuatro pestanas`() {
-        val etiquetas = com.fundacion.enid.ui.components.EnidTab.entries
-            .filter { it in com.fundacion.enid.ui.components.tabsSegunSesion(conectado = true) }
+    fun `las pestanas del invitado llevan a pantallas del invitado`() {
+        val destinos = com.fundacion.enid.ui.components.tabsSegunSesion(conectado = false)
+            .map { it.destino }
+        assertTrue(
+            "Conoce ENID debe abrir su propia pantalla",
+            com.fundacion.enid.navigation.Screen.ProspectKnow in destinos
+        )
+        assertTrue(
+            "Inscríbete debe abrir su propia pantalla",
+            com.fundacion.enid.navigation.Screen.ProspectEnroll in destinos
+        )
+        assertFalse(
+            "El invitado no debe recibir pestañas de estudiante",
+            destinos.any {
+                it == com.fundacion.enid.navigation.Screen.Learn ||
+                    it == com.fundacion.enid.navigation.Screen.Agenda ||
+                    it == com.fundacion.enid.navigation.Screen.Profile
+            }
+        )
+    }
+
+    @Test
+    fun `el estudiante ve inicio aprender agenda y perfil`() {
+        val etiquetas = com.fundacion.enid.ui.components
+            .tabsSegunSesion(conectado = true)
             .map { it.label }
-        assertEquals(listOf("Inicio", "Horario", "Pagos", "Soporte"), etiquetas)
+        assertEquals(listOf("Inicio", "Aprender", "Agenda", "Perfil"), etiquetas)
+    }
+
+    @Test
+    fun `el administrador conserva inicio panel y soporte`() {
+        val etiquetas = com.fundacion.enid.ui.components
+            .tabsSegunSesion(
+                conectado = true,
+                rol = com.fundacion.enid.model.Rol.ADMIN
+            )
+            .map { it.label }
+        assertEquals(listOf("Inicio", "Panel", "Soporte"), etiquetas)
+    }
+
+    @Test
+    fun `el sistema de pagos no vuelve al codigo`() {
+        // Se retiró por completo el 27 Oct 2026: pantallas, rutas, pestaña,
+        // modelos, alertas y montos. Si alguien vuelve a introducirlo, esta
+        // prueba lo delata antes de que llegue al APK.
+        val prohibidos = listOf(
+            "PaymentsScreen", "PseScreen", "Screen.Payments", "Screen.Pse",
+            "EnidTab.PAGOS", "PaymentNotice", "EstadoPago", "MONTO_MATRICULA", "PSE_URL"
+        )
+        val hallazgos = mutableListOf<String>()
+        kotlinFilesEn("app/src/main/java").forEach { archivo ->
+            val texto = archivo.readText()
+            prohibidos.filter { it in texto }.forEach { hallazgos += "${archivo.name}: $it" }
+        }
+        assertTrue("El sistema de pagos reapareció: $hallazgos", hallazgos.isEmpty())
     }
 
     @Test
@@ -90,26 +141,6 @@ class NavegacionInvitadoTest {
         com.fundacion.enid.ui.components.EnidTab.entries.forEach { tab ->
             assertNotNull("La pestaña ${tab.label} debe tener destino", tab.destino)
         }
-    }
-
-    // ── Montos en un solo sitio ────────────────────────────────────────────
-
-    @Test
-    fun `el monto de matricula se formatea como pesos colombianos`() {
-        val texto = DataRepository.montoMatriculaTexto()
-        assertTrue("Debe incluir el signo de pesos: $texto", texto.startsWith("$"))
-        assertTrue("Debe usar punto de miles: $texto", texto.contains("."))
-    }
-
-    @Test
-    fun `el monto puede imprimirse sin signo`() {
-        assertFalse(DataRepository.montoMatriculaTexto(conSigno = false).startsWith("$"))
-    }
-
-    @Test
-    fun `el aviso del monto declara que la Fundación no lo ha confirmado`() {
-        // Es lo que impide que un monto referencial se lea como un hecho.
-        assertTrue(DataRepository.AVISO_MONTO.contains("aún no confirma"))
     }
 
     // ── Salidas externas ───────────────────────────────────────────────────
@@ -143,7 +174,9 @@ class NavegacionInvitadoTest {
         assertNotNull(DataRepository.PLATAFORMA_URL)
         assertNotNull(DataRepository.SITIO_WEB)
         assertNotNull(DataRepository.WHATSAPP_NUMERO)
-        assertTrue(DataRepository.PSE_URL.isNotBlank())
+        assertTrue(DataRepository.FACEBOOK_URL.startsWith("https://www.facebook.com/"))
+        assertTrue(DataRepository.INSTAGRAM_URL.startsWith("https://www.instagram.com/"))
+        assertTrue(DataRepository.YOUTUBE_URL.startsWith("https://www.youtube.com/"))
         assertTrue(DataRepository.WHATSAPP_NUMERO.matches(Regex("^\\d{10,13}$")))
     }
 
@@ -192,7 +225,13 @@ class NavegacionInvitadoTest {
         }
         assertTrue(
             "La paleta compartida debe seguir declarando los colores base",
-            declarados.containsAll(listOf("EnidDarkBlue", "EnidRed", "EnidBg", "EnidWhite"))
+            declarados.containsAll(
+                listOf(
+                    "EnidDarkBlue", "EnidRed", "EnidBg", "EnidWhite",
+                    // Paleta oficial del 27 Oct: azul de apoyo y turquesa de progreso.
+                    "EnidBlueMid", "EnidTeal", "EnidTealDark", "EnidTealSoft"
+                )
+            )
         )
     }
 

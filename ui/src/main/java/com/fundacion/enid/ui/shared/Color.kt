@@ -14,25 +14,53 @@ import androidx.compose.ui.graphics.Color
  * de sus chips y `:campo` los de sus estados de sincronización. Lo que no
  * vuelve a pasar es a declararse dos veces un color de la marca.
  *
- * Referencia de diseño: "Proyecto movil.svg".
+ * Referencia de diseño: "Proyecto movil.svg" y paleta oficial entregada el
+ * 27 Oct 2026.
  */
 
 // ── Marca institucional ────────────────────────────────────────────────────
 
-/** #322D6B — azul institucional: botones activos, tabs, CTA. */
-val EnidDarkBlue = Color(0xFF322D6B)
+/**
+ * #352F6F — violeta institucional: estructura, navegación y superficies de
+ * marca. Es el color de mayor peso después del rojo.
+ */
+val EnidDarkBlue = Color(0xFF352F6F)
 
-/** #3A3A6E — azul de apoyo. */
-val EnidBlueBright = Color(0xFF3A3A6E)
+/**
+ * #4B6195 — azul de apoyo: fondos, degradados y realces. Acompaña sin
+ * competir con el rojo de conversión.
+ */
+val EnidBlueMid = Color(0xFF4B6195)
 
-/** #DCE4F6 — azul claro: fondos de realce. */
-val EnidBlueSoft = Color(0xFFDCE4F6)
+/** Alias histórico del azul de apoyo. */
+val EnidBlueBright = EnidBlueMid
 
-/** #C81920 — rojo institucional: CTA y punto activo. */
-val EnidRed = Color(0xFFC81920)
+/** #E3E8F3 — azul muy suave para fondos de realce. */
+val EnidBlueSoft = Color(0xFFE3E8F3)
 
-/** #F5BDB8 — coral / rojo claro: fondo del tab activo. */
-val EnidRedSoft = Color(0xFFF5BDB8)
+/**
+ * #C11721 — rojo institucional: CTA, etiquetas, fechas, navegación activa y
+ * elementos de conversión. Es el acento con más protagonismo.
+ */
+val EnidRed = Color(0xFFC11721)
+
+/** #F7DADC — rojo suave: fondo de chips y tarjetas con acento rojo. */
+val EnidRedSoft = Color(0xFFF7DADC)
+
+/**
+ * #2BA7A2 — turquesa: progreso, lecciones completadas y estados positivos.
+ */
+val EnidTeal = Color(0xFF2BA7A2)
+
+/**
+ * #176B68 — turquesa oscuro para texto y glifos sobre fondos claros.
+ * El turquesa puro no alcanza contraste AA como texto (2.9:1 sobre blanco);
+ * este tono sí (5.1:1) y conserva la misma familia cromática.
+ */
+val EnidTealDark = Color(0xFF176B68)
+
+/** #DEF3F1 — fondo suave turquesa para estados completados. */
+val EnidTealSoft = Color(0xFFDEF3F1)
 
 // ── Superficies y texto ────────────────────────────────────────────────────
 
@@ -54,5 +82,5 @@ val EnidTextSec = Color(0xFF4B5563)
 /** #D1D5DB — contorno de tarjetas y campos. */
 val EnidBorderSoft = Color(0xFFD1D5DB)
 
-/** #EEEDF5 — caja de ícono y superficies secundarias. */
-val EnidIconBox = Color(0xFFEEEDF5)
+/** #ECEBF4 — caja de ícono y superficies secundarias (violeta muy suave). */
+val EnidIconBox = Color(0xFFECEBF4)

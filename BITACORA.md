@@ -1431,3 +1431,85 @@ barrido no había visto, y los dos importan:
 
 `WelcomeScreen` tampoco usa `AppScaffold`, pero es la raíz de la pila: ahí no hay
 nada a lo que volver y no se le pone botón.
+
+## 27 Oct — Icono de la aplicación con el asistente virtual
+
+| Acción | Detalle | Estado |
+|---|---|---|
+| Imagen elegida | `img_74.png` de `docs/imagenes/figma/logos_y_marca/`, la misma que la app usa como **Asistente virtual de ENID** en el Inicio | Hecho |
+| Icono adaptativo | Capa frontal `drawable-nodpi/ic_launcher_fg_robot.png`, con el robot dentro de la zona segura de 66 dp | Hecho |
+| Fondo adaptativo | `#EAF3FA`, un fondo claro para que el robot conserve contraste | Hecho |
+| Iconos heredados | Se regeneraron los `mipmap-*` (`ic_launcher` y `ic_launcher_round`) en 48, 72, 96, 144 y 192 px | Hecho |
+| Verificación | `:app:assembleDebug` en verde, APK reinstalado en `ZT322CVFC9` y app abierta sin errores | Hecho |
+
+## 27 Oct — Roles, perfil alimentado por la preinscripción y tema visual del Figma
+
+| Acción | Detalle | Estado |
+|---|---|---|
+| Rol administrador | Se añadió `Rol.ADMIN`. Mientras la Fundación no asigne roles desde un servidor, un correo que contenga `admin` entra al panel; el aviso está visible en el acceso | Hecho |
+| Menú por rol | Estudiante: **Inicio · Horario · Pagos · Soporte**. Administrador: **Inicio · Panel · Soporte**, sin horario ni pagos de estudiante | Hecho |
+| Panel de administración | `AdminScreen.kt` resume preinscripciones, interesados, programas y cuentas locales, y lista las preinscripciones recibidas | Hecho |
+| Perfil de solo lectura | `ProfileScreen.kt` ya no pide carrera ni año a mano: los muestra como datos académicos y personales tomados de la preinscripción más reciente. Si no hay ninguna, conserva los valores antiguos de la cuenta como respaldo y ofrece **HACER MI PREINSCRIPCIÓN** | Hecho |
+| Año o ciclo | Lista cerrada de `DataRepository.ciclos` (año actual y siguiente × primer/segundo semestre). Se elige en el paso 1 de la preinscripción y se guarda en `Preinscripcion.anio` | Hecho |
+| Documento de identidad | Selector compacto que muestra solo la sigla (`CC`, `CE`, `TI`, `NIT`); al desplegarlo aparece la sigla y el nombre completo | Hecho |
+| Prefijo telefónico | Selector compacto a la izquierda del número (`+57`), con banderas de 24 × 16 dp dentro de la lista y ejemplo `300 123 4567` en el campo | Hecho |
+| ICFES | Se eliminó el campo **Número del ICFES** del paso 2: el certificado se entrega como documento y el número no aporta al trámite. El modelo conserva `icfes` para leer registros antiguos | Hecho |
+| Iconos del Figma | `EnidIcons.kt` pasó de glifos rellenos de Material a trazos de **1.8** sobre cuadrícula de 24, con remates y esquinas redondeadas, como el `Icon` de `Review Attached Content/src/App.tsx` | Hecho |
+| Tipografía | `Type.kt` declara una sola escala: cuerpo 17/15/13 sp, títulos 23/20/17, rótulos 16/13/11. Antes convivían estilos de Material de 12 sp con títulos de 24 sp | Hecho |
+| Cajas y espaciado | Botones, campos, tarjetas y listas comparten radios de 10–16 dp y menos aire vertical (botones de 50 dp, campos de 48 dp, separadores de 12–14 dp). Los selectores compactos miden 90 × 52 dp | Hecho |
+| Iconos internos | Se agrandaron los glifos de las tarjetas y accesos (26/25/24 dp), la barra inferior (20 dp), los botones (20/19/17 dp) y las flechas de los selectores (20/18 dp) | Hecho |
+| Pasos al inicio | `AppScaffold` acepta un `scrollState` opcional; la preinscripción comparte uno y vuelve a `0` al cambiar de paso o al llegar a la confirmación. Antes, avanzar desde el final del paso 1 abría el paso 2 ya desplazado y ocultaba **Nivel de formación** | Hecho |
+| Error que se limpia | Un `LaunchedEffect` sobre los campos del formulario borra el mensaje de validación en cuanto se corrige cualquier dato, sin exigir otro toque en CONTINUAR. Mostrar el error no lo reinicia | Hecho |
+| Verificación | `:app:compileDebugKotlin`, `:app:testDebugUnitTest` (72 pruebas) y `:app:assembleDebug` en verde. APK instalado en `ZT322CVFC9` y app abierta **3 veces**; con `uiautomator` se comprobó el menú por rol, el perfil de solo lectura, los selectores compactos con banderas y la ausencia del número del ICFES. En la última pasada se comprobó además que el **paso 2 abre arriba** al avanzar desde el final del paso 1 y que el error de validación **desaparece al elegir el tipo de documento** | Hecho |
+
+## 27 Oct — Sede única, redes oficiales y paleta institucional
+
+| Acción | Detalle | Estado |
+|---|---|---|
+| Sede única | `DataRepository.sedes` queda con **Sede Chía**: `Calle 13 # 9-77, Parque Ospina, Chía, Cundinamarca`, teléfonos **316 630 1033** y **313 204 8325**, horario de lunes a viernes 7:00 a.m.–8:00 p.m. y sábados 8:00 a.m.–1:00 p.m. Desaparecen Sopó y Girardot de los datos y de la oferta | Hecho |
+| Teléfonos múltiples | `Sede` guarda `telefonos: List<String>`; cada número se toca por separado y abre el marcador con ese número. `telefono` queda como primer valor para las acciones que solo admiten uno | Hecho |
+| Pantalla de sede | `LocationsScreen` pasa a **“Nuestra Sede”**; muestra la sede, la dirección, los dos teléfonos con icono y el botón **Cómo Llegar** a pantalla completa. La tarjeta de estadísticas dice `1 sede: Chía, Cundinamarca` | Hecho |
+| Redes oficiales | Enlaces tomados de `enid.edu.co`: Facebook `https://www.facebook.com/Enid.Escuela/`, Instagram `https://www.instagram.com/fundacionenid/`, YouTube `https://www.youtube.com/channel/UCb_yG90hqnKELFCBp0Dcqeg`. Viven en `DataRepository` y se abren con `EnlacesExternos.abrirFacebook/Instagram/YouTube` | Hecho |
+| Iconos sociales | `VFacebook`, `VInstagram` y `VYoutube` siguen el tema de trazo del Figma (24 × 24, grosor 1.8, remates redondeados, sin relleno) | Hecho |
+| Fila reutilizable | `RedesSociales` dibuja tres accesos con su color de marca sobre fondo suave: Facebook azul `#4B6195`, Instagram violeta `#352F6F`, YouTube rojo `#C11721`. Se añadió al final del **Inicio** (estudiante y administrador), del **Inicio del invitado** y de **Nuestra Sede** | Hecho |
+| Paleta oficial | Rojo `#C11721` para CTAs, etiquetas, fechas, navegación activa y conversión; violeta `#352F6F` como identidad y estructura; azul `#4B6195` en fondos y degradados; turquesa `#2BA7A2` para progreso y estados positivos. Tonos suaves: rojo `#F7DADC`, azul `#E3E8F3`, violeta `#ECE9F4`, turquesa `#DEF3F1` | Hecho |
+| Contraste del turquesa | El turquesa puro no alcanza AA como texto (2.9:1 sobre blanco). El texto de estados completados usa `EnidTealDark` `#176B68` (5.1:1); el turquesa puro queda para rellenos y acentos | Hecho |
+| Verde de WhatsApp | `#25D366` se conserva **solo** para la marca WhatsApp; los chips “Pagado / Completado” pasaron de verde a turquesa | Hecho |
+| Verificación | `:app:compileDebugKotlin`, `:app:testDebugUnitTest` y `:app:assembleDebug` en verde. APK instalado y app abierta **3 veces** en `ZT322CVFC9`. Con `uiautomator` se comprobó “Nuestra Sede”, la dirección, los dos teléfonos y la fila Facebook/Instagram/YouTube en Inicio y en la sede. La captura de pantalla se muestreó por color y aparecen `#C11721`, `#352F6F`, `#4B6195`, `#F7DADC`, `#E3E8F3` y `#ECE9F4` | Hecho |
+
+## 27 Oct — Retiro completo del sistema de pagos
+
+| Acción | Detalle | Estado |
+|---|---|---|
+| Pantallas | Se borraron `PaymentsScreen.kt` (Mis Pagos) y `PseScreen.kt` (pago por PSE con selección de banco). No queda ninguna pantalla que muestre saldos, cuotas, historial ni pasarela | Hecho |
+| Rutas | Se quitaron `Screen.Payments` y `Screen.Pse` y sus ramas en `AppRoot`. La pila ya no puede llegar a un módulo de pagos | Hecho |
+| Pestaña | Se eliminó `EnidTab.PAGOS`; el estudiante ve **Inicio · Horario · Soporte** y el invitado **Inicio · Soporte**. El administrador sigue con **Inicio · Panel · Soporte** | Hecho |
+| Modelos y datos | Se borraron `PaymentNotice`, `EstadoPago` y `DataRepository.pagos`. También `PSE_URL`, `MONTO_MATRICULA`, `montoMatriculaTexto` y `AVISO_MONTO` | Hecho |
+| Salidas externas | Se eliminó `EnlacesExternos.abrirPse`; el objeto ya no conoce la pasarela PSE | Hecho |
+| Componentes | Se retiraron `StatusChip`, los chips de deuda `EnidChipWarnBg/Text` y el icono `VPagos`, que solo usaba el módulo retirado | Hecho |
+| Inicio | La tarjeta **Pagos** del menú del estudiante desapareció. “Mis Clases” y “Mi Cuenta” comparten fila, y “Plataforma Educativa” ocupa una fila completa. El Home del invitado ya no promete “horario, pagos y soporte” | Hecho |
+| FAQ | Se quitó la categoría **PAGOS**. La pregunta “¿Cómo puedo pagar la matrícula?” queda en MATRÍCULAS y ahora responde que el pago se coordina con un asesor o en la sede y que **la app no procesa pagos ni recibe datos bancarios**. Se eliminó la pregunta sobre mora y alertas automáticas | Hecho |
+| Plan Referidos | Se conserva la calculadora, pero ya no muestra precios: solo el porcentaje de descuento y la nota de que se aplica al formalizar la matrícula con un asesor | Hecho |
+| Ruta del prospecto | El paso 9 dice “Pagas tu matrícula con el asesor o en la sede de Chía”; se quitó la mención a PSE. Los pasos 5 a 10 siguen resolviéndose fuera de la app | Hecho |
+| Pruebas | Se actualizaron las pestañas esperadas (3 del estudiante) y se eliminaron las pruebas de montos y de `PSE_URL`. Se añadió `el sistema de pagos no vuelve al codigo`, que busca las piezas retiradas en `app/src/main/java` | Hecho |
+| Verificación | `:app:compileDebugKotlin`, `:app:testDebugUnitTest` (70 pruebas) y `:app:assembleDebug` en verde. APK instalado y app abierta **3 veces** en `ZT322CVFC9`. Con `uiautomator`: Inicio con **Inicio · Horario · Soporte**, sin “Pagos” ni “PSE”; Plan Referidos muestra “Descuento Obtenido: 15%” sin importes; FAQ sin categoría PAGOS | Hecho |
+
+## 27 Oct — Aprender, Agenda y Perfil, y el Inicio del Figma
+
+| Acción | Detalle | Estado |
+|---|---|---|
+| Pestañas | `EnidTab` pasa a **Inicio · Aprender · Agenda · Perfil** para el estudiante. El invitado conserva **Inicio · Soporte** y el administrador **Inicio · Panel · Soporte** | Hecho |
+| Aprender | `LearnScreen.kt` muestra el programa activo, la barra de progreso, cinco lecciones y una insignia de avance. Las lecciones son las asignaturas distintas del horario real, no un temario inventado | Hecho |
+| Progreso | `DataRepository.leccionesCompletadas(correo)` guarda los índices marcados en `SharedPreferences`, separados por correo. Marcar y desmarcar una lección actualiza el porcentaje y se conserva al volver a entrar | Hecho |
+| Agenda | `AgendaScreen.kt` dibuja los próximos cinco días con `LocalDate`, la próxima clase real y las clases de la fecha elegida. `AgendaClases.proxima` descarta las clases de hoy que ya terminaron: a las 3 p. m. no llama “próxima” a una de las 7 a. m. Los días sin clase lo dicen en vez de inventar eventos | Hecho |
+| Mi Horario | `DailyScheduleScreen.kt` deja de tener pestaña propia: se abre desde **Agenda** con **VER HORARIO Y PLAN DE ESTUDIOS** y conserva el plan de estudios | Hecho |
+| Perfil | `ProfileScreen.kt` se rehace con la estructura del Figma: avatar, estadísticas reales (programa, horas marcadas, logros), tres insignias, datos desplegables, ajustes y cierre de sesión | Hecho |
+| Datos de solo lectura | La carrera, el año/ciclo, el documento y el teléfono se leen de la preinscripción más reciente; los valores antiguos de la cuenta quedan como respaldo. Sin preinscripción se ofrece **HACER MI PREINSCRIPCIÓN** | Hecho |
+| Privacidad | El ajuste **Privacidad** abre un diálogo que explica qué se guarda en el teléfono y recuerda que la app no procesa pagos ni datos bancarios | Hecho |
+| Notificaciones | El interruptor de **Perfil** guarda una preferencia local. No enciende avisos push: la app no tiene un servicio de notificaciones conectado y el texto no lo promete | Hecho |
+| Inicio estudiante | Saludo con fecha, tarjeta **Curso en progreso** hacia Aprender, filtros y tarjetas de programas, **Próxima clase**, accesos de servicio, respaldo institucional, promociones y redes | Hecho |
+| Inicio administrador | Conserva la tarjeta de gestión, los accesos al panel, la oferta, el perfil y los servicios, con la nueva cabecera de pestañas. Se quitaron los enlaces duplicados de **Panel** y **Mi Cuenta** de “Más servicios”: las tarjetas de arriba ya llevan a esos destinos y ahora el perfil se llama **Mi perfil** | Hecho |
+| Cabecera y barra | `EnidTabHeader` muestra la marca y una campana que avisa “No tienes notificaciones nuevas”. La barra inferior usa indicador rojo, iconos de trazo y el violeta para la pestaña activa | Hecho |
+| Campana sin punto | Se quitó el punto rojo de la campana: marcaba una notificación sin leer que no existe. El aviso real aparece al tocarla | Hecho |
+| Pruebas | Se actualizó la pestaña esperada del estudiante y se añadieron tres pruebas de `CursoAprendizaje` (porcentaje y título del curso) y cinco de `AgendaClases` (próxima clase real) | Hecho |
+| Verificación | `:app:compileDebugKotlin`, `:app:testDebugUnitTest` (78 pruebas) y `:app:assembleDebug` en verde. APK instalado en `ZT322CVFC9`; con `uiautomator` se recorrieron las cuatro pestañas, se marcó una lección (0% → 20%), se abrió Mi Horario desde Agenda, se desplegaron los datos del Perfil y se comprobó el diálogo de Privacidad. También se verificaron el Home del invitado (2 pestañas) y el del administrador (3 pestañas) | Hecho |

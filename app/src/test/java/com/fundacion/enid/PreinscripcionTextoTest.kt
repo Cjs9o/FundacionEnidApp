@@ -14,7 +14,7 @@ import org.junit.Test
 /**
  * La preinscripción se guarda como una línea de texto con campos separados por
  * `|`. Estos casos cubren lo que se rompe en silencio: un nombre con `|`, un
- * familiar con comas, y las líneas viejas de 6 y de 21 campos que ya están en
+ * familiar con comas, y las líneas viejas de 6, 21 y 22 campos que ya están en
  * los dispositivos de quienes usan la app.
  */
 class PreinscripcionTextoTest {
@@ -47,7 +47,8 @@ class PreinscripcionTextoTest {
             numeroDocumento = "79876543",
             telefono = "+57 3204441122",
             correo = "luis@ejemplo.com"
-        )
+        ),
+        anio = "2026 · Primer semestre"
     )
 
     @Test
@@ -103,6 +104,7 @@ class PreinscripcionTextoTest {
         // Los campos que no existían quedan vacíos, no inventados.
         assertEquals("", leida?.tipoDocumento)
         assertEquals("", leida?.fechaNacimiento)
+        assertEquals("", leida?.anio)
         assertTrue(leida?.documentos?.isEmpty() == true)
         assertNull(leida?.esMenorDeEdad)
         assertNull(leida?.familiar)
@@ -126,6 +128,7 @@ class PreinscripcionTextoTest {
         assertEquals("Luis Gomez", leida?.familiar?.nombre)
         assertEquals("Hijo", leida?.familiar?.vinculo)
         assertEquals("luis@ejemplo.com", leida?.familiar?.correo)
+        assertEquals("", leida?.anio)
     }
 
     @Test
@@ -224,13 +227,33 @@ class PreinscripcionTextoTest {
     }
 
     @Test
-    fun `una linea vieja de 21 campos se sigue leyendo sin adjuntos`() {
-        // Lo que ya está en los teléfonos no tiene el campo 22.
-        val vieja = PreinscripcionTexto.serializar(completa).split("|").dropLast(1).joinToString("|")
+    fun `una linea vieja de 21 campos se sigue leyendo sin adjuntos ni anio`() {
+        // Lo que ya está en los teléfonos no tiene los campos 22 y 23.
+        val vieja = PreinscripcionTexto.serializar(completa).split("|").dropLast(2).joinToString("|")
         val leida = PreinscripcionTexto.leer(vieja)
         assertNotNull(leida)
         assertTrue(leida!!.adjuntos.isEmpty())
+        assertEquals("", leida.anio)
         assertEquals("Ana Gómez", leida.nombre)
+    }
+
+    @Test
+    fun `una linea de 22 campos conserva los adjuntos aunque no tenga anio`() {
+        // Versión intermedia: adjuntos ya existían, año/ciclo todavía no.
+        val conAdjuntos = completa.copy(
+            adjuntos = listOf(DocumentoAdjunto("DOCUMENTO", "PDF", "cedula.pdf", "content://a/1"))
+        )
+        val vieja = PreinscripcionTexto.serializar(conAdjuntos).split("|").dropLast(1).joinToString("|")
+        val leida = PreinscripcionTexto.leer(vieja)
+        assertEquals(1, leida!!.adjuntos.size)
+        assertEquals("cedula.pdf", leida.adjuntos[0].nombreArchivo)
+        assertEquals("", leida.anio)
+    }
+
+    @Test
+    fun `el anio o ciclo vuelve igual al releerlo`() {
+        val leida = PreinscripcionTexto.leer(PreinscripcionTexto.serializar(completa))
+        assertEquals("2026 · Primer semestre", leida?.anio)
     }
 
     // ── Adjuntos que sí se pueden enviar ──────────────────────────────────

@@ -22,7 +22,12 @@ object SesionUi {
     var conectado by mutableStateOf(false)
         private set
 
-    fun actualizar(conectado: Boolean) {
+    /** Rol de quien está conectado; `null` cuando no hay sesión (invitado). */
+    var rol by mutableStateOf<com.fundacion.enid.model.Rol?>(null)
+        private set
+
+    fun actualizar(conectado: Boolean, rol: com.fundacion.enid.model.Rol? = null) {
         if (this.conectado != conectado) this.conectado = conectado
+        if (this.rol != rol) this.rol = rol
     }
 }

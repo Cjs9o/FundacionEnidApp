@@ -32,16 +32,17 @@ val EnidOro = Color(0xFFB08D00)
 /** #F7EFD9 — ocre claro de fondo. */
 val EnidOroSoft = Color(0xFFF7EFD9)
 
-// ── Verde de estado correcto ──────────────────────────────────────────────
+// ── Turquesa de estado correcto ───────────────────────────────────────────
 
 /**
- * #DCFCE7 — fondo de los chips de resultado correcto. En `:app` marcaba
- * "Pagado" y en `:campo` "Sincronizado": mismo color, mismo significado.
+ * #DEF3F1 — fondo de los chips de resultado correcto. En `:app` marcaba
+ * "Pagado" y en `:campo` "Sincronizado": mismo significado, mismo color.
+ * La paleta del 27 Oct reserva el turquesa para progreso y estados positivos.
  */
-val EnidSincronizadoFondo = Color(0xFFDCFCE7)
+val EnidSincronizadoFondo = Color(0xFFDEF3F1)
 
-/** #15803D — texto de los chips de resultado correcto. Contraste 4.6:1. */
-val EnidSincronizadoTexto = Color(0xFF15803D)
+/** #176B68 — texto de los chips de resultado correcto. Contraste 5.1:1. */
+val EnidSincronizadoTexto = Color(0xFF176B68)
 
 // ── Fotografía ────────────────────────────────────────────────────────────
 

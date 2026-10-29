@@ -4,10 +4,8 @@ import android.content.Context
 import android.content.SharedPreferences
 import com.fundacion.enid.model.ClassSlot
 import com.fundacion.enid.model.Area
-import com.fundacion.enid.model.EstadoPago
 import com.fundacion.enid.model.Familiar
 import com.fundacion.enid.model.FaqItem
-import com.fundacion.enid.model.PaymentNotice
 import com.fundacion.enid.model.Preinscripcion
 import com.fundacion.enid.model.Program
 import com.fundacion.enid.model.Promocion
@@ -27,6 +25,7 @@ import com.google.firebase.auth.FirebaseAuthWeakPasswordException
 import com.google.firebase.auth.UserProfileChangeRequest
 import kotlinx.coroutines.tasks.await
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
@@ -321,7 +320,7 @@ class DataRepository(context: Context) {
                 competencias = competencias,
                 perfilOcupacional = perfilOcupacional,
                 campoLaboral = campoLaboral,
-                sedes = listOf("Chía", "Sopó", "Girardot")
+                sedes = listOf("Chía")
             )
         )
     }
@@ -347,7 +346,7 @@ class DataRepository(context: Context) {
                 perfilOcupacional = "Formación complementaria que fortalece el desarrollo " +
                     "profesional y social de nuestros estudiantes y egresados.",
                 campoLaboral = emptyList(),
-                sedes = listOf("Chía", "Sopó")
+                sedes = listOf("Chía")
             )
         )
     }
@@ -359,6 +358,21 @@ class DataRepository(context: Context) {
     /** Formación complementaria: cursos, seminarios y diplomados. */
     val programasComplementarios: List<Program>
         get() = programas.filter { it.tipo != TipoPrograma.TECNICO }
+
+    /**
+     * Años o ciclos que se pueden elegir en la preinscripción.
+     *
+     * Es una lista cerrada a propósito: la carrera y el ciclo los define la
+     * Fundación al recibir la solicitud, no se escriben a mano en la cuenta. Se
+     * ofrecen el año en curso y el siguiente, con sus dos semestres.
+     */
+    val ciclos: List<String>
+        get() {
+            val anioActual = Calendar.getInstance().get(Calendar.YEAR)
+            return listOf(anioActual, anioActual + 1).flatMap { anio ->
+                listOf("$anio · Primer semestre", "$anio · Segundo semestre")
+            }
+        }
 
     fun buscarProgramas(consulta: String, tipo: TipoPrograma?, area: Area?): List<Program> =
         programas.filter { programa ->
@@ -399,20 +413,12 @@ class DataRepository(context: Context) {
 
     val sedes: List<Sede> = listOf(
         Sede(
-            nombre = "Sede Chía — Campus Principal",
-            direccion = "Calle 11 # 9 - 47, Chía, Cundinamarca",
-            telefono = "+57 601 745 0020",
+            nombre = "Sede Chía",
+            direccion = "Calle 13 # 9-77, Parque Ospina, Chía, Cundinamarca",
+            telefonos = listOf("316 630 1033", "313 204 8325"),
             horario = "Lun a Vie 7:00 a.m. - 8:00 p.m. · Sáb 8:00 a.m. - 1:00 p.m.",
-            lat = 4.8599,
-            lng = -74.0518
-        ),
-        Sede(
-            nombre = "Sede Sopó",
-            direccion = "Cra 5 # 4 - 12, Sopó, Cundinamarca",
-            telefono = "+57 601 863 0044",
-            horario = "Lun a Vie 8:00 a.m. - 6:00 p.m.",
-            lat = 4.9103,
-            lng = -73.5965
+            lat = 4.8612,
+            lng = -74.0325
         )
     )
 
@@ -434,13 +440,8 @@ class DataRepository(context: Context) {
         ),
         FaqItem(
             "¿Cómo puedo pagar la matrícula?",
-            "Puedes pagar por la pasarela de pagos en línea (PSE) dentro de esta app, con " +
-                "las entidades bancarias autorizadas, o en caja de cada sede."
-        ),
-        FaqItem(
-            "¿Qué pasa si un pago vence antes de la fecha límite?",
-            "La app te envía alertas y recordatorios. Si la fecha vence se considera mora y " +
-                "puede aplicar recargo sobre el valor de la matrícula."
+            "El pago se coordina directamente con un asesor de la Fundación o en la sede " +
+                "de Chía. La app no procesa pagos ni recibe datos bancarios."
         ),
         FaqItem(
             "¿Cómo obtengo mi certificado de estudios?",
@@ -490,46 +491,128 @@ class DataRepository(context: Context) {
     )
 
     // --------------------------------------------------------------------
-    // Requerimiento 09: Alertas y notificaciones de pago
-    // --------------------------------------------------------------------
-    val pagos: List<PaymentNotice> = listOf(
-        PaymentNotice(
-            "Matrícula — Sistemas y Computación Básica",
-            "$180.000",
-            "13 Oct",
-            EstadoPago.VENCE_PRONTAMENTE,
-            "Realiza tu pago antes de la fecha límite para evitar mora."
-        ),
-        PaymentNotice(
-            "Matrícula Agosto 2025",
-            "$180.000",
-            "05 Ago",
-            EstadoPago.PAGADO,
-            "Pago confirmado. Ciclo 2025-2."
-        )
-    )
-
-    // --------------------------------------------------------------------
     // Sesión (Requerimiento 02)
     // --------------------------------------------------------------------
     var currentUser: User?
         get() {
             val nombre = prefs.getString(KEY_NOMBRE, null) ?: return null
             val correo = prefs.getString(KEY_CORREO, null) ?: return null
-            val rol = prefs.getString(KEY_ROL, Rol.ASPIRANTE.etiqueta) ?: Rol.ASPIRANTE.etiqueta
-            return User(nombre, correo, Rol.desde(rol))
+            val rol = prefs.getString(KEY_ROL, Rol.ESTUDIANTE.etiqueta) ?: Rol.ESTUDIANTE.etiqueta
+            // Los datos académicos y personales se guardan por correo, no en la
+            // sesión: así, al entrar otra persona en el mismo teléfono, no ve
+            // el programa ni el documento de quien usó la app antes.
+            val perfil = perfilCompleto(correo)
+            return User(
+                nombre = nombre,
+                correo = correo,
+                rol = Rol.desde(rol),
+                programa = perfil.programa,
+                anio = perfil.anio,
+                telefono = perfil.telefono,
+                documento = perfil.documento,
+                datosPersonales = perfil.datosPersonales
+            )
         }
         set(value) {
             val editor = prefs.edit()
             if (value == null) {
+                // Se borra la sesión, pero NO el perfil: al volver a entrar con
+                // el mismo correo la persona encuentra sus datos otra vez.
                 editor.remove(KEY_NOMBRE).remove(KEY_CORREO).remove(KEY_ROL)
+                    .remove(KEY_PROGRAMA).remove(KEY_ANIO).remove(KEY_TELEFONO)
+                    .remove(KEY_DOCUMENTO).remove(KEY_DATOS)
             } else {
+                guardarPerfil(
+                    correo = value.correo,
+                    perfil = PerfilLocal(
+                        programa = value.programa,
+                        anio = value.anio,
+                        telefono = value.telefono,
+                        documento = value.documento,
+                        datosPersonales = value.datosPersonales
+                    )
+                )
                 editor.putString(KEY_NOMBRE, value.nombre)
                     .putString(KEY_CORREO, value.correo)
                     .putString(KEY_ROL, value.rol.etiqueta)
+                    .putString(KEY_PROGRAMA, value.programa)
+                    .putString(KEY_ANIO, value.anio)
+                    .putString(KEY_TELEFONO, value.telefono)
+                    .putString(KEY_DOCUMENTO, value.documento)
+                    .putString(KEY_DATOS, value.datosPersonales)
             }
             editor.apply()
         }
+
+    /** Datos que pertenecen a una persona y no a la sesión del teléfono. */
+    private data class PerfilLocal(
+        val programa: String? = null,
+        val anio: String? = null,
+        val telefono: String? = null,
+        val documento: String? = null,
+        val datosPersonales: String? = null
+    )
+
+    private fun clavePerfil(correo: String) = KEY_PERFIL + correo.trim().lowercase()
+
+    private fun leerPerfil(correo: String): PerfilLocal {
+        val crudo = prefs.getString(clavePerfil(correo), null)
+        // Migración: las versiones anteriores guardaban estos datos solo en la
+        // sesión. Si el correo coincide, se siguen leyendo de allí una vez.
+        if (crudo == null) {
+            val mismoCorreo = prefs.getString(KEY_CORREO, null)
+                ?.equals(correo, ignoreCase = true) == true
+            if (!mismoCorreo) return PerfilLocal()
+            return PerfilLocal(
+                programa = prefs.getString(KEY_PROGRAMA, null),
+                anio = prefs.getString(KEY_ANIO, null),
+                telefono = prefs.getString(KEY_TELEFONO, null),
+                documento = prefs.getString(KEY_DOCUMENTO, null),
+                datosPersonales = prefs.getString(KEY_DATOS, null)
+            )
+        }
+        val partes = crudo.split(SEPARADOR_PERFIL)
+        fun valor(indice: Int) = partes.getOrNull(indice)?.takeIf { it.isNotEmpty() }
+        return PerfilLocal(
+            programa = valor(0),
+            anio = valor(1),
+            telefono = valor(2),
+            documento = valor(3),
+            datosPersonales = valor(4)
+        )
+    }
+
+    private fun guardarPerfil(correo: String, perfil: PerfilLocal) {
+        val crudo = listOf(
+            perfil.programa,
+            perfil.anio,
+            perfil.telefono,
+            perfil.documento,
+            perfil.datosPersonales
+        ).joinToString(SEPARADOR_PERFIL) { it.orEmpty() }
+        prefs.edit().putString(clavePerfil(correo), crudo).apply()
+    }
+
+    /**
+     * Perfil con la preinscripción más reciente por encima de lo guardado.
+     *
+     * Así una persona que se preinscribió como invitada ve su carrera y su
+     * ciclo al iniciar sesión, sin haberlos escrito en la cuenta.
+     */
+    private fun perfilCompleto(correo: String): PerfilLocal {
+        val guardado = leerPerfil(correo)
+        val pre = preinscripcionDe(correo) ?: return guardado
+
+        fun valor(nuevo: String, anterior: String?) =
+            nuevo.takeIf { it.isNotBlank() } ?: anterior
+
+        return guardado.copy(
+            programa = valor(pre.programa, guardado.programa),
+            anio = valor(pre.anio, guardado.anio),
+            telefono = valor(pre.telefono, guardado.telefono),
+            documento = valor(pre.documento, guardado.documento)
+        )
+    }
 
     val estaConectado: Boolean
         get() = currentUser != null
@@ -538,10 +621,55 @@ class DataRepository(context: Context) {
         currentUser = usuario
     }
 
+    fun actualizarUsuario(usuario: User) {
+        currentUser = usuario
+    }
+
     fun cerrarSesion() {
         currentUser = null
         FirebaseAuth.getInstance().signOut()
     }
+
+    // --------------------------------------------------------------------
+    // Progreso de "Aprender" y preferencia de avisos
+    // --------------------------------------------------------------------
+    /**
+     * Lecciones que la persona marcó como completadas.
+     *
+     * Se guarda por correo, no en la sesión: si otra persona entra en el mismo
+     * teléfono no hereda el avance de quien usó la app antes. Se usa una lista
+     * de índices separada por comas en vez de un `StringSet`, porque el orden
+     * de un `StringSet` no está garantizado y aquí el orden importa para
+     * calcular el progreso.
+     */
+    fun leccionesCompletadas(correo: String?): Set<Int> {
+        if (correo.isNullOrBlank()) return emptySet()
+        val crudo = prefs.getString(KEY_LECCIONES + correo.lowercase(Locale.ROOT), null)
+            ?: return emptySet()
+        return crudo.split(",")
+            .mapNotNull { it.trim().toIntOrNull() }
+            .filter { it in 0..4 }
+            .toSet()
+    }
+
+    fun guardarLeccionesCompletadas(correo: String?, indices: Set<Int>) {
+        if (correo.isNullOrBlank()) return
+        val limpio = indices.filter { it in 0..4 }.sorted().joinToString(",")
+        prefs.edit()
+            .putString(KEY_LECCIONES + correo.lowercase(Locale.ROOT), limpio)
+            .apply()
+    }
+
+    /**
+     * Preferencia local de avisos. No enciende notificaciones push: hoy la app
+     * no tiene un servicio de avisos conectado. Se guarda para que la decisión
+     * de la persona no se pierda entre pantallas y sesiones.
+     */
+    var notificacionesActivas: Boolean
+        get() = prefs.getBoolean(KEY_NOTIFICACIONES, true)
+        set(value) {
+            prefs.edit().putBoolean(KEY_NOTIFICACIONES, value).apply()
+        }
 
     // --------------------------------------------------------------------
     // Requerimiento 02: Autenticación real con Firebase (correo/clave)
@@ -554,12 +682,30 @@ class DataRepository(context: Context) {
         val resultado = auth.signInWithEmailAndPassword(correo, clave).await()
         val fb = resultado.user
             ?: throw IllegalStateException("No se pudo obtener el usuario de Firebase.")
+        val email = fb.email ?: correo
         val nombre = fb.displayName?.takeIf { it.isNotBlank() }
-            ?: prefs.getString(KEY_NOMBRE, null)
-            ?: fb.email?.substringBefore("@")
+            ?: nombreLocalDe(email)
+            ?: email.substringBefore("@")
             ?: "Usuario"
-        val rol = prefs.getString(KEY_ROL, Rol.ASPIRANTE.etiqueta) ?: Rol.ASPIRANTE.etiqueta
-        val usuario = User(nombre, fb.email ?: correo, Rol.desde(rol))
+        // El rol se decide por la cuenta que inicia sesión (correo de
+        // administración o cuenta local), nunca por el rol que quedó guardado
+        // en la sesión anterior.
+        val rol = rolLocalDe(email) ?: if (email.contains("admin", ignoreCase = true)) {
+            Rol.ADMIN
+        } else {
+            Rol.ESTUDIANTE
+        }
+        val perfil = perfilCompleto(email)
+        val usuario = User(
+            nombre = nombre,
+            correo = email,
+            rol = rol,
+            programa = perfil.programa,
+            anio = perfil.anio,
+            telefono = perfil.telefono,
+            documento = perfil.documento,
+            datosPersonales = perfil.datosPersonales
+        )
         guardarSesion(usuario)
         return usuario
     }
@@ -572,8 +718,18 @@ class DataRepository(context: Context) {
         fb.updateProfile(
             UserProfileChangeRequest.Builder().setDisplayName(usuario.nombre).build()
         ).await()
-        guardarSesion(usuario)
-        return usuario
+        val rolFinal = if (usuario.correo.contains("admin", ignoreCase = true)) Rol.ADMIN else usuario.rol
+        val perfil = perfilCompleto(usuario.correo)
+        val usuarioFinal = usuario.copy(
+            rol = rolFinal,
+            programa = perfil.programa,
+            anio = perfil.anio,
+            telefono = perfil.telefono,
+            documento = perfil.documento,
+            datosPersonales = perfil.datosPersonales
+        )
+        guardarSesion(usuarioFinal)
+        return usuarioFinal
     }
 
     /**
@@ -597,8 +753,23 @@ class DataRepository(context: Context) {
         } catch (e: Exception) {
             val error = registrarUsuario(usuario, clave)
             if (error != null) throw IllegalStateException(error)
-            guardarSesion(usuario)
-            return usuario
+            // El rol efectivo lo decide el correo: un correo con "admin" entra
+            // al panel aunque el registro se haya hecho sin conexión.
+            val perfil = perfilCompleto(usuario.correo)
+            val final = usuario.copy(
+                rol = if (usuario.correo.contains("admin", ignoreCase = true)) {
+                    Rol.ADMIN
+                } else {
+                    Rol.ESTUDIANTE
+                },
+                programa = perfil.programa,
+                anio = perfil.anio,
+                telefono = perfil.telefono,
+                documento = perfil.documento,
+                datosPersonales = perfil.datosPersonales
+            )
+            guardarSesion(final)
+            return final
         }
     }
 
@@ -684,6 +855,41 @@ class DataRepository(context: Context) {
             .putString(KEY_PREINSC, lineas.take(MAX_PREINSC).joinToString("\n"))
             .remove(KEY_PREINSC_VIEJO)
             .apply()
+        sincronizarPerfilDesdePreinscripcion(p)
+    }
+
+    /**
+     * La preinscripción es la fuente de la carrera y del ciclo.
+     *
+     * Si la solicitud es de la persona que tiene la sesión abierta, se copian
+     * esos valores al perfil local para que el Inicio y Perfil los muestren
+     * sin volver a escribirlos. Al iniciar sesión también se leen de la
+     * preinscripción más reciente, aunque se haya hecho como invitado.
+     */
+    private fun sincronizarPerfilDesdePreinscripcion(p: Preinscripcion) {
+        val actual = currentUser ?: return
+        if (!actual.correo.equals(p.correo, ignoreCase = true)) return
+
+        fun valor(nuevo: String, anterior: String?) =
+            nuevo.takeIf { it.isNotBlank() } ?: anterior
+
+        val perfil = leerPerfil(actual.correo)
+        val actualizado = actual.copy(
+            programa = valor(p.programa, perfil.programa),
+            anio = valor(p.anio, perfil.anio),
+            telefono = valor(p.telefono, perfil.telefono),
+            documento = valor(p.documento, perfil.documento)
+        )
+        guardarPerfil(
+            actual.correo,
+            perfil.copy(
+                programa = actualizado.programa,
+                anio = actualizado.anio,
+                telefono = actualizado.telefono,
+                documento = actualizado.documento
+            )
+        )
+        currentUser = actualizado
     }
 
     private fun lineasPreinscripcion(): List<String> {
@@ -695,6 +901,17 @@ class DataRepository(context: Context) {
 
     fun consultarPreinscripciones(): List<Preinscripcion> =
         lineasPreinscripcion().mapNotNull(PreinscripcionTexto::leer)
+
+    /**
+     * La preinscripción más reciente de un correo, si existe.
+     *
+     * Perfil la usa como fuente de la carrera, el ciclo y los datos
+     * personales: esos valores no se editan en la cuenta.
+     */
+    fun preinscripcionDe(correo: String): Preinscripcion? =
+        consultarPreinscripciones().firstOrNull {
+            it.correo.equals(correo.trim(), ignoreCase = true)
+        }
 
     // --------------------------------------------------------------------
     // Usuarios registrados (simulación de autenticación, requisito 02)
@@ -716,7 +933,8 @@ class DataRepository(context: Context) {
         if (clave.length < 4) {
             return "La contraseña debe tener al menos 4 caracteres."
         }
-        lineas.add("${usuario.nombre}|${usuario.correo}|${usuario.rol.etiqueta}|$clave")
+        val rolFinal = if (usuario.correo.contains("admin", ignoreCase = true)) Rol.ADMIN else Rol.ESTUDIANTE
+        lineas.add("${usuario.nombre}|${usuario.correo}|${rolFinal.etiqueta}|$clave")
         prefs.edit().putStringSet(KEY_USUARIOS, lineas.toSet()).apply()
         return null
     }
@@ -729,8 +947,50 @@ class DataRepository(context: Context) {
                 partes[3] == clave
         } ?: return null
         val partes = linea.split("|")
-        return User(partes[0], partes[1], Rol.desde(partes[2]))
+        val rol = if (correo.contains("admin", ignoreCase = true)) Rol.ADMIN else Rol.desde(partes[2])
+        val perfil = perfilCompleto(partes[1])
+        return User(
+            nombre = partes[0],
+            correo = partes[1],
+            rol = rol,
+            programa = perfil.programa,
+            anio = perfil.anio,
+            telefono = perfil.telefono,
+            documento = perfil.documento,
+            datosPersonales = perfil.datosPersonales
+        )
     }
+
+    /** Rol con el que se registró una cuenta local, si existe. */
+    private fun rolLocalDe(correo: String): Rol? =
+        lineasUsuarios().lastOrNull { linea ->
+            val partes = linea.split("|")
+            partes.size == 4 && partes[1].equals(correo, ignoreCase = true)
+        }?.let { linea ->
+            val partes = linea.split("|")
+            if (correo.contains("admin", ignoreCase = true)) Rol.ADMIN else Rol.desde(partes[2])
+        }
+
+    /** Nombre con el que se registró una cuenta local, si existe. */
+    private fun nombreLocalDe(correo: String): String? =
+        lineasUsuarios().lastOrNull { linea ->
+            val partes = linea.split("|")
+            partes.size == 4 && partes[1].equals(correo, ignoreCase = true)
+        }?.split("|")?.getOrNull(0)?.takeIf { it.isNotBlank() }
+
+    /**
+     * Cuentas guardadas en el dispositivo, sin la contraseña.
+     *
+     * La usa el panel de administración para mostrar a quién hay registrado.
+     * Solo lee las cuentas locales: las que existen únicamente en Firebase no
+     * se pueden listar desde aquí sin una consulta de administrador.
+     */
+    fun listarUsuarios(): List<User> =
+        lineasUsuarios().mapNotNull { linea ->
+            val partes = linea.split("|")
+            if (partes.size != 4) return@mapNotNull null
+            User(partes[0], partes[1], Rol.desde(partes[2]))
+        }
 
     // --------------------------------------------------------------------
     // Utilidad: fecha actual
@@ -751,12 +1011,9 @@ class DataRepository(context: Context) {
         // o se resuelven en sede se marcan con [RutaStep.enSede] en vez de
         // prometer una pantalla que la app no tiene.
         //
-        // El invitado solo llega hasta el paso 4. Los pasos 9 y 10 (pago y
-        // plataforma) antes apuntaban a `Payments` y `Platform`, así que
-        // cualquiera que entrara como invitado podía abrir la pantalla de pagos
-        // de un estudiante —con un historial de pagos inventado— y la de la
-        // plataforma educativa. Esos módulos son de estudiante y se resuelven
-        // con el asesor o en sede, igual que los pasos 5 a 8.
+        // El invitado solo llega hasta el paso 4. Los pasos 5 a 10 se
+        // resuelven con el asesor o en sede. La app ya no tiene módulo de
+        // pagos: el pago de la matrícula se coordina fuera de ella.
         val rutaProspecto: List<RutaStep> = listOf(
             RutaStep(1, "Conocer ENID", "Conoce la Fundación, su misión y dónde encontrarnos.", "Locations"),
             RutaStep(2, "Explorar programas", "Revisa los 67 programas técnicos y complementarios.", "Catalog"),
@@ -766,13 +1023,25 @@ class DataRepository(context: Context) {
             RutaStep(6, "Completar la preinscripción", "Formalizas tu interés y dejas listo tu proceso de admisión.", enSede = true),
             RutaStep(7, "Entregar documentos", "Los documentos se validan con el asesor, en sede o por el canal que él indique.", enSede = true),
             RutaStep(8, "Realizar la matrícula", "Proceso de matrícula para activos y nuevos admitidos.", enSede = true),
-            RutaStep(9, "Realizar el pago", "Pagas tu matrícula con el asesor, por PSE o en sede.", enSede = true),
+            RutaStep(9, "Realizar el pago", "Pagas tu matrícula con el asesor o en la sede de Chía.", enSede = true),
             RutaStep(10, "¡Bienvenido a ENID!", "Al matricularte activamos tu acceso a la plataforma y al horario.", enSede = true)
         )
 
         private const val KEY_NOMBRE = "nombre"
         private const val KEY_CORREO = "correo"
         private const val KEY_ROL = "rol"
+        private const val KEY_PROGRAMA = "programa"
+        private const val KEY_ANIO = "anio"
+        private const val KEY_TELEFONO = "telefono"
+        private const val KEY_DOCUMENTO = "documento"
+        private const val KEY_DATOS = "datos_personales"
+        private const val KEY_PERFIL = "perfil_"
+        private const val KEY_LECCIONES = "lecciones_"
+        private const val KEY_NOTIFICACIONES = "notificaciones_activas"
+
+        /** Separador interno del perfil; no se muestra ni se escribe a mano. */
+        private const val SEPARADOR_PERFIL = "\u001F"
+
         private const val KEY_PREINSC = "preinscripciones_ordenadas"
         private const val KEY_PREINSC_VIEJO = "preinscripciones"
         private const val MAX_PREINSC = 25
@@ -782,33 +1051,20 @@ class DataRepository(context: Context) {
         /** URL de la plataforma educativa (Requerimiento 12). Reemplazar si cambia. */
         const val PLATAFORMA_URL = "https://enid.fundacion.edu.co/plataforma/"
 
-        /** URL de la pasarela de pagos PSE (Requerimiento 10). Reemplazar por la real. */
-        const val PSE_URL = "https://www.pse.com.co/inicio/transacciones/confirmacionInit"
-
         /** Sitio web institucional (Requerimiento 11). Reemplazar si cambia. */
         const val SITIO_WEB = "https://www.enid.edu.co"
 
         /** Número base de WhatsApp de atención (Requerimiento 06). */
         const val WHATSAPP_NUMERO = "573017453334"
 
-        // ----------------------------------------------------------------
-        // Montos de matrícula  ·  PENDIENTE DE CONFIRMAR POR LA FUNDACIÓN
-        // ----------------------------------------------------------------
-        // Antes el valor estaba escrito en cinco sitios y con dos cifras
-        // distintas (180.000 en Pagos y Beneficios, 830.000 en PSE). Ahora hay
-        // una sola fuente y las pantallas la leen de aquí. El valor sigue
-        // siendo referencial: la Fundación aún no ha confirmado la cifra real
-        // (Fase 16 del PLANDESARROLLO), así que las pantallas que lo muestran
-        // lo etiquetan como preliminar en vez de presentarlo como un hecho.
-        const val MONTO_MATRICULA = 180000
+        // ── Redes sociales oficiales (tomadas de enid.edu.co, 27 Oct 2026) ──
+        /** Página oficial de Facebook. */
+        const val FACEBOOK_URL = "https://www.facebook.com/Enid.Escuela/"
 
-        /** El monto de matrícula, formateado como pesos colombianos. */
-        fun montoMatriculaTexto(conSigno: Boolean = true): String =
-            (if (conSigno) "$" else "") + "%,d".format(MONTO_MATRICULA).replace(',', '.')
+        /** Perfil oficial de Instagram. */
+        const val INSTAGRAM_URL = "https://www.instagram.com/fundacionenid/"
 
-        /** Aviso que acompaña a los montos mientras la Fundación no confirme la cifra. */
-        const val AVISO_MONTO =
-            "Valor preliminar. La Fundación ENID aún no confirma el monto oficial " +
-                "de la matrícula."
+        /** Canal oficial de YouTube. */
+        const val YOUTUBE_URL = "https://www.youtube.com/channel/UCb_yG90hqnKELFCBp0Dcqeg"
     }
 }

@@ -18,7 +18,7 @@ import com.fundacion.enid.model.Preinscripcion
  * pruebas pasarían sin comprobar nada.
  *
  * El formato es **posicional y compatible hacia atrás**: las preinscripciones de
- * 6 campos y las de 21, ya guardadas, siguen leyéndose. Los campos nuevos se
+ * 6, 21 y 22 campos, ya guardadas, siguen leyéndose. Los campos nuevos se
  * agregaron al final justamente por eso.
  */
 object PreinscripcionTexto {
@@ -85,7 +85,7 @@ object PreinscripcionTexto {
             p.esMenorDeEdad?.toString() ?: "", p.tieneAcudiente?.toString() ?: "",
             escapar(p.nombreAcudiente), escapar(p.prefijoEmergencia),
             escapar(p.telefonoEmergencia), escapar(p.condicionEspecial),
-            familiar, adjuntos
+            familiar, adjuntos, escapar(p.anio)
         ).joinToString("|")
     }
 
@@ -128,7 +128,10 @@ object PreinscripcionTexto {
             // y desescapar antes de partir volvería a ser coma la que traía un
             // nombre de archivo ("titulo%2C2 paginas.pdf") y partiría el bloque.
             // El desescape se hace valor por valor dentro de leerAdjuntos.
-            adjuntos = leerAdjuntos(partes.getOrNull(21)?.takeIf { it.isNotBlank() })
+            adjuntos = leerAdjuntos(partes.getOrNull(21)?.takeIf { it.isNotBlank() }),
+            // Campo 23 desde la versión con año/ciclo. Las líneas viejas no lo
+            // traen y quedan con el valor vacío, sin inventar un ciclo.
+            anio = campo(22) ?: ""
         )
     }
 

@@ -5,18 +5,24 @@ enum class Rol(val etiqueta: String) {
     ASPIRANTE("Aspirante"),
     ESTUDIANTE("Estudiante"),
     DOCENTE("Docente"),
-    ADMINISTRATIVO("Administrativo");
+    ADMINISTRATIVO("Administrativo"),
+    ADMIN("Admin");
 
     companion object {
         fun desde(value: String): Rol =
-            entries.firstOrNull { it.etiqueta == value } ?: ASPIRANTE
+            entries.firstOrNull { it.etiqueta.equals(value, ignoreCase = true) } ?: ASPIRANTE
     }
 }
 
 data class User(
     val nombre: String,
     val correo: String,
-    val rol: Rol
+    val rol: Rol,
+    val programa: String? = null,
+    val anio: String? = null,
+    val telefono: String? = null,
+    val documento: String? = null,
+    val datosPersonales: String? = null
 )
 
 // ---------- Requerimiento 04: Catálogo académico ----------
@@ -58,11 +64,15 @@ data class Program(
 data class Sede(
     val nombre: String,
     val direccion: String,
-    val telefono: String,
+    /** Todos los teléfonos de atención de la sede, en orden de publicación. */
+    val telefonos: List<String>,
     val horario: String,
     val lat: Double,
     val lng: Double
-)
+) {
+    /** Primer teléfono, para las acciones que solo admiten uno. */
+    val telefono: String get() = telefonos.firstOrNull().orEmpty()
+}
 
 // ---------- Requerimiento 06: Preguntas frecuentes ----------
 data class FaqItem(
@@ -85,21 +95,6 @@ data class ClassSlot(
     val asignatura: String,
     val aula: String,
     val docente: String
-)
-
-// ---------- Requerimiento 09: Alertas de pago ----------
-enum class EstadoPago(val etiqueta: String) {
-    POR_PAGAR("Por pagar"),
-    VENCE_PRONTAMENTE("Vence pronto"),
-    PAGADO("Pagado")
-}
-
-data class PaymentNotice(
-    val concepto: String,
-    val monto: String,
-    val fechaLimite: String,
-    val estado: EstadoPago,
-    val detalle: String
 )
 
 // ---------- Preinscripción: tipos de documento y de contacto (Colombia) ----------
@@ -254,7 +249,12 @@ data class Preinscripcion(
     val prefijoEmergencia: String = "",
     val condicionEspecial: String = "",
     val familiar: Familiar? = null,
-    val adjuntos: List<DocumentoAdjunto> = emptyList()
+    val adjuntos: List<DocumentoAdjunto> = emptyList(),
+    /**
+     * Año o ciclo con el que la persona quiere iniciar. Se elige de una lista
+     * cerrada en la preinscripción; no se escribe a mano en la cuenta.
+     */
+    val anio: String = ""
 )
 
 // ---------- Captación: promociones y testimonios (requerimientos 05 y 06) ----------

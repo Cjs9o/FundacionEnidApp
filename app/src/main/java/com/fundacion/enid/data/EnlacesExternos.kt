@@ -8,15 +8,15 @@ import android.util.Log
 /**
  * Punto único de salida de la app hacia otras aplicaciones.
  *
- * Todas las acciones externas (WhatsApp, llamadas, mapas, sitio web, plataforma y PSE)
+ * Todas las acciones externas (WhatsApp, llamadas, mapas, sitio web, plataforma y redes)
  * pasan por aquí. Centralizarlas permite:
  * - respetar la restricción de pruebas: con [habilitados] en `false` **no se abre
  *   ninguna app externa** (nada de llamadas, páginas web, banca, WhatsApp ni correos);
  * - cambiar un número o una URL en un solo lugar;
  * - no romper la app si el dispositivo no tiene la app instalada;
  * - **saber si la acción ocurrió de verdad**: cada función devuelve `true` solo si
- *   la app externa se abrió. Sin eso, una pantalla podía mostrar "Listo" o "Pago
- *   procesado" sin que hubiera pasado nada (fue lo que hacía `PseScreen`).
+ *   la app externa se abrió. Sin eso, una pantalla podía mostrar "Listo" sin
+ *   que hubiera pasado nada.
  */
 object EnlacesExternos {
 
@@ -63,11 +63,15 @@ object EnlacesExternos {
     /** Sitio web institucional (Requerimiento 11). */
     fun abrirSitio(context: Context): Boolean = abrirWeb(context, DataRepository.SITIO_WEB)
 
-    /** Abre la pasarela de pagos PSE (Requerimiento 10). */
-    fun abrirPse(context: Context): Boolean = abrirWeb(context, DataRepository.PSE_URL)
-
     /** Abre la plataforma educativa externa (Requerimiento 12). */
     fun abrirPlataforma(context: Context): Boolean = abrirWeb(context, DataRepository.PLATAFORMA_URL)
+
+    /** Redes sociales oficiales de la Fundación. */
+    fun abrirFacebook(context: Context): Boolean = abrirWeb(context, DataRepository.FACEBOOK_URL)
+
+    fun abrirInstagram(context: Context): Boolean = abrirWeb(context, DataRepository.INSTAGRAM_URL)
+
+    fun abrirYouTube(context: Context): Boolean = abrirWeb(context, DataRepository.YOUTUBE_URL)
 
     /**
      * Ejecuta la acción externa.

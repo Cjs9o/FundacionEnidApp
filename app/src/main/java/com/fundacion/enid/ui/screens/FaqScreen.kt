@@ -46,11 +46,7 @@ private data class Categoria(val titulo: String, val claves: List<String>)
 private val CATEGORIAS = listOf(
     Categoria(
         "MATRÍCULAS",
-        listOf("requisitos", "inscribirme", "edad", "preinscripci")
-    ),
-    Categoria(
-        "PAGOS",
-        listOf("pago", "matricula", "matrícula", "pagar", "vence", "mora", "recargo")
+        listOf("requisitos", "inscribirme", "edad", "preinscripci", "pago", "pagar", "matrícula")
     ),
     Categoria(
         "TRÁMITES Y CERTIFICADOS",
@@ -189,7 +185,7 @@ private fun FaqRow(faq: FaqItem, expandida: Boolean, onToggle: () -> Unit) {
                     imageVector = if (expandida) EnidIcons.VContraer else EnidIcons.VExpandir,
                     contentDescription = null,
                     tint = EnidTextSec,
-                    modifier = Modifier.size(18.dp)
+                    modifier = Modifier.size(20.dp)
                 )
             }
             if (expandida) {

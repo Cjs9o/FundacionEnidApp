@@ -28,19 +28,23 @@ flowchart TD
 
     subgraph ESTUDIANTE["Estudiante"]
         HOME["Home<br/>Inicio"]
-        SCHEDULE["DailySchedule<br/>Mis Clases"]
-        PAYMENTS["Payments<br/>Pagos"]
-        PSE["Pse<br/>Pago por PSE"]
+        LEARN["Learn<br/>Aprender"]
+        AGENDA["Agenda<br/>Agenda de 5 días"]
+        SCHEDULE["DailySchedule<br/>Mi Horario y plan"]
         BENEFITS["Benefits<br/>Calculadora"]
         PLATFORM["Platform<br/>Plataforma educativa"]
-        PROFILE["Profile<br/>Mi Cuenta"]
+        PROFILE["Profile<br/>Perfil"]
+    end
+
+    subgraph ADMIN["Administrador"]
+        ADMINP["Admin<br/>Panel de administración"]
     end
 
     subgraph OFERTA["Oferta e institución"]
         CATALOG["Catalog<br/>Oferta académica"]
         DETAIL["ProgramDetail<br/>Detalle del programa"]
         PREINSC["Preinscription<br/>Preinscripción 1-2-3"]
-        LOCATIONS["Locations<br/>Sedes y contacto"]
+        LOCATIONS["Locations<br/>Nuestra Sede"]
         FAQ["Faq<br/>Preguntas frecuentes"]
     end
 
@@ -58,8 +62,9 @@ flowchart TD
     PHOME --> FAQ
     PHOME -->|"Volver al inicio (logo)"| WELCOME
 
+    HOME --> LEARN
+    HOME --> AGENDA
     HOME --> SCHEDULE
-    HOME --> PAYMENTS
     HOME --> PLATFORM
     HOME --> PROFILE
     HOME --> CATALOG
@@ -68,6 +73,12 @@ flowchart TD
     HOME --> FAQ
     HOME --> BENEFITS
     HOME --> INTERESES
+    AGENDA -->|"Ver horario y plan"| SCHEDULE
+    LEARN -->|"Continuar / pestaña Perfil"| PROFILE
+    HOME -.->|"rol ADMIN: tarjeta y pestaña Panel"| ADMINP
+    ADMINP -->|"Preinscripciones"| ADMINP
+    ADMINP --> CATALOG
+    ADMINP --> PROFILE
 
     CATALOG --> DETAIL
     CATALOG --> FINDER
@@ -77,7 +88,6 @@ flowchart TD
     INTERESES --> DETAIL
     INTERESES --> PREINSC
     INTERESES -->|"Sin programa elegido"| CATALOG
-    PAYMENTS --> PSE
     PROFILE -->|"Cerrar sesión"| WELCOME
 
     subgraph CAMPO["Equipo de campo — módulo :campo (NavHost propio)"]
@@ -115,15 +125,16 @@ flowchart TD
 | `ProgramDetail` | Detalle de programa | `ProgramDetailScreen.kt` | `programId: Int` |
 | `ProgramFinder` | ¿Qué puedo estudiar? | `ProgramFinderScreen.kt` | — |
 | `Intereses` | Mis interesados | `InteresesScreen.kt` | — |
-| `Locations` | Sedes y contacto | `LocationsScreen.kt` | — |
+| `Locations` | Nuestra Sede (Chía, teléfonos y redes) | `LocationsScreen.kt` | — |
 | `Faq` | Preguntas frecuentes | `FaqScreen.kt` | — |
-| `Profile` | Mi cuenta | `ProfileScreen.kt` | — |
+| `Learn` | Aprender (curso y progreso) | `LearnScreen.kt` | — |
+| `Agenda` | Agenda de los próximos días | `AgendaScreen.kt` | — |
+| `Profile` | Perfil de la persona | `ProfileScreen.kt` | — |
+| `Admin` | Panel de administración | `AdminScreen.kt` | — |
 | `Preinscription` | Preinscripción | `PreinscriptionScreen.kt` | `programaId: Int?` |
 | `DailySchedule` | Mis clases | `DailyScheduleScreen.kt` | — |
-| `Payments` | Pagos | `PaymentsScreen.kt` | — |
 | `Benefits` | Calculadora de beneficios | `BenefitsCalculatorScreen.kt` | — |
 | `Platform` | Plataforma educativa | `PlatformScreen.kt` | — |
-| `Pse` | Pago por PSE | `PseScreen.kt` | — |
 | `Campo` | Módulo de captura en campo | `CampoSeccion.kt` → `campo/ui/EnidAppRaiz.kt` | — |
 
 ## 3. Tabla de conexiones (pantalla → destinos)
@@ -143,10 +154,19 @@ flowchart TD
 | ProspectHome | **"Tu camino"**: pasos 1 a 4 | `Locations`, `Catalog`, `ProgramFinder`, `Preinscription(null)` | `navegar` |
 | ProspectHome | **"Tu camino"**: pasos 5 a 10 | **ninguno** — son `enSede = true` | — |
 | ProspectHome | ¿Ya eres estudiante ENID? | `Welcome` | `reemplazarTodo` |
-| Home | Mis Clases | `DailySchedule` | `navegar` |
-| Home | Pagos | `Payments` | `navegar` |
+| Home | Curso en progreso → Continuar | `Learn` | `navegar` |
+| Home | Próxima clase / pestaña Agenda | `Agenda` | `navegar` |
+| Home | Más servicios → Mi horario | `DailySchedule` | `navegar` |
 | Home | Plataforma Educativa (tarjeta y enlace) | `Platform` | `navegar` |
-| Home | Mi Cuenta / Mi Perfil | `Profile` | `navegar` |
+| Home | Mi perfil / pestaña Perfil | `Profile` | `navegar` |
+| Learn | Pestaña Aprender | `Learn` | pestaña |
+| Agenda | Pestaña Agenda | `Agenda` | pestaña |
+| Agenda | **VER HORARIO Y PLAN DE ESTUDIOS** | `DailySchedule` | `navegar` |
+| Profile | Mi certificados | `Platform` | `navegar` |
+| Profile | Ayuda y soporte | `Faq` | `navegar` |
+| Profile | Panel de administración (solo admin) | `Admin` | `navegar` |
+| Home | Panel Admin (solo administrador) | `Admin` | `navegar` |
+| Admin | Pestaña Panel / Inicio | `Admin`, `Home` | pestaña |
 | Home | Más servicios → Oferta / Preinscripción / Calculadora | `Catalog`, `Preinscription(null)`, `Benefits` | `navegar` |
 | Home | Ver resumen (⭐ **solo si hay intereses guardados**) | `Intereses` | `navegar` |
 | ProspectHome | Equipo de campo | `Campo` | `navegar` |
@@ -158,7 +178,6 @@ flowchart TD
 | ProgramDetail | Quiero inscribirme | `Preinscription(id)` | `navegar` |
 | Intereses | Ver programa / Preinscribirme | `ProgramDetail(id)`, `Preinscription(id)` | `navegar` |
 | Intereses | Sin programa elegido | `Catalog` | `navegar` |
-| Payments | Pagar por PSE | `Pse` | `navegar` |
 | Profile | Cerrar sesión | `Welcome` | `reemplazarTodo` |
 | Cualquiera | Botón **"Volver"** de la cabecera | pantalla anterior de la pila | `onBack` |
 | Cualquiera | Botón "atrás" del teléfono | pantalla anterior de la pila | `BackHandler` |
@@ -171,8 +190,8 @@ flowchart TD
 >
 > `AuthScreen` y `WelcomeScreen` **no usan `AppScaffold`** (traen su propio
 > layout), así que la flecha hay que dibujarlas a mano. `AuthScreen` la dibuja;
-> `WelcomeScreen` es la raíz de la pila y no la necesita. `Platform` y `Profile`
-> también la reciben.
+> `WelcomeScreen` es la raíz de la pila y no la necesita. `Platform` también la
+> recibe. `Profile` es una pestaña y no lleva flecha de volver.
 >
 > `Screen.Platform` ya **no** tiene botón "Volver al inicio". Antes lo tenía y
 > `AppRoot` lo encadenaba a `Screen.Home` fijo, de modo que un invitado que
@@ -192,16 +211,37 @@ de navegación, no una decisión de diseño: está anotado como pendiente.
 | Tab | Ruta | Visible para |
 |-----|------|--------------|
 | Inicio | `Home` (estudiante) / `ProspectHome` (invitado) | todos |
-| Horario | `DailySchedule` | solo conectado |
-| Pagos | `Payments` | solo conectado |
-| Soporte | `Faq` | todos |
+| Aprender | `Learn` | estudiante conectado |
+| Agenda | `Agenda` | estudiante conectado |
+| Perfil | `Profile` | estudiante conectado |
+| Soporte | `Faq` | invitado, estudiante y administrador |
+| Panel | `Admin` | solo `Rol.ADMIN` / `Rol.ADMINISTRATIVO` |
+
+> **Horario ya no es pestaña.** El estudiante lo abre desde **Agenda** con
+> **VER HORARIO Y PLAN DE ESTUDIOS**. `DailySchedule` conserva
+> `activeTab = EnidTab.AGENDA`, de modo que la barra sigue marcando Agenda
+> mientras se consulta el horario.
+
+### Módulos que no navegan a otra pantalla
+
+- **Aprender** no lleva a una lección aparte: marcar la fila cambia el
+  porcentaje y guarda el avance en el teléfono. El botón **Continuar** del Home
+  es la entrada principal.
+- **Perfil** despliega sus datos en la misma pantalla; no crea una ruta nueva
+  para “Mis datos”. Solo los ajustes con destino propio (certificados, ayuda y
+  panel) navegan.
+
+El administrador **no ve los módulos de estudiante**: su lista es
+**Inicio · Panel · Soporte**. El estudiante ve **Inicio · Aprender · Agenda ·
+Perfil** y el invitado solo Inicio y Soporte. El horario detallado se consulta
+desde Agenda y el sistema de pagos se retiró por completo el 27 Oct 2026.
 
 **Quién ve qué pestañas no lo decide cada pantalla.** `AppScaffold` lee
 `SesionUi.conectado` y calcula la lista con `tabsSegunSesion(...)`; **ninguna
 pantalla pasa el parámetro `tabs`**. Antes el valor por defecto era
-`EnidTab.entries` y ocho pantallas no pasaban nada, así que el invitado veía las
-cuatro pestañas y podía entrar a `Payments` —con un historial de pagos
-fabricado— tocando "Pagos".
+`EnidTab.entries` y ocho pantallas no pasaban nada, así que el invitado veía
+pestañas que no le correspondían. Hoy la barra se calcula solo con
+`tabsSegunSesion(...)`.
 
 El tab **Inicio** tampoco siempre va a `Home`: `AppRoot` lo resuelve según la
 sesión (`inicioDelUsuario`). El invitado que abre el catálogo desde la barra
@@ -214,7 +254,7 @@ estado local (`paso`).
 
 ```mermaid
 flowchart LR
-    P1["Paso 1<br/>Quién eres<br/>nombre · documento · fechas · contacto"] -->|CONTINUAR| P2["Paso 2<br/>Formación y documentos<br/>nivel · casillas · ICFES · adjuntos"]
+    P1["Paso 1<br/>Quién eres<br/>nombre · documento · fechas · contacto<br/>programa · año o ciclo"] -->|CONTINUAR| P2["Paso 2<br/>Formación y documentos<br/>nivel · casillas · certificado ICFES · adjuntos"]
     P2 -->|CONTINUAR| P3["Paso 3<br/>Situación personal<br/>edad · familia · emergencia"]
     P3 -->|ENVIAR| OK["Pantalla de confirmación<br/>¡Preinscripción enviada!"]
     P1 <-->|Atrás| P2
@@ -224,13 +264,18 @@ flowchart LR
 - Entrada al programa: se puede llegar con `programaId` (desde detalle, finder o
   intereses) o sin él (`null`, desde los accesos directos del Home); si es `null`
   el formulario deja elegir el programa en el paso 1.
+- La **carrera/programa** y el **año o ciclo** se eligen en el paso 1. El ciclo
+  sale de `DataRepository.ciclos` (lista cerrada), no se escribe a mano.
+- El paso 2 pide el **certificado del ICFES** como documento adjunto, no el
+  número del ICFES: el número se eliminó del formulario.
 - Al enviar se llama a `DataRepository.registrarPreinscripcion` y se muestra la
-  confirmación; el registro queda en el dispositivo y aparece en `Intereses`.
+  confirmación; el registro queda en el dispositivo, aparece en `Intereses` y
+  actualiza los datos de solo lectura de **Perfil**.
 
 ## 6. Salidas a apps externas (fuera del diagrama)
 
 `data/EnlacesExternos.kt` es la **única** salida de la app hacia otra aplicación:
-WhatsApp, llamadas, mapa, web, plataforma y PSE. Ninguna pantalla llama a
+WhatsApp, llamadas, mapa, web, plataforma y redes sociales. Ninguna pantalla llama a
 `context.startActivity` por su cuenta; una prueba lo verifica leyendo el
 código fuente.
 
@@ -240,8 +285,7 @@ Por eso la barra del asesor y los botones de sede son visibles pero inertes.
 **Cada función devuelve `Boolean`**: `true` solo si la app externa se abrió de
 verdad, `false` si el interruptor está apagado o si el dispositivo no tiene
 ninguna app capaz de atender la acción. Sin ese valor de retorno una pantalla
-no puede distinguir "se abrió" de "no pasó nada", y `PseScreen` por eso mismo
-llegaba a mostrar *"Pago procesado con éxito"*.
+no puede distinguir "se abrió" de "no pasó nada".
 
 | Desde | Acción | App destino |
 |-------|--------|-------------|
@@ -250,7 +294,25 @@ llegaba a mostrar *"Pago procesado con éxito"*.
 | Locations | Cómo llegar | Mapa |
 | Varias | Enlace institucional | Navegador |
 | Platform | Ir a la plataforma | Navegador |
-| Pse | Pagar por PSE | PSE bancario |
 
-`Payments` ya **no** sale por sí sola: se llega desde `Pse` o desde el botón
-"PAGAR CON PSE", y en ambos casos la pasarela se abre desde `Pse`.
+> **Sin módulo de pagos.** El 27 Oct 2026 se retiraron `Payments`, `Pse`, la
+> pestaña Pagos, los modelos de alerta, el historial, la pasarela y los montos.
+> La app no procesa pagos ni recibe datos bancarios; el pago se coordina con un
+> asesor o en la sede de Chía.
+
+## 4. Salidas externas desde Nuestra Sede e Inicio
+
+La pantalla **Nuestra Sede** y el final del **Inicio** comparten la fila
+`RedesSociales`. No son destinos internos: pasan por `EnlacesExternos` y
+devuelven si la app externa se abrió.
+
+| Desde | Botón | Destino | Cómo |
+|-------|-------|---------|------|
+| Inicio / Nuestra Sede | Facebook | `https://www.facebook.com/Enid.Escuela/` | `EnlacesExternos.abrirFacebook` |
+| Inicio / Nuestra Sede | Instagram | `https://www.instagram.com/fundacionenid/` | `EnlacesExternos.abrirInstagram` |
+| Inicio / Nuestra Sede | YouTube | `https://www.youtube.com/channel/UCb_yG90hqnKELFCBp0Dcqeg` | `EnlacesExternos.abrirYouTube` |
+| Nuestra Sede | 316 630 1033 / 313 204 8325 | Marcador del teléfono | `EnlacesExternos.abrirLlamar` (un número por toque) |
+| Nuestra Sede | Cómo Llegar | Maps / Waze con la dirección de Chía | `EnlacesExternos.abrirMapa` |
+
+Con `EnlacesExternos.habilitados = false` (pruebas) los toques se registran en
+log y **no se abre ninguna app externa**.

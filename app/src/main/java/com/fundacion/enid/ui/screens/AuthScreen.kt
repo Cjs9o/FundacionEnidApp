@@ -44,7 +44,7 @@ import com.fundacion.enid.ui.shared.EnidWhite
 import kotlinx.coroutines.launch
 
 private enum class AuthTab(val label: String) {
-    LOGIN("Iniciar Sesión"), INVITADO("Invitado")
+    LOGIN("Ingresar"), REGISTRO("Registro"), INVITADO("Invitado")
 }
 
 @Composable
@@ -62,6 +62,12 @@ fun AuthScreen(
     var correo by remember { mutableStateOf("") }
     var clave by remember { mutableStateOf("") }
     var errorLogin by remember { mutableStateOf<String?>(null) }
+
+    // ── Registro state ────────────────────────────────────────────────────
+    var nombreRegistro by remember { mutableStateOf("") }
+    var correoRegistro by remember { mutableStateOf("") }
+    var claveRegistro by remember { mutableStateOf("") }
+    var errorRegistro by remember { mutableStateOf<String?>(null) }
 
     Column(
         modifier = Modifier
@@ -83,7 +89,7 @@ fun AuthScreen(
                     imageVector = EnidIcons.VVolver,
                     contentDescription = "Volver",
                     tint = EnidDarkBlue,
-                    modifier = Modifier.size(24.dp)
+                    modifier = Modifier.size(26.dp)
                 )
             }
             VerticalSpacer(8)
@@ -183,6 +189,82 @@ fun AuthScreen(
                 )
             }
 
+            AuthTab.REGISTRO -> {
+                Text(
+                    text = "Crea tu cuenta",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = EnidInk
+                )
+                VerticalSpacer(14)
+                Text(
+                    text = "Regístrate para guardar tu programa, tus datos y tus avances en este teléfono.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = EnidTextSec,
+                    lineHeight = 22.sp
+                )
+                VerticalSpacer(18)
+                BigTextField(
+                    value = nombreRegistro,
+                    onValueChange = { nombreRegistro = it },
+                    label = "Nombre completo",
+                    placeholder = "Ej. María Fernanda Díaz"
+                )
+                VerticalSpacer(14)
+                BigTextField(
+                    value = correoRegistro,
+                    onValueChange = { correoRegistro = it },
+                    label = "Correo Electrónico",
+                    placeholder = "ejemplo@correo.com",
+                    keyboardType = KeyboardType.Email
+                )
+                VerticalSpacer(14)
+                BigTextField(
+                    value = claveRegistro,
+                    onValueChange = { claveRegistro = it },
+                    label = "Contraseña",
+                    placeholder = "Mínimo 6 caracteres",
+                    keyboardType = KeyboardType.Password
+                )
+                VerticalSpacer(16)
+                errorRegistro?.let {
+                    Text(it, color = EnidRed, style = MaterialTheme.typography.bodyMedium)
+                    VerticalSpacer(10)
+                }
+                BigButton(
+                    text = if (cargando) "Creando cuenta..." else "Crear cuenta",
+                    enabled = !cargando
+                ) {
+                    when {
+                        nombreRegistro.isBlank() || correoRegistro.isBlank() || claveRegistro.isBlank() ->
+                            errorRegistro = "Completa tu nombre, tu correo y tu contraseña."
+                        claveRegistro.length < 6 ->
+                            errorRegistro = "La contraseña debe tener al menos 6 caracteres."
+                        else -> {
+                            errorRegistro = null
+                            cargando = true
+                            scope.launch {
+                                try {
+                                    repository.registrar(
+                                        com.fundacion.enid.model.User(
+                                            nombre = nombreRegistro.trim(),
+                                            correo = correoRegistro.trim(),
+                                            rol = com.fundacion.enid.model.Rol.ESTUDIANTE
+                                        ),
+                                        claveRegistro
+                                    )
+                                    onLoginSuccess()
+                                } catch (e: Exception) {
+                                    errorRegistro = repository.mensajeErrorAuth(e)
+                                } finally {
+                                    cargando = false
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
             AuthTab.INVITADO -> {
                 Text(
                     text = "Explora como invitado",
@@ -201,6 +283,35 @@ fun AuthScreen(
                 BigButton(
                     text = "Ingresar como Invitado",
                     onClick = onGuest
+                )
+            }
+        }
+
+        VerticalSpacer(24)
+        // Acceso de demostración: mientras la Fundación no tenga un servidor
+        // que asigne roles, la app reconoce al administrador por el correo.
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(EnidWhite, RoundedCornerShape(12.dp))
+                .padding(14.dp)
+        ) {
+            Column {
+                Text(
+                    text = "Acceso de administrador",
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = EnidDarkBlue
+                )
+                VerticalSpacer(4)
+                Text(
+                    text = "Mientras la Fundación no asigne roles desde un servidor, " +
+                        "cualquier correo que contenga «admin» (por ejemplo " +
+                        "admin@enid.edu.co) entra al panel de administración. " +
+                        "Los demás correos ven el menú de estudiante.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = EnidTextSec,
+                    lineHeight = 18.sp
                 )
             }
         }

@@ -25,6 +25,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -51,6 +52,7 @@ import com.fundacion.enid.model.adjuntosDeDocumentosMarcados
 import com.fundacion.enid.model.TipoDocumento
 import com.fundacion.enid.navigation.Screen
 import com.fundacion.enid.ui.components.AppScaffold
+import com.fundacion.enid.ui.components.BanderaPrefijo
 import com.fundacion.enid.ui.components.BigButton
 import com.fundacion.enid.ui.components.BigTextField
 import com.fundacion.enid.ui.components.CampoFecha
@@ -61,6 +63,7 @@ import com.fundacion.enid.ui.components.ListaOpciones
 import com.fundacion.enid.ui.components.NotaFormulario
 import com.fundacion.enid.ui.components.PreguntaSiNo
 import com.fundacion.enid.ui.components.SelectorBotones
+import com.fundacion.enid.ui.components.SelectorCompacto
 import com.fundacion.enid.ui.components.SelectorDesplegable
 import com.fundacion.enid.ui.components.VerticalSpacer
 import com.fundacion.enid.ui.shared.EnidBorderSoft
@@ -82,7 +85,7 @@ private const val TOTAL_PASOS = 3
  *
  * **Paso 2 — Tu formación y documentos.** Nivel de formación, los documentos que
  * debes entregar (fotocopia del documento, de los títulos de bachiller y el
- * certificado del ICFES) y el número del ICFES.
+ * certificado del ICFES).
  *
  * **Paso 3 — Tu situación.** Estado civil (solo si eres mayor de edad), si eres
  * menor de edad o tienes una condición especial, si tienes acudiente, un
@@ -148,8 +151,13 @@ fun PreinscriptionScreen(
                 ?: ""
         )
     }
+    // El año/ciclo se elige de la lista cerrada de [DataRepository.ciclos]. La
+    // cuenta no lo edita a mano: lo que se guarda aquí es lo que muestran el
+    // Inicio y Perfil.
+    var cicloSeleccionado by remember { mutableStateOf("") }
     var mostrarDocumento by remember { mutableStateOf(false) }
     var mostrarPrograma by remember { mutableStateOf(false) }
+    var mostrarCiclo by remember { mutableStateOf(false) }
 
     // ── Paso 2: archivo adjunto de cada documento ──────────────────────
     // Se guarda la referencia (documento -> adjunto), no el archivo. Al elegir
@@ -220,7 +228,6 @@ fun PreinscriptionScreen(
 
     // ── Paso 2: formación y documentos ─────────────────────────────────
     var nivelFormacion by remember { mutableStateOf<NivelFormacion?>(null) }
-    var icfes by remember { mutableStateOf("") }
 
     // ── Paso 3: situación personal ─────────────────────────────────────
     var esMenor by remember { mutableStateOf<Boolean?>(null) }
@@ -261,6 +268,7 @@ fun PreinscriptionScreen(
             telefono.filter { it.isDigit() }.length < 7 -> "Ingresa un número de contacto válido."
             !FormatoEntrada.esCorreoValido(correo) -> "Ingresa un correo válido."
             programaSeleccionado.isBlank() -> "Selecciona el programa de tu interés."
+            cicloSeleccionado.isBlank() -> "Selecciona el año o ciclo en el que quieres iniciar."
             else -> null
         }
         return error == null
@@ -273,8 +281,6 @@ fun PreinscriptionScreen(
                 "Confirma que puedes entregar la fotocopia de tu documento."
             documentos.none { it == DocumentoRequerido.ICFES.name } ->
                 "Confirma que puedes entregar el certificado del ICFES."
-            icfes.isBlank() ->
-                "Escribe tu número de ICFES. Si no lo tienes a la mano, escribe NS y el asesor lo gestiona."
             else -> null
         }
         return error == null
@@ -314,7 +320,6 @@ fun PreinscriptionScreen(
                 fechaNacimiento = fechaNacimiento,
                 fechaExpedicion = fechaExpedicion,
                 nivelFormacion = nivelFormacion?.etiqueta ?: "",
-                icfes = icfes.trim(),
                 documentos = documentos.toList(),
                 estadoCivil = estadoCivil?.etiqueta ?: "",
                 esMenorDeEdad = esMenor,
@@ -333,11 +338,34 @@ fun PreinscriptionScreen(
                         correo = familiarCorreo.trim()
                     )
                 } else null,
-                adjuntos = adjuntosDeDocumentosMarcados(adjuntos, documentos)
+                adjuntos = adjuntosDeDocumentosMarcados(adjuntos, documentos),
+                anio = cicloSeleccionado
             )
         )
         enviado = true
     }
+
+    // Un error de validación describe el formulario tal como estaba al pulsar
+    // CONTINUAR. Si la persona corrige cualquier dato, ese texto deja de ser
+    // cierto: se limpia solo, sin obligarla a pulsar otra vez para descubrirlo.
+    // El efecto solo se reinicia cuando cambia alguna entrada; mostrar el error
+    // no lo reinicia, así que el mensaje permanece hasta que se edite algo.
+    LaunchedEffect(
+        nombre, tipoDocumento, numeroDocumento, fechaNacimiento, fechaExpedicion,
+        prefijo, telefono, correo, programaSeleccionado, cicloSeleccionado,
+        nivelFormacion, documentos, esMenor, estadoCivil, tieneAcudiente,
+        nombreAcudiente, telefonoEmergencia, registraFamiliar, familiarNombre,
+        familiarTelefono
+    ) {
+        error = null
+    }
+
+    // Al pasar de un paso a otro el contenido cambia de altura, pero el
+    // desplazamiento anterior se conservaba: quien avanzaba desde el final del
+    // paso 1 abría el paso 2 ya bajado, con el título y el primer campo fuera
+    // de pantalla. Cada paso —y la confirmación— empieza arriba.
+    val estadoScroll = rememberScrollState()
+    LaunchedEffect(paso, enviado) { estadoScroll.scrollTo(0) }
 
     AppScaffold(
         title = "Preinscripción",
@@ -345,6 +373,7 @@ fun PreinscriptionScreen(
         onBack = onBack,
         activeTab = EnidTab.INICIO,
         onTabNavigate = onTabNavigate,
+        scrollState = estadoScroll,
     ) {
         if (enviado) {
             PantallaEnviado(
@@ -377,6 +406,9 @@ fun PreinscriptionScreen(
                 programa = programaSeleccionado, onPrograma = { programaSeleccionado = it },
                 busquedaPrograma = busquedaPrograma, onBusquedaPrograma = { busquedaPrograma = it },
                 mostrarPrograma = mostrarPrograma, onTogglePrograma = { mostrarPrograma = it },
+                ciclo = cicloSeleccionado, onCiclo = { cicloSeleccionado = it },
+                ciclos = repository.ciclos,
+                mostrarCiclo = mostrarCiclo, onToggleCiclo = { mostrarCiclo = it },
                 programas = repository
             )
 
@@ -389,8 +421,7 @@ fun PreinscriptionScreen(
                 onFormatoElegido = { doc, formato ->
                     formatosElegidos = formatosElegidos + (doc.name to formato)
                 },
-                onQuitarAdjunto = { doc -> quitarAdjunto(doc) },
-                icfes = icfes, onIcfes = { icfes = it }
+                onQuitarAdjunto = { doc -> quitarAdjunto(doc) }
             )
 
             else -> PasoSituacion(
@@ -414,10 +445,10 @@ fun PreinscriptionScreen(
                 familiarCorreo = familiarCorreo, onFamiliarCorreo = { familiarCorreo = it }
             )
         }
-        VerticalSpacer(18)
+        VerticalSpacer(14)
         error?.let {
             Text(it, color = EnidRed, style = MaterialTheme.typography.bodyMedium)
-            VerticalSpacer(10)
+            VerticalSpacer(8)
         }
 
         Row(
@@ -510,7 +541,7 @@ private fun IndicadorPasos(pasoActual: Int) {
         style = MaterialTheme.typography.bodyMedium,
         color = EnidTextSec
     )
-    VerticalSpacer(18)
+    VerticalSpacer(14)
 }
 
 // ── Paso 1 ───────────────────────────────────────────────────────────────────
@@ -529,18 +560,37 @@ private fun PasoDatosPersonales(
     programa: String, onPrograma: (String) -> Unit,
     busquedaPrograma: String, onBusquedaPrograma: (String) -> Unit,
     mostrarPrograma: Boolean, onTogglePrograma: (Boolean) -> Unit,
+    ciclo: String, onCiclo: (String) -> Unit,
+    ciclos: List<String>,
+    mostrarCiclo: Boolean, onToggleCiclo: (Boolean) -> Unit,
     programas: DataRepository
 ) {
     CampoLabel("Nombre completo", "Tal como aparece en tu documento de identidad.")
     BigTextField(value = nombre, onValueChange = onNombre, label = "", placeholder = "María Elvira Rodríguez")
-    VerticalSpacer(16)
+    VerticalSpacer(12)
 
-    CampoLabel("Tipo de documento", "Elige la sigla y luego escribe el número.")
-    SelectorDesplegable(
-        valor = tipoDocumento?.let { "${it.etiqueta} · ${it.ayuda}" } ?: "",
-        placeholder = "Selecciona CC, CE, TI, NIT…",
-        onClick = { onToggleDocumento(!mostrarDocumento) }
-    )
+    CampoLabel("Documento de identidad", "Elige la sigla y escribe solo los números.")
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        SelectorCompacto(
+            valor = tipoDocumento?.etiqueta ?: "",
+            placeholder = "Tipo",
+            onClick = { onToggleDocumento(!mostrarDocumento) },
+            ancho = 92.dp
+        )
+        Box(modifier = Modifier.weight(1f)) {
+            BigTextField(
+                value = numeroDocumento,
+                onValueChange = onNumeroDocumento,
+                label = "",
+                placeholder = "1025123456",
+                keyboardType = KeyboardType.Number
+            )
+        }
+    }
     if (mostrarDocumento) {
         ListaOpciones(
             opciones = TipoDocumento.entries,
@@ -550,17 +600,7 @@ private fun PasoDatosPersonales(
             onCerrar = { onToggleDocumento(false) }
         )
     }
-    VerticalSpacer(16)
-
-    CampoLabel("Número de documento", "Solo los números, sin puntos ni guiones.")
-    BigTextField(
-        value = numeroDocumento,
-        onValueChange = onNumeroDocumento,
-        label = "",
-        placeholder = "1025123456",
-        keyboardType = KeyboardType.Number
-    )
-    VerticalSpacer(16)
+    VerticalSpacer(12)
 
     CampoLabel("Fecha de nacimiento", "Formato dd/mm/aaaa.")
     CampoFecha(
@@ -572,7 +612,7 @@ private fun PasoDatosPersonales(
         VerticalSpacer(6)
         NotaFormulario("Tienes $edadEstimada años según esa fecha.")
     }
-    VerticalSpacer(16)
+    VerticalSpacer(12)
 
     CampoLabel("Fecha de expedición del documento", "Está impresa en la cédula.")
     CampoFecha(
@@ -580,7 +620,7 @@ private fun PasoDatosPersonales(
         onValor = onFechaExpedicion,
         placeholder = "08/07/1994"
     )
-    VerticalSpacer(16)
+    VerticalSpacer(12)
 
     CampoLabel(
         "Número de contacto",
@@ -590,7 +630,7 @@ private fun PasoDatosPersonales(
         prefijo = prefijo, onPrefijo = onPrefijo,
         telefono = telefono, onTelefono = onTelefono
     )
-    VerticalSpacer(16)
+    VerticalSpacer(12)
 
     CampoLabel("Correo electrónico", "Ahí te enviamos la información del programa.")
     BigTextField(
@@ -600,7 +640,7 @@ private fun PasoDatosPersonales(
         placeholder = "maria.rodriguez@correo.com",
         keyboardType = KeyboardType.Email
     )
-    VerticalSpacer(16)
+    VerticalSpacer(12)
 
     CampoLabel("Programa de tu interés", "Puedes cambiarlo más adelante con un asesor.")
     SelectorDesplegable(
@@ -667,15 +707,38 @@ private fun PasoDatosPersonales(
             }
         }
     }
+
+    VerticalSpacer(12)
+    CampoLabel(
+        "Año o ciclo",
+        "Elige el periodo en el que quieres iniciar. La Fundación confirma la fecha."
+    )
+    SelectorDesplegable(
+        valor = ciclo,
+        placeholder = "Selecciona el año o ciclo",
+        onClick = { onToggleCiclo(!mostrarCiclo) }
+    )
+    if (mostrarCiclo) {
+        ListaOpciones(
+            opciones = ciclos,
+            etiqueta = { it },
+            seleccionado = ciclo,
+            onElegir = {
+                onCiclo(it)
+                onToggleCiclo(false)
+            },
+            onCerrar = { onToggleCiclo(false) }
+        )
+    }
 }
 
 /**
  * Prefijo + número en un solo bloque.
  *
- * El prefijo va como botón y no como desplegable porque son solo siete y se eligen
- * de una: un menú que se abre y se cierra para marcar "+57" es más lento que un
- * botón. Se muestra el país completo en el campo largo, porque "+58" solo no le
- * dice a alguien si es Venezuela o Chile.
+ * El prefijo queda a la izquierda, como selector plegable: cerrado muestra solo
+ * la sigla (`+57`) para no robarle ancho al número, y al desplegarlo aparece la
+ * lista con la mini bandera y el nombre del país. El campo del número lleva un
+ * ejemplo como texto de fondo para que se sepa qué formato escribir.
  */
 @Composable
 private fun CampoTelefono(
@@ -684,22 +747,38 @@ private fun CampoTelefono(
     telefono: String,
     onTelefono: (String) -> Unit
 ) {
-    val pais = PrefijoTelefono.entries.firstOrNull { it.codigo == prefijo }?.pais
-    SelectorBotones(
-        opciones = PrefijoTelefono.entries,
-        etiqueta = { it.codigo },
-        seleccionado = prefijo,
-        columnas = 4,
-        onElegir = { onPrefijo(it.codigo) }
-    )
-    VerticalSpacer(8)
-    BigTextField(
-        value = telefono,
-        onValueChange = onTelefono,
-        label = "",
-        placeholder = pais?.let { "Número · $it" } ?: "Número de contacto",
-        keyboardType = KeyboardType.Phone
-    )
+    var mostrarPrefijo by remember { mutableStateOf(false) }
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        SelectorCompacto(
+            valor = prefijo,
+            placeholder = "Prefijo",
+            onClick = { mostrarPrefijo = !mostrarPrefijo },
+            ancho = 88.dp
+        )
+        Box(modifier = Modifier.weight(1f)) {
+            BigTextField(
+                value = telefono,
+                onValueChange = onTelefono,
+                label = "",
+                placeholder = "300 123 4567",
+                keyboardType = KeyboardType.Phone
+            )
+        }
+    }
+    if (mostrarPrefijo) {
+        ListaOpciones(
+            opciones = PrefijoTelefono.entries,
+            etiqueta = { it.codigo },
+            seleccionado = prefijo,
+            onElegir = { onPrefijo(it.codigo) },
+            onCerrar = { mostrarPrefijo = false },
+            icono = { BanderaPrefijo(it) }
+        )
+    }
 }
 
 // ── Paso 2 ───────────────────────────────────────────────────────────────────
@@ -712,8 +791,7 @@ private fun PasoFormacion(
     formatosElegidos: Map<String, FormatoArchivo>,
     onAdjuntar: (DocumentoRequerido, FormatoArchivo) -> Unit,
     onFormatoElegido: (DocumentoRequerido, FormatoArchivo) -> Unit,
-    onQuitarAdjunto: (DocumentoRequerido) -> Unit,
-    icfes: String, onIcfes: (String) -> Unit
+    onQuitarAdjunto: (DocumentoRequerido) -> Unit
 ) {
     val esMenorSegunFecha = edadEstimada != null && edadEstimada < 18
     CampoLabel("Nivel de formación", "Nos sirve para saber qué documentos debes entregar.")
@@ -724,7 +802,7 @@ private fun PasoFormacion(
         columnas = 1,
         onElegir = onNivelFormacion
     )
-    VerticalSpacer(20)
+    VerticalSpacer(14)
 
     CampoLabel("Documentos para entregar", "Marca los que puedes aportar.")
     Text(
@@ -763,23 +841,9 @@ private fun PasoFormacion(
 
     if (nivelFormacion == NivelFormacion.TECNICO) {
         NotaFormulario("Como ya terminaste técnico, el bachillerato ya hace parte de tu formación; no lo pedimos otra vez.")
-        VerticalSpacer(14)
+        VerticalSpacer(12)
     }
 
-    CampoLabel("Número del ICFES", "El que aparece en tu resultado de Saber 11.")
-    BigTextField(
-        value = icfes,
-        onValueChange = { onIcfes(it.uppercase().take(20)) },
-        label = "",
-        placeholder = "99052345",
-        keyboardType = KeyboardType.Text
-    )
-    VerticalSpacer(6)
-    Text(
-        text = "¿No lo tienes a la mano? Escribe NS y el asesor te orienta.",
-        style = MaterialTheme.typography.bodySmall,
-        color = EnidTextSec
-    )
 }
 
 // ── Paso 3 ───────────────────────────────────────────────────────────────────
@@ -817,7 +881,7 @@ private fun PasoSituacion(
         VerticalSpacer(6)
         NotaFormulario("Según tu fecha de nacimiento tienes $edadEstimada años.")
     }
-    VerticalSpacer(20)
+    VerticalSpacer(14)
 
     if (menorEfectivo == true) {
         CampoLabel("Nombre de tu acudiente", "Quien responde por ti ante la Fundación.")
@@ -827,7 +891,7 @@ private fun PasoSituacion(
             label = "",
             placeholder = "Nombre del responsable"
         )
-        VerticalSpacer(20)
+        VerticalSpacer(14)
     } else {
         CampoLabel("Estado civil", "Solo para mayores de edad.")
         SelectorBotones(
@@ -837,7 +901,7 @@ private fun PasoSituacion(
             columnas = 3,
             onElegir = onEstadoCivil
         )
-        VerticalSpacer(20)
+        VerticalSpacer(14)
 
         CampoLabel("¿Tienes alguna condición especial?", "Opcional. Déjalo vacío si no aplica.")
         BigTextField(
@@ -846,12 +910,12 @@ private fun PasoSituacion(
             label = "",
             placeholder = "Por ejemplo: silla de ruedas, excelente vista, dificultad para leer"
         )
-        VerticalSpacer(20)
+        VerticalSpacer(14)
 
         CampoLabel("¿Tienes acudiente?", "Persona que te acompaña en el proceso.")
         PreguntaSiNo(valor = tieneAcudiente, onCambiar = onTieneAcudiente)
         if (tieneAcudiente == true) {
-            VerticalSpacer(14)
+            VerticalSpacer(12)
             BigTextField(
                 value = nombreAcudiente,
                 onValueChange = onNombreAcudiente,
@@ -859,7 +923,7 @@ private fun PasoSituacion(
                 placeholder = "Nombre del acudiente"
             )
         }
-        VerticalSpacer(20)
+        VerticalSpacer(14)
     }
 
     CampoLabel("Número de contacto de emergencia", "A quién llamamos si hay una novedad.")
@@ -867,7 +931,7 @@ private fun PasoSituacion(
         prefijo = prefijoEmergencia, onPrefijo = onPrefijoEmergencia,
         telefono = telefonoEmergencia, onTelefono = onTelefonoEmergencia
     )
-    VerticalSpacer(22)
+    VerticalSpacer(16)
 
     // ── Familiar de confianza ────────────────────────────────────────────
     Card(
@@ -892,7 +956,7 @@ private fun PasoSituacion(
             PreguntaSiNo(valor = registraFamiliar, onCambiar = onRegistraFamiliar)
 
             if (registraFamiliar) {
-                VerticalSpacer(16)
+                VerticalSpacer(12)
                 CampoLabel("Nombre completo del familiar")
                 BigTextField(
                     value = familiarNombre,
@@ -900,7 +964,7 @@ private fun PasoSituacion(
                     label = "",
                     placeholder = "Luis Fernando Gómez"
                 )
-                VerticalSpacer(14)
+                VerticalSpacer(12)
 
                 CampoLabel("¿Qué parentesco tiene contigo?")
                 BigTextField(
@@ -909,14 +973,30 @@ private fun PasoSituacion(
                     label = "",
                     placeholder = "Hijo, hermana, esposo, vecina…"
                 )
-                VerticalSpacer(14)
+                VerticalSpacer(12)
 
-                CampoLabel("Tipo de documento del familiar")
-                SelectorDesplegable(
-                    valor = familiarTipoDoc?.let { "${it.etiqueta} · ${it.ayuda}" } ?: "",
-                    placeholder = "Selecciona el tipo",
-                    onClick = { onToggleFamiliarTipoDoc(!mostrarFamiliarTipoDoc) }
-                )
+                CampoLabel("Documento del familiar", "Elige la sigla y escribe solo los números.")
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    SelectorCompacto(
+                        valor = familiarTipoDoc?.etiqueta ?: "",
+                        placeholder = "Tipo",
+                        onClick = { onToggleFamiliarTipoDoc(!mostrarFamiliarTipoDoc) },
+                        ancho = 92.dp
+                    )
+                    Box(modifier = Modifier.weight(1f)) {
+                        BigTextField(
+                            value = familiarNumeroDoc,
+                            onValueChange = onFamiliarNumeroDoc,
+                            label = "",
+                            placeholder = "79876543",
+                            keyboardType = KeyboardType.Number
+                        )
+                    }
+                }
                 if (mostrarFamiliarTipoDoc) {
                     ListaOpciones(
                         opciones = TipoDocumento.entries,
@@ -926,24 +1006,14 @@ private fun PasoSituacion(
                         onCerrar = { onToggleFamiliarTipoDoc(false) }
                     )
                 }
-                VerticalSpacer(14)
-
-                CampoLabel("Número de documento del familiar")
-                BigTextField(
-                    value = familiarNumeroDoc,
-                    onValueChange = onFamiliarNumeroDoc,
-                    label = "",
-                    placeholder = "79876543",
-                    keyboardType = KeyboardType.Number
-                )
-                VerticalSpacer(14)
+                VerticalSpacer(12)
 
                 CampoLabel("Número de contacto del familiar")
                 CampoTelefono(
                     prefijo = familiarPrefijo, onPrefijo = onFamiliarPrefijo,
                     telefono = familiarTelefono, onTelefono = onFamiliarTelefono
                 )
-                VerticalSpacer(14)
+                VerticalSpacer(12)
 
                 CampoLabel("Correo electrónico del familiar", "Opcional.")
                 BigTextField(
@@ -976,7 +1046,7 @@ private fun PantallaEnviado(onOtra: () -> Unit) {
                     color = EnidGreen
                 )
             }
-            VerticalSpacer(16)
+            VerticalSpacer(12)
             Text(
                 text = "¡Preinscripción enviada!",
                 style = MaterialTheme.typography.titleLarge,
@@ -984,7 +1054,7 @@ private fun PantallaEnviado(onOtra: () -> Unit) {
                 color = EnidDarkBlue,
                 textAlign = TextAlign.Center
             )
-            VerticalSpacer(10)
+            VerticalSpacer(8)
             Text(
                 text = "La Fundación ENID se comunicará contigo para confirmar la " +
                     "entrega de los documentos y continuar con el proceso.",
@@ -992,7 +1062,7 @@ private fun PantallaEnviado(onOtra: () -> Unit) {
                 color = EnidTextSec,
                 textAlign = TextAlign.Center
             )
-            VerticalSpacer(24)
+            VerticalSpacer(18)
             BigButton(text = "Enviar otra preinscripción", onClick = onOtra)
         }
     }

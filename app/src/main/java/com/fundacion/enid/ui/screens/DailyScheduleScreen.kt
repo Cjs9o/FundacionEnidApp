@@ -60,7 +60,7 @@ fun DailyScheduleScreen(
             .replaceFirstChar { it.uppercase() }
     }
 
-    AppScaffold(title = "Mi Horario", onBack = onBack, activeTab = EnidTab.HORARIO, onTabNavigate = onTabNavigate) {
+    AppScaffold(title = "Mi Horario", onBack = onBack, activeTab = EnidTab.AGENDA, onTabNavigate = onTabNavigate) {
         // Tabs
         Row(modifier = Modifier.fillMaxWidth()) {
             HorarioTab.entries.forEachIndexed { i, t ->

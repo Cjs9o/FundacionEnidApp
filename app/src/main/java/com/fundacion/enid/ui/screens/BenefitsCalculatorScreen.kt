@@ -1,11 +1,6 @@
 package com.fundacion.enid.ui.screens
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -14,12 +9,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.fundacion.enid.data.DataRepository
 import com.fundacion.enid.navigation.Screen
 import com.fundacion.enid.ui.components.AppScaffold
 import com.fundacion.enid.ui.components.BigButton
@@ -27,8 +18,6 @@ import com.fundacion.enid.ui.components.BigTextField
 import com.fundacion.enid.ui.components.EnidTab
 import com.fundacion.enid.ui.components.InfoCard
 import com.fundacion.enid.ui.components.VerticalSpacer
-import com.fundacion.enid.ui.shared.EnidBorderSoft
-import com.fundacion.enid.ui.shared.EnidDarkBlue
 import com.fundacion.enid.ui.theme.EnidGreen
 import com.fundacion.enid.ui.shared.EnidInk
 import com.fundacion.enid.ui.shared.EnidTextSec
@@ -41,10 +30,6 @@ fun BenefitsCalculatorScreen(
     var referidos by remember { mutableStateOf("") }
     var descuento by remember { mutableStateOf(0) }
     var aplicado by remember { mutableStateOf(false) }
-
-    // El monto base sale del repositorio: antes estaba escrito aquí y en
-    // PseScreen y PaymentsScreen, con dos valores distintos.
-    val montoBase = DataRepository.MONTO_MATRICULA
 
     AppScaffold(
         title = "Plan Referidos",
@@ -93,32 +78,11 @@ fun BenefitsCalculatorScreen(
                     color = EnidGreen
                 )
                 VerticalSpacer(8)
-                val ahorro = montoBase * descuento / 100
-                val final = montoBase - ahorro
                 Text(
-                    text = "Precio Final de Matrícula: \$${String.format("%,d", final).replace(",", ".")} COP",
+                    text = "El porcentaje se aplicará cuando formalices tu matrícula con un asesor de la Fundación.",
                     style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = EnidInk
-                )
-                VerticalSpacer(4)
-                Text(
-                    text = "Ahorraste \$${String.format("%,d", ahorro).replace(",", ".")} COP",
-                    fontSize = 13.sp,
                     color = EnidTextSec
                 )
-                VerticalSpacer(10)
-                Card(
-                    shape = RoundedCornerShape(8.dp),
-                    colors = CardDefaults.cardColors(containerColor = EnidDarkBlue)
-                ) {
-                    Text(
-                        text = "El beneficio quedó calculado y se verá reflejado al formalizar tu matrícula.",
-                        fontSize = 12.sp,
-                        color = Color.White,
-                        modifier = Modifier.padding(10.dp)
-                    )
-                }
             }
         }
     }
